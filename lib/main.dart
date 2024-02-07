@@ -110,7 +110,7 @@ class VideoPlayState extends State<VideoPlayWidget> {
     await obs.stream.status;
 
     _mirrorScene(false);
-    _enableHelium(false);
+    _enableVoiceInputs(Voice.normal);
   }
 
   Future<void> _mirrorScene(bool mirrored) async {
@@ -147,9 +147,10 @@ class VideoPlayState extends State<VideoPlayWidget> {
         filterEnabled: _blackWhite);
   }
 
-  Future<void> _enableHelium(bool enabled) async {
-    await _obs?.inputs.setInputMute('Mic/Aux', enabled);
-    await _obs?.inputs.setInputMute('Helium', !enabled);
+  Future<void> _enableVoiceInputs(Voice voice) async {
+    await _obs?.inputs.setInputMute('Mic/Aux', voice != Voice.normal);
+    await _obs?.inputs.setInputMute('Helium', voice != Voice.helium);
+    await _obs?.inputs.setInputMute('Brutal', voice != Voice.brutal);
   }
 
   Future<void> _toggleNarkomania() async {
@@ -197,9 +198,13 @@ class VideoPlayState extends State<VideoPlayWidget> {
       final rewardTitle =
           json['payload']?['event']?['reward']?['title'] as String?;
       switch (rewardTitle) {
+        case 'Брутальність':
+          _handleVoiceChange(Voice.brutal, const Duration(minutes: 1),
+              key: DateTime.now().microsecondsSinceEpoch);
+          break;
+
         case 'Пустити гелій на 1хв':
-          _handleHelium(
-              duration: const Duration(minutes: 1),
+          _handleVoiceChange(Voice.helium, const Duration(minutes: 1),
               key: DateTime.now().microsecondsSinceEpoch);
           break;
 
@@ -387,18 +392,42 @@ class VideoPlayState extends State<VideoPlayWidget> {
     });
   }
 
-  int? _activeHeliumKey;
+  int? _activeVoiceKey;
 
-  void _handleHelium({required Duration duration, required int key}) async {
-    _activeHeliumKey = key;
-    await _enableHelium(true);
+  Future<void> _showHeliumSmoke(Duration duration) async {
+    final smoke = await _obs?.sceneItems.list('Scene').then(
+        (value) => value.firstWhere((item) => item.sourceName == 'Smoke'));
 
+    if (smoke != null) {
+      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
+          sceneName: 'Scene',
+          sceneItemId: smoke.sceneItemId,
+          sceneItemEnabled: true));
+      await Future.delayed(duration);
+      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
+          sceneName: 'Scene',
+          sceneItemId: smoke.sceneItemId,
+          sceneItemEnabled: false));
+    }
+  }
+
+  void _handleVoiceChange(Voice voice, Duration duration,
+      {required int key}) async {
+    _activeVoiceKey = key;
+
+    if (voice == Voice.helium) {
+      await _showHeliumSmoke(const Duration(seconds: 5));
+    }
+
+    await _enableVoiceInputs(voice);
     await Future.delayed(duration);
 
-    if (_activeHeliumKey == key) {
-      await _enableHelium(false);
+    if (_activeVoiceKey == key) {
+      await _enableVoiceInputs(voice);
     }
   }
 }
 
 enum VideoType { death, saber, funny }
+
+enum Voice { normal, helium, brutal }
