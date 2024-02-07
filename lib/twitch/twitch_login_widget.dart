@@ -16,7 +16,7 @@ class _State extends State<TwitchLoginWidget> {
   final _authenticator = TwitchAuthenticator(
       clientId: twitchClientId,
       clientSecret: twitchClientSecret,
-      oauthRedirectUrl: 'https://hunt.predictor.ua/redirect/?to=auth');
+      oauthRedirectUrl: twitchOauthRedirectUrl);
 
   @override
   Widget build(BuildContext context) {
