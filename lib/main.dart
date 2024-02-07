@@ -423,7 +423,7 @@ class VideoPlayState extends State<VideoPlayWidget> {
     await Future.delayed(duration);
 
     if (_activeVoiceKey == key) {
-      await _enableVoiceInputs(voice);
+      await _enableVoiceInputs(Voice.normal);
     }
   }
 }
