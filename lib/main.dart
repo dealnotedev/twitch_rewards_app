@@ -148,9 +148,9 @@ class VideoPlayState extends State<VideoPlayWidget> {
   }
 
   Future<void> _enableVoiceInputs(Voice voice) async {
-    await _obs?.inputs.setInputMute('Mic/Aux', voice != Voice.normal);
-    await _obs?.inputs.setInputMute('Helium', voice != Voice.helium);
-    await _obs?.inputs.setInputMute('Brutal', voice != Voice.brutal);
+    await _obs?.inputs.setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
+    await _obs?.inputs.setInputMute('Helium', voice != Voice.helium && voice != Voice.robo);
+    await _obs?.inputs.setInputMute('Brutal', voice != Voice.brutal && voice != Voice.robo);
   }
 
   Future<void> _toggleNarkomania() async {
@@ -198,6 +198,11 @@ class VideoPlayState extends State<VideoPlayWidget> {
       final rewardTitle =
           json['payload']?['event']?['reward']?['title'] as String?;
       switch (rewardTitle) {
+        case 'Робо':
+          _handleVoiceChange(Voice.robo, const Duration(minutes: 1),
+              key: DateTime.now().microsecondsSinceEpoch);
+          break;
+
         case 'Брутальність':
           _handleVoiceChange(Voice.brutal, const Duration(minutes: 1),
               key: DateTime.now().microsecondsSinceEpoch);
@@ -430,4 +435,4 @@ class VideoPlayState extends State<VideoPlayWidget> {
 
 enum VideoType { death, saber, funny }
 
-enum Voice { normal, helium, brutal }
+enum Voice { normal, helium, brutal, robo }
