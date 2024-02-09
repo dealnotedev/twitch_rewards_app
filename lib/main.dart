@@ -148,9 +148,12 @@ class VideoPlayState extends State<VideoPlayWidget> {
   }
 
   Future<void> _enableVoiceInputs(Voice voice) async {
-    await _obs?.inputs.setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
-    await _obs?.inputs.setInputMute('Helium', voice != Voice.helium && voice != Voice.robo);
-    await _obs?.inputs.setInputMute('Brutal', voice != Voice.brutal && voice != Voice.robo);
+    await _obs?.inputs
+        .setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
+    await _obs?.inputs
+        .setInputMute('Helium', voice != Voice.helium && voice != Voice.robo);
+    await _obs?.inputs
+        .setInputMute('Brutal', voice != Voice.brutal && voice != Voice.robo);
   }
 
   Future<void> _toggleNarkomania() async {
@@ -214,19 +217,19 @@ class VideoPlayState extends State<VideoPlayWidget> {
           break;
 
         case 'Пан Роман':
-          RingtoneUtils.play(Assets.assets1707257933102, false);
+          RingtoneUtils.play(Assets.assets1707257933102);
           break;
 
         case 'Чіпі':
-          RingtoneUtils.play(Assets.assetsChipi, false);
+          RingtoneUtils.play(Assets.assetsChipi);
           break;
 
         case 'Здивуватися як V4NS_':
-          RingtoneUtils.play(Assets.assets1707249127111, false);
+          RingtoneUtils.play(Assets.assets1707249127111);
           break;
 
         case 'Похвалити':
-          RingtoneUtils.play(Assets.assets1707249117387, false);
+          RingtoneUtils.play(Assets.assets1707249117387);
           break;
 
         case 'Дзеркало':
@@ -235,15 +238,15 @@ class VideoPlayState extends State<VideoPlayWidget> {
           break;
 
         case 'Підніми її':
-          RingtoneUtils.play(Assets.assets1707241703596, false);
+          RingtoneUtils.play(Assets.assets1707241703596);
           break;
 
         case 'Дар\'я сміється':
-          RingtoneUtils.play(Assets.assetsDaria, false);
+          RingtoneUtils.play(Assets.assetsDaria);
           break;
 
         case 'Хто відповідальний':
-          RingtoneUtils.play(Assets.assets1707241061568, false);
+          RingtoneUtils.play(Assets.assets1707241061568);
           break;
 
         case 'Чорно-біле':
@@ -255,19 +258,19 @@ class VideoPlayState extends State<VideoPlayWidget> {
           break;
 
         case 'Хто я':
-          RingtoneUtils.play(Assets.assets1707240876273, false);
+          RingtoneUtils.play(Assets.assets1707240876273);
           break;
 
         case 'Шо він зробив':
-          RingtoneUtils.play(Assets.assets1707171410229, false);
+          RingtoneUtils.play(Assets.assets1707171410229);
           break;
 
         case 'Шо він йому казав':
-          RingtoneUtils.play(Assets.assets1707170056254, false);
+          RingtoneUtils.play(Assets.assets1707170056254);
           break;
 
         case 'Ох і хуїта':
-          RingtoneUtils.play(Assets.assets1189758809049149541, false);
+          RingtoneUtils.play(Assets.assets1189758809049149541);
           break;
 
         case 'Рандомна Нарізка':
