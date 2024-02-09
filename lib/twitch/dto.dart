@@ -22,7 +22,7 @@ class Prediction {
       required this.winningOutcomeId,
       required this.predictionWindow,
       required this.status,
-        required this.outcomes,
+      required this.outcomes,
       required this.createdAt,
       required this.lockedAt,
       required this.endedAt});
@@ -30,7 +30,8 @@ class Prediction {
   static Prediction fromJson(dynamic json) {
     return Prediction(
         id: json['id'] as String,
-        outcomes: (json['outcomes'] as List<dynamic>).map(Outcome.fromJson).toList(),
+        outcomes:
+            (json['outcomes'] as List<dynamic>).map(Outcome.fromJson).toList(),
         broadcasterId: json['broadcaster_id'] as String,
         broadcasterName: json['broadcaster_name'] as String,
         broadcasterLogin: json['broadcaster_login'] as String,
@@ -98,4 +99,25 @@ class Predictor {
       userLogin: json['user_login'] as String,
       channelPointsUsed: json['channel_points_used'] as int,
       channelPointsWon: json['channel_points_won'] as int);
+}
+
+class UserDto {
+  final String id;
+  final String login;
+  final String? displayName;
+  final String? profileImageUrl;
+
+  UserDto(
+      {required this.id,
+      required this.login,
+      required this.displayName,
+      required this.profileImageUrl});
+
+  static UserDto fromJson(dynamic json) {
+    return UserDto(
+        id: json['id'] as String,
+        login: json['login'] as String,
+        displayName: json['display_name'] as String?,
+        profileImageUrl: json['profile_image_url'] as String?);
+  }
 }

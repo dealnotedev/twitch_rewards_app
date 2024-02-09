@@ -25,7 +25,26 @@ class _State extends State<ObsWidget> {
 
     _urlController = TextEditingController(text: _settings.obsWsUrl);
     _passwordController = TextEditingController(text: _settings.obsWsPassword);
+
+    _initExistingConnect();
     super.initState();
+  }
+
+  Future<void> _initExistingConnect() async {
+    final url = _settings.obsWsUrl;
+    final password = _settings.obsWsPassword;
+
+    if (url != null &&
+        url.isNotEmpty &&
+        password != null &&
+        password.isNotEmpty) {
+      final obs = await ObsWebSocket.connect(url, password: password);
+      await obs.stream.status;
+
+      debugPrint('Obs connected');
+
+      _connect.apply(obs);
+    }
   }
 
   @override

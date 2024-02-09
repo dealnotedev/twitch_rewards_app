@@ -14,6 +14,7 @@ import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
+import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'audio/ringtone.dart';
@@ -93,28 +94,22 @@ class LoggedWidget extends StatefulWidget {
 }
 
 class LoggedState extends State<LoggedWidget> {
+  late final TwitchApi _twitchApi;
+  late final ObsConnect _obsConnect;
+  late final Settings _settings;
+
   @override
   void initState() {
-    final settings = Settings.instance;
-    final twitchApi = TwitchApi(
-        settings: Settings.instance, clientSecret: twitchClientSecret);
+    _settings = Settings.instance;
+    _obsConnect = ObsConnect.instance;
+    _twitchApi =
+        TwitchApi(settings: _settings, clientSecret: twitchClientSecret);
 
-    _subsReward(settings, twitchApi);
-    _prepareObs();
+    _subsReward();
     super.initState();
   }
 
-  ObsWebSocket? _obs;
-
-  Future<void> _prepareObs() async {
-    final obs = _obs = await ObsWebSocket.connect('ws://127.0.0.1:4455',
-        password: 'W2hgu7P65DQsdhos');
-
-    await obs.stream.status;
-
-    _mirrorScene(false);
-    _enableVoiceInputs(Voice.normal);
-  }
+  ObsWebSocket? get _obs => _obsConnect.ws;
 
   Future<void> _mirrorScene(bool mirrored) async {
     final items = await _obs?.sceneItems.list('Scene');
@@ -173,12 +168,12 @@ class LoggedState extends State<LoggedWidget> {
         filterEnabled: false);
   }
 
-  Future<void> _subsReward(Settings settings, TwitchApi api) async {
+  Future<void> _subsReward() async {
     final sessionId = await _connectToEventSub();
 
     try {
-      await api.subscribeCustomRewards(
-          broadcasterUserId: settings.twitchAuth?.broadcasterId,
+      await _twitchApi.subscribeCustomRewards(
+          broadcasterUserId: _settings.twitchAuth?.broadcasterId,
           sessionId: sessionId);
     } on DioException catch (e) {
       print(e.response?.data);
@@ -291,7 +286,9 @@ class LoggedState extends State<LoggedWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return _createBody(context);
+    return SingleChildScrollView(
+      child: _createBody(context),
+    );
   }
 
   Widget _createBody(BuildContext context) {
@@ -299,10 +296,17 @@ class LoggedState extends State<LoggedWidget> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
-          ObsWidget(
+          TwitchConnectWidget(
             settings: Settings.instance,
-            connect: ObsConnect.instance,
-          )
+            api: _twitchApi,
+          ),
+          const SizedBox(
+            height: 16,
+          ),
+          ObsWidget(
+            settings: _settings,
+            connect: _obsConnect,
+          ),
         ],
       ),
     );
