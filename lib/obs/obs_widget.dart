@@ -1,14 +1,43 @@
 import 'package:flutter/material.dart';
+import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/settings.dart';
 
 class ObsWidget extends StatefulWidget {
-  const ObsWidget({super.key});
+  final ObsConnect connect;
+  final Settings settings;
+
+  const ObsWidget({super.key, required this.settings, required this.connect});
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
 class _State extends State<ObsWidget> {
+  late final ObsConnect _connect;
+  late final Settings _settings;
+
+  @override
+  void initState() {
+    _connect = widget.connect;
+    _settings = widget.settings;
+
+    _urlController = TextEditingController(text: _settings.obsWsUrl);
+    _passwordController = TextEditingController(text: _settings.obsWsPassword);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _urlController.dispose();
+    _passwordController.dispose();
+    super.dispose();
+  }
+
+  late final TextEditingController _urlController;
+  late final TextEditingController _passwordController;
+
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -42,12 +71,14 @@ class _State extends State<ObsWidget> {
               Row(
                 children: [
                   Expanded(
-                      child: _createSearchWidget(context, hint: 'Address')),
+                      child: _createTextInputWidget(context,
+                          hint: 'Address', controller: _urlController)),
                   const SizedBox(
                     width: 16,
                   ),
                   Expanded(
-                      child: _createSearchWidget(context, hint: 'Password'))
+                      child: _createTextInputWidget(context,
+                          hint: 'Password', controller: _passwordController))
                 ],
               ),
               const SizedBox(
@@ -56,7 +87,8 @@ class _State extends State<ObsWidget> {
               Align(
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
-                    onPressed: () {}, child: const Text('Apply')),
+                    onPressed: _handleApplyClick,
+                    child: Text(_connecting ? 'Connecting...' : 'Apply')),
               )
             ],
           ))
@@ -65,10 +97,11 @@ class _State extends State<ObsWidget> {
     );
   }
 
-  Widget _createSearchWidget(BuildContext context, {required String hint}) {
+  Widget _createTextInputWidget(BuildContext context,
+      {required String hint, required TextEditingController controller}) {
     return TextField(
-      onChanged: (value) {},
       maxLines: 1,
+      controller: controller,
       style: const TextStyle(
         fontSize: 14,
       ),
@@ -81,5 +114,34 @@ class _State extends State<ObsWidget> {
           isDense: true,
           hintText: hint),
     );
+  }
+
+  bool _connecting = false;
+
+  void _handleApplyClick() async {
+    if (_connecting) return;
+
+    final url = _urlController.text.trim();
+    final pass = _passwordController.text.trim();
+
+    await _settings.saveObsPrefs(url: url, password: pass);
+    await _connect.apply(null);
+
+    if (url.isEmpty || pass.isEmpty) return;
+
+    setState(() {
+      _connecting = true;
+    });
+
+    try {
+      final obs = await ObsWebSocket.connect(url, password: pass);
+      await obs.stream.status;
+
+      await _connect.apply(obs);
+    } finally {
+      setState(() {
+        _connecting = false;
+      });
+    }
   }
 }

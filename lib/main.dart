@@ -7,9 +7,10 @@ import 'package:flutter/material.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/secrets.dart';
-import 'package:twitch_listener/twitch/settings.dart';
+import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
@@ -295,9 +296,14 @@ class LoggedState extends State<LoggedWidget> {
 
   Widget _createBody(BuildContext context) {
     return Padding(
-      padding: EdgeInsets.all(16),
+      padding: const EdgeInsets.all(16),
       child: Column(
-        children: [ObsWidget()],
+        children: [
+          ObsWidget(
+            settings: Settings.instance,
+            connect: ObsConnect.instance,
+          )
+        ],
       ),
     );
   }

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:twitch_listener/twitch/prediction.dart';
-import 'package:twitch_listener/twitch/settings.dart';
+import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_creds_interceptor.dart';
 
 class Statuses {
