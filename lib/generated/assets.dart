@@ -13,6 +13,8 @@ class Assets {
   static const String assets1707257933102 = 'assets/1707257933102.wav';
   static const String assetsChipi = 'assets/chipi.wav';
   static const String assetsDaria = 'assets/daria.wav';
+  static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
+  static const String assetsLogo = 'assets/logo.png';
 
 }

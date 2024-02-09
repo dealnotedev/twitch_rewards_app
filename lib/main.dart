@@ -1,19 +1,18 @@
 import 'dart:async';
 import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_websocket/obs_websocket.dart';
+import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/twitch/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
-import 'package:video_player/video_player.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
 import 'audio/ringtone.dart';
@@ -47,12 +46,21 @@ class _MyHomePageState extends State<MyApp> {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: Scaffold(
-        backgroundColor: Colors.green,
-        body: _createRoot(context),
+        backgroundColor: const Color(0xFF404450),
+        body: Column(
+          children: [
+            Container(
+                color: const Color(0xFF363A46),
+                child: _createWindowTitleBarBox(context)),
+            Expanded(child: _createRoot(context))
+          ],
+        ),
       ),
     );
   }
@@ -64,7 +72,7 @@ class _MyHomePageState extends State<MyApp> {
         builder: (cntx, snapshot) {
           final data = snapshot.data;
           if (data != null) {
-            return VideoPlayWidget(creds: data);
+            return LoggedWidget(creds: data);
           } else {
             return const Center(
               child: TwitchLoginWidget(),
@@ -74,23 +82,16 @@ class _MyHomePageState extends State<MyApp> {
   }
 }
 
-class _Media {
-  final VideoPlayerController controller;
-  final File file;
-
-  _Media({required this.controller, required this.file});
-}
-
-class VideoPlayWidget extends StatefulWidget {
+class LoggedWidget extends StatefulWidget {
   final TwitchCreds creds;
 
-  const VideoPlayWidget({super.key, required this.creds});
+  const LoggedWidget({super.key, required this.creds});
 
   @override
-  State<StatefulWidget> createState() => VideoPlayState();
+  State<StatefulWidget> createState() => LoggedState();
 }
 
-class VideoPlayState extends State<VideoPlayWidget> {
+class LoggedState extends State<LoggedWidget> {
   @override
   void initState() {
     final settings = Settings.instance;
@@ -106,7 +107,8 @@ class VideoPlayState extends State<VideoPlayWidget> {
 
   Future<void> _prepareObs() async {
     final obs = _obs = await ObsWebSocket.connect('ws://127.0.0.1:4455',
-        password: 'w7yiuBi2JF70EAZ2');
+        password: 'W2hgu7P65DQsdhos');
+
     await obs.stream.status;
 
     _mirrorScene(false);
@@ -115,8 +117,8 @@ class VideoPlayState extends State<VideoPlayWidget> {
 
   Future<void> _mirrorScene(bool mirrored) async {
     final items = await _obs?.sceneItems.list('Scene');
-    final game =
-        items?.firstWhere((element) => element.sourceName == 'Game Capture');
+    final game = items
+        ?.firstWhereOrNull((element) => element.sourceName == 'Game Capture');
 
     _obs?.sendRequest(Request(
       'SetSceneItemTransform',
@@ -272,18 +274,6 @@ class VideoPlayState extends State<VideoPlayWidget> {
         case 'Ох і хуїта':
           RingtoneUtils.play(Assets.assets1189758809049149541);
           break;
-
-        case 'Рандомна Нарізка':
-          _handlePlayRandomHighlightRequest(VideoType.saber);
-          break;
-
-        case 'Добра бійка':
-          _handlePlayRandomHighlightRequest(VideoType.funny);
-          break;
-
-        case 'Смерть півня':
-          _handlePlayRandomHighlightRequest(VideoType.death);
-          break;
       }
     }, onError: (e) {
       print(e);
@@ -295,7 +285,6 @@ class VideoPlayState extends State<VideoPlayWidget> {
 
   @override
   void dispose() {
-    _media?.controller.dispose();
     super.dispose();
   }
 
@@ -304,100 +293,13 @@ class VideoPlayState extends State<VideoPlayWidget> {
     return _createBody(context);
   }
 
-  File _findRandomHighlight(VideoType type) {
-    final Directory directory;
-    switch (type) {
-      case VideoType.death:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\deaths');
-        break;
-
-      case VideoType.saber:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\saber');
-        break;
-
-      case VideoType.funny:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\funny');
-        break;
-    }
-
-    final all = directory.listSync();
-
-    final mp4 = all
-        .where((element) => element.path.endsWith('.mp4'))
-        .map((e) => e as File)
-        .toList();
-    return mp4[Random().nextInt(mp4.length)];
-  }
-
-  _Media? _media;
-
-  Widget? _createVideoPlayer() {
-    final media = _media;
-
-    if (media != null) {
-      return Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white, width: 4)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(
-            aspectRatio: 16.0 / 9.0,
-            child: VideoPlayer(
-              media.controller,
-              key: Key(media.file.path),
-            ),
-          ),
-        ),
-      );
-    } else {
-      return null;
-    }
-  }
-
   Widget _createBody(BuildContext context) {
-    final player = _createVideoPlayer();
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (player != null) player,
-        SizedBox(
-          height: double.infinity,
-          width: double.infinity,
-          child: MoveWindow(),
-        ),
-      ],
+    return Padding(
+      padding: EdgeInsets.all(16),
+      child: Column(
+        children: [ObsWidget()],
+      ),
     );
-  }
-
-  void _resetVideo() async {
-    await _media?.controller.dispose();
-    setState(() {
-      _media = null;
-    });
-  }
-
-  void _handlePlayRandomHighlightRequest(VideoType type) async {
-    _resetVideo();
-
-    final file = _findRandomHighlight(type);
-    print(file);
-
-    final controller = VideoPlayerController.file(file);
-    controller.addListener(() {
-      final event = controller.value;
-
-      if (_media?.controller == controller && event.isCompleted) {
-        _resetVideo();
-      }
-    });
-
-    await controller.initialize();
-
-    setState(() {
-      _media = _Media(controller: controller, file: file);
-      _media?.controller.play();
-    });
   }
 
   int? _activeVoiceKey;
@@ -436,6 +338,50 @@ class VideoPlayState extends State<VideoPlayWidget> {
   }
 }
 
-enum VideoType { death, saber, funny }
-
 enum Voice { normal, helium, brutal, robo }
+
+WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
+  return WindowTitleBarBox(
+      child: Row(children: [
+    Expanded(
+        child: MoveWindow(
+            child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Image.asset(
+        Assets.assetsLogo,
+        width: 24,
+        height: 24,
+        filterQuality: FilterQuality.medium,
+      ),
+    ))),
+    const WindowButtons()
+  ]));
+}
+
+class WindowButtons extends StatelessWidget {
+  static final buttonColors = WindowButtonColors(
+      iconNormal: const Color(0xFF737A8B),
+      mouseOver: const Color(0xFFF6A00C),
+      mouseDown: const Color(0xFF805306),
+      iconMouseOver: const Color(0xFF805306),
+      iconMouseDown: const Color(0xFFFFD500));
+
+  static final closeButtonColors = WindowButtonColors(
+      mouseOver: const Color(0xFFD32F2F),
+      mouseDown: const Color(0xFFB71C1C),
+      iconNormal: const Color(0xFF737A8B),
+      iconMouseOver: Colors.white);
+
+  const WindowButtons({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        MinimizeWindowButton(colors: buttonColors),
+        MaximizeWindowButton(colors: buttonColors),
+        CloseWindowButton(colors: closeButtonColors),
+      ],
+    );
+  }
+}

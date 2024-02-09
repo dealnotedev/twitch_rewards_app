@@ -59,6 +59,8 @@ dependencies:
 
   obs_websocket: ^5.1.0+4
 
+  collection: ^1.18.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
