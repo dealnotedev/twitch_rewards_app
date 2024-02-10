@@ -27,7 +27,7 @@ void main() async {
   runApp(const MyApp());
 
   doWhenWindowReady(() {
-    const initialSize = Size(640, 360);
+    const initialSize = Size(640, 640);
     appWindow.minSize = initialSize;
     appWindow.size = initialSize;
     appWindow.alignment = Alignment.center;
@@ -147,6 +147,10 @@ class LoggedState extends State<LoggedWidget> {
         filterEnabled: _blackWhite);
   }
 
+  Future<void> _enableInput({required String inputName, required bool enabled}){
+    return _obs?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
+  }
+
   Future<void> _enableVoiceInputs(Voice voice) async {
     await _obs?.inputs
         .setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
@@ -203,11 +207,6 @@ class LoggedState extends State<LoggedWidget> {
       switch (rewardTitle) {
         case 'Робо':
           _handleVoiceChange(Voice.robo, const Duration(minutes: 1),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
-        case 'Брутальність':
-          _handleVoiceChange(Voice.brutal, const Duration(minutes: 1),
               key: DateTime.now().microsecondsSinceEpoch);
           break;
 
@@ -272,6 +271,12 @@ class LoggedState extends State<LoggedWidget> {
         case 'Ох і хуїта':
           RingtoneUtils.play(Assets.assets1189758809049149541);
           break;
+
+        default:
+          if(rewardTitle != null){
+            _handleReward(rewardTitle);
+          }
+          break;
       }
     }, onError: (e) {
       print(e);
@@ -320,9 +325,22 @@ class LoggedState extends State<LoggedWidget> {
               ),
               ...rewards.rewards
                   .map((e) => RewardWidget(reward: e, saveHook: _saveHook)),
-              const SizedBox(
-                height: 8,
-              ),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                    color: const Color(0xFF363A46),
+                    borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                        onPressed: _handleSaveClick, child: const Text('Save all'))
+                  ],
+                ),
+              )
             ],
           );
         });
@@ -362,6 +380,32 @@ class LoggedState extends State<LoggedWidget> {
 
     if (_activeVoiceKey == key) {
       await _enableVoiceInputs(Voice.normal);
+    }
+  }
+
+  void _handleSaveClick() {
+    _saveHook.save();
+    _settings.saveRewards(_settings.rewards);
+  }
+
+  void _handleReward(String rewardTitle) {
+    final reward = _settings.rewards.rewards.firstWhereOrNull((element) => element.name == rewardTitle);
+    if(reward != null){
+      _applyReward(reward);
+    }
+  }
+
+  void _applyReward(Reward reward) async {
+    for (var action in reward.handlers) {
+      switch(action.type){
+        case RewardAction.typeDelay:
+          await Future.delayed(Duration(seconds: action.duration));
+          break;
+
+        case RewardAction.typeEnableInput:
+          await _enableInput(inputName: action.inputName ?? '', enabled: action.enable);
+          break;
+      }
     }
   }
 }

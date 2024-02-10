@@ -3,6 +3,7 @@ import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/themes.dart';
 
 class ObsWidget extends StatefulWidget {
   final ObsConnect connect;
@@ -125,14 +126,7 @@ class _State extends State<ObsWidget> {
       style: const TextStyle(
         fontSize: 14,
       ),
-      decoration: InputDecoration(
-          hintStyle: const TextStyle(fontSize: 14),
-          contentPadding:
-              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          fillColor: const Color(0xFF272E37),
-          filled: true,
-          isDense: true,
-          hintText: hint),
+      decoration: DefaultInputDecoration(hintText: hint),
     );
   }
 

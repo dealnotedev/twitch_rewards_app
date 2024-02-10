@@ -1,5 +1,5 @@
 class Reward {
-  final String name;
+  String name;
 
   final List<RewardAction> handlers;
 
@@ -19,16 +19,38 @@ class Reward {
 }
 
 class RewardAction {
+  static const typeEnableInput = 'enable_input';
+  static const typeDelay = 'delay';
+
   final String type;
 
-  RewardAction({required this.type});
+  String? inputName;
+
+  bool enable;
+
+  int duration;
+
+  RewardAction(
+      {required this.type,
+      this.enable = false,
+      this.inputName,
+      this.duration = 0});
 
   Map<String, dynamic> toJson() {
-    return {'type': type};
+    return {
+      'type': type,
+      'enable': enable,
+      'inputName': inputName,
+      'duration': duration
+    };
   }
 
   static RewardAction fromJson(dynamic json) {
-    return RewardAction(type: json['type'] as String);
+    return RewardAction(
+        type: json['type'] as String,
+        duration: json['duration'] as int? ?? 0,
+        enable: json['enable'] as bool? ?? false,
+        inputName: json['inputName'] as String?);
   }
 }
 
