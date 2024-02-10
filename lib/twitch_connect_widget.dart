@@ -68,6 +68,7 @@ class _State extends State<TwitchConnectWidget> {
 
     return Container(
         padding: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
             color: const Color(0xFF363A46),
             borderRadius: BorderRadius.circular(8)),

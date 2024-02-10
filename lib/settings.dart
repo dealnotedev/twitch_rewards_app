@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
 class Settings {
@@ -12,10 +13,27 @@ class Settings {
   static const _kTwitchAuth = 'twitch_auth';
   static const _kObsWsUrl = 'obs_ws_url';
   static const _kObsWsPassword = 'obs_ws_password';
+  static const _kRewards = 'rewards';
+
+  late Rewards rewards;
 
   Future<void> init() async {
     await initTwitchCreds();
     await initObsPrefs();
+    await initRewards();
+  }
+
+  final _rewardsSubject = StreamController<Rewards>.broadcast();
+
+  Stream<Rewards> get rewardsStream => _rewardsSubject.stream;
+
+  Future<void> saveRewards(Rewards rewards) async {
+    final prefs = await SharedPreferences.getInstance();
+
+    prefs.setString(_kRewards, jsonEncode(rewards.toJson()));
+
+    this.rewards = rewards;
+    _rewardsSubject.add(rewards);
   }
 
   String? obsWsUrl;
@@ -26,6 +44,15 @@ class Settings {
 
     obsWsUrl = prefs.getString(_kObsWsUrl);
     obsWsPassword = prefs.getString(_kObsWsPassword);
+  }
+
+  Future<void> initRewards() async {
+    final prefs = await SharedPreferences.getInstance();
+    final json = prefs.getString(_kRewards);
+
+    rewards = json != null
+        ? Rewards.fromJson(jsonDecode(json))
+        : Rewards(rewards: []);
   }
 
   Future<void> saveObsPrefs(

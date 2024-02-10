@@ -9,6 +9,8 @@ import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
+import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
@@ -292,25 +294,41 @@ class LoggedState extends State<LoggedWidget> {
   }
 
   Widget _createBody(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          TwitchConnectWidget(
-            settings: Settings.instance,
-            api: _twitchApi,
-          ),
-          const SizedBox(
-            height: 16,
-          ),
-          ObsWidget(
-            settings: _settings,
-            connect: _obsConnect,
-          ),
-        ],
-      ),
-    );
+    return StreamBuilder(
+        stream: _settings.rewardsStream,
+        initialData: _settings.rewards,
+        builder: (cntx, snapshot) {
+          final rewards = snapshot.requireData;
+          return Column(
+            children: [
+              const SizedBox(
+                height: 16,
+              ),
+              TwitchConnectWidget(
+                settings: _settings,
+                api: _twitchApi,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              ObsWidget(
+                settings: _settings,
+                connect: _obsConnect,
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              ...rewards.rewards
+                  .map((e) => RewardWidget(reward: e, saveHook: _saveHook)),
+              const SizedBox(
+                height: 8,
+              ),
+            ],
+          );
+        });
   }
+
+  final _saveHook = SaveHook();
 
   int? _activeVoiceKey;
 

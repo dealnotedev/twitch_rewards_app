@@ -60,6 +60,7 @@ class _State extends State<ObsWidget> {
   @override
   Widget build(BuildContext context) {
     return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
           color: const Color(0xFF363A46),
