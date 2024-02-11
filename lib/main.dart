@@ -206,17 +206,17 @@ class VideoPlayState extends State<VideoPlayWidget> {
           break;
 
         case 'Робо':
-          _handleVoiceChange(Voice.robo, const Duration(minutes: 1),
+          _handleVoiceChange(Voice.robo, const Duration(minutes: 2),
               key: DateTime.now().microsecondsSinceEpoch);
           break;
 
         case 'Брутальність':
-          _handleVoiceChange(Voice.brutal, const Duration(minutes: 1),
+          _handleVoiceChange(Voice.brutal, const Duration(minutes: 2),
               key: DateTime.now().microsecondsSinceEpoch);
           break;
 
-        case 'Пустити гелій на 1хв':
-          _handleVoiceChange(Voice.helium, const Duration(minutes: 1),
+        case 'Пустити гелій на 2хв':
+          _handleVoiceChange(Voice.helium, const Duration(minutes: 2),
               key: DateTime.now().microsecondsSinceEpoch);
           break;
 

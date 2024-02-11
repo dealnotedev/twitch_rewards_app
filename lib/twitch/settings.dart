@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
@@ -27,6 +28,9 @@ class Settings {
     twitchAuth = creds;
     _twitchAuthSubject.add(creds);
   }
+
+  Stream<TwitchCreds?> get twitchAuthStream =>
+      Stream.value(twitchAuth).concatWith([_twitchAuthSubject.stream]);
 
   Stream<TwitchCreds?> get twitchAuthChanges => _twitchAuthSubject.stream;
 
