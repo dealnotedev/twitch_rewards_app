@@ -201,6 +201,10 @@ class VideoPlayState extends State<VideoPlayWidget> {
       final rewardTitle =
           json['payload']?['event']?['reward']?['title'] as String?;
       switch (rewardTitle) {
+        case 'Та ти шо':
+          RingtoneUtils.play(Assets.assetsVideoplayback);
+          break;
+
         case 'Робо':
           _handleVoiceChange(Voice.robo, const Duration(minutes: 1),
               key: DateTime.now().microsecondsSinceEpoch);

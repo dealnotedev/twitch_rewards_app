@@ -14,5 +14,6 @@ class Assets {
   static const String assetsChipi = 'assets/chipi.wav';
   static const String assetsDaria = 'assets/daria.wav';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
+  static const String assetsVideoplayback = 'assets/videoplayback.wav';
 
 }
