@@ -147,7 +147,8 @@ class LoggedState extends State<LoggedWidget> {
         filterEnabled: _blackWhite);
   }
 
-  Future<void> _enableInput({required String inputName, required bool enabled}){
+  Future<void> _enableInput(
+      {required String inputName, required bool enabled}) {
     return _obs?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
   }
 
@@ -205,11 +206,6 @@ class LoggedState extends State<LoggedWidget> {
       final rewardTitle =
           json['payload']?['event']?['reward']?['title'] as String?;
       switch (rewardTitle) {
-        case 'Робо':
-          _handleVoiceChange(Voice.robo, const Duration(minutes: 1),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
         case 'Пустити гелій на 1хв':
           _handleVoiceChange(Voice.helium, const Duration(minutes: 1),
               key: DateTime.now().microsecondsSinceEpoch);
@@ -273,7 +269,7 @@ class LoggedState extends State<LoggedWidget> {
           break;
 
         default:
-          if(rewardTitle != null){
+          if (rewardTitle != null) {
             _handleReward(rewardTitle);
           }
           break;
@@ -323,8 +319,12 @@ class LoggedState extends State<LoggedWidget> {
               const SizedBox(
                 height: 8,
               ),
-              ...rewards.rewards
-                  .map((e) => RewardWidget(reward: e, saveHook: _saveHook)),
+              ...rewards.rewards.map((e) => RewardWidget(
+                    reward: e,
+                    saveHook: _saveHook,
+                    onDelete: _handleDeleteClick,
+                    onPlay: _applyReward,
+                  )),
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.all(16),
@@ -337,7 +337,14 @@ class LoggedState extends State<LoggedWidget> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     ElevatedButton(
-                        onPressed: _handleSaveClick, child: const Text('Save all'))
+                        onPressed: _handleCreateClick,
+                        child: const Text('Create')),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    ElevatedButton(
+                        onPressed: _handleSaveClick,
+                        child: const Text('Save all'))
                   ],
                 ),
               )
@@ -389,24 +396,39 @@ class LoggedState extends State<LoggedWidget> {
   }
 
   void _handleReward(String rewardTitle) {
-    final reward = _settings.rewards.rewards.firstWhereOrNull((element) => element.name == rewardTitle);
-    if(reward != null){
+    final reward = _settings.rewards.rewards
+        .firstWhereOrNull((element) => element.name == rewardTitle);
+    if (reward != null) {
       _applyReward(reward);
     }
   }
 
   void _applyReward(Reward reward) async {
     for (var action in reward.handlers) {
-      switch(action.type){
+      switch (action.type) {
         case RewardAction.typeDelay:
           await Future.delayed(Duration(seconds: action.duration));
           break;
 
         case RewardAction.typeEnableInput:
-          await _enableInput(inputName: action.inputName ?? '', enabled: action.enable);
+          await _enableInput(
+              inputName: action.inputName ?? '', enabled: action.enable);
           break;
       }
     }
+  }
+
+  void _handleCreateClick() {
+    setState(() {
+      _settings.rewards.rewards
+          .add(Reward(name: '', handlers: [], expanded: true));
+    });
+  }
+
+  void _handleDeleteClick(Reward reward) {
+    setState(() {
+      _settings.rewards.rewards.remove(reward);
+    });
   }
 }
 

@@ -3,7 +3,9 @@ class Reward {
 
   final List<RewardAction> handlers;
 
-  Reward({required this.name, required this.handlers});
+  bool expanded;
+
+  Reward({required this.name, required this.handlers, this.expanded = false});
 
   Map<String, dynamic> toJson() {
     return {'name': name, 'handlers': handlers.map((e) => e.toJson()).toList()};

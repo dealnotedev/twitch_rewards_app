@@ -5,10 +5,18 @@ import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/themes.dart';
 
 class RewardWidget extends StatefulWidget {
+  final void Function(Reward reward) onDelete;
+  final void Function(Reward reward) onPlay;
+
   final SaveHook saveHook;
   final Reward reward;
 
-  const RewardWidget({super.key, required this.reward, required this.saveHook});
+  const RewardWidget(
+      {super.key,
+      required this.reward,
+      required this.saveHook,
+      required this.onDelete,
+      required this.onPlay});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -43,51 +51,73 @@ class _State extends State<RewardWidget> {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(left: 16, right: 16, top: 16, bottom: 8),
+      padding: const EdgeInsets.only(left: 16, right: 8, top: 16, bottom: 8),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       decoration: BoxDecoration(
           color: const Color(0xFF363A46),
           borderRadius: BorderRadius.circular(8)),
       child: Column(
         children: [
-          TextField(
-            maxLines: 1,
-            controller: _nameController,
-            style: const TextStyle(
-              fontSize: 14,
-            ),
-            decoration: const DefaultInputDecoration(hintText: 'Reward name'),
-          ),
-          const SizedBox(
-            height: 8,
-          ),
-          ..._reward.handlers.map((e) => Container(
-                width: double.infinity,
-                margin: const EdgeInsets.only(left: 48, top: 8, bottom: 8),
-                padding: const EdgeInsets.only(
-                    left: 16, right: 8, top: 8, bottom: 8),
-                decoration: BoxDecoration(
-                    border: Border.all(
-                        color: Colors.white.withOpacity(0.1), width: 1),
-                    borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  children: [
-                    Expanded(child: _createActionWidget(context, action: e)),
-                    IconButton(onPressed: () => _handleActionDelete(e), icon: const Icon(Icons.delete))
-                  ],
+          Row(
+            children: [
+              Expanded(
+                  child: TextField(
+                maxLines: 1,
+                controller: _nameController,
+                style: const TextStyle(
+                  fontSize: 14,
                 ),
+                decoration:
+                    const DefaultInputDecoration(hintText: 'Reward name'),
               )),
-          const SizedBox(
-            height: 8,
+              const SizedBox(
+                width: 8,
+              ),
+              IconButton(
+                  onPressed: _handleExpandClick,
+                  icon: Icon(_reward.expanded
+                      ? Icons.keyboard_arrow_up
+                      : Icons.keyboard_arrow_down)),
+              IconButton(
+                  onPressed: _handlePlayClick,
+                  icon: const Icon(Icons.play_arrow)),
+              IconButton(
+                  onPressed: _handleDeleteClick, icon: const Icon(Icons.delete))
+            ],
           ),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: _availableActions
-                .map((e) => ElevatedButton(
-                    onPressed: () => _handleAddAction(e), child: Text(e.title)))
-                .toList(),
-          )
+          if (_reward.expanded) ...[
+            const SizedBox(
+              height: 8,
+            ),
+            ..._reward.handlers.map((e) => Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.only(left: 48, top: 8, bottom: 8),
+                  child: Row(
+                    children: [
+                      Expanded(child: _createActionWidget(context, action: e)),
+                      IconButton(
+                          onPressed: () => _handleActionDelete(e),
+                          icon: const Icon(Icons.delete))
+                    ],
+                  ),
+                )),
+            const SizedBox(
+              height: 8,
+            ),
+            Wrap(
+              spacing: 8,
+              runSpacing: 8,
+              children: _availableActions
+                  .map((e) => ElevatedButton(
+                      onPressed: () => _handleAddAction(e),
+                      child: Text(e.title)))
+                  .toList(),
+            )
+          ] else ...[
+            const SizedBox(
+              height: 8,
+            )
+          ]
         ],
       ),
     );
@@ -129,6 +159,20 @@ class _State extends State<RewardWidget> {
     setState(() {
       _reward.handlers.remove(e);
     });
+  }
+
+  void _handleExpandClick() {
+    setState(() {
+      _reward.expanded = !_reward.expanded;
+    });
+  }
+
+  void _handleDeleteClick() {
+    widget.onDelete.call(_reward);
+  }
+
+  void _handlePlayClick() {
+    widget.onPlay.call(_reward);
   }
 }
 
