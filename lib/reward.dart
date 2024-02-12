@@ -25,6 +25,7 @@ class RewardAction {
   static const typeDelay = 'delay';
   static const typePlayAudio = 'play_audio';
   static const typeEnableFilter = 'enable_filter';
+  static const typeInvertFilter = 'invert_filter';
 
   final String type;
 

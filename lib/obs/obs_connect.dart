@@ -17,6 +17,18 @@ class ObsConnect {
     return _ws?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
   }
 
+  Future<void> invertSourceFilter(
+      {required String sourceName, required String filterName}) async {
+    final json = await _ws?.sendRequest(Request('GetSourceFilter',
+        requestData: {'sourceName': sourceName, 'filterName': filterName}));
+
+    final enabled = json?.responseData?['filterEnabled'] as bool?;
+    if (enabled != null) {
+      await enableSourceFilter(
+          sourceName: sourceName, filterName: filterName, enabled: !enabled);
+    }
+  }
+
   Future<void> enableSourceFilter(
       {required String sourceName,
       required String filterName,

@@ -238,6 +238,19 @@ class LoggedState extends State<LoggedWidget> {
           }
           break;
 
+        case RewardAction.typeInvertFilter:
+          final sourceName = action.sourceName;
+          final filterName = action.filterName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              filterName != null &&
+              filterName.isNotEmpty) {
+            await _obs.invertSourceFilter(
+                sourceName: sourceName, filterName: filterName);
+          }
+          break;
+
         case RewardAction.typePlayAudio:
           final filePath = action.filePath;
           if (filePath != null && filePath.isNotEmpty) {
