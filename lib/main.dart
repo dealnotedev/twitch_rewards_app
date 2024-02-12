@@ -12,7 +12,6 @@ import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/settings.dart';
-import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
@@ -105,7 +104,6 @@ class LoggedWidget extends StatefulWidget {
 }
 
 class LoggedState extends State<LoggedWidget> {
-  late final TwitchApi _twitchApi;
   late final ObsConnect _obs;
   late final Settings _settings;
   late final WebSocketManager _wsManager;
@@ -116,7 +114,6 @@ class LoggedState extends State<LoggedWidget> {
   void initState() {
     _settings = widget.locator.provide();
     _obs = widget.locator.provide();
-    _twitchApi = widget.locator.provide();
     _wsManager = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
@@ -150,7 +147,6 @@ class LoggedState extends State<LoggedWidget> {
               TwitchConnectWidget(
                 webSocketManager: _wsManager,
                 settings: _settings,
-                api: _twitchApi,
               ),
               const SizedBox(
                 height: 16,

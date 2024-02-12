@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
@@ -9,12 +10,10 @@ import 'package:twitch_listener/twitch/ws_manager.dart';
 class TwitchConnectWidget extends StatefulWidget {
   final WebSocketManager webSocketManager;
   final Settings settings;
-  final TwitchApi api;
 
   const TwitchConnectWidget(
       {super.key,
       required this.settings,
-      required this.api,
       required this.webSocketManager});
 
   @override
@@ -39,7 +38,9 @@ class _State extends State<TwitchConnectWidget> {
       _loading = true;
     });
 
-    final data = await widget.api.getUser();
+    final data =
+        await TwitchApi(settings: _settings, clientSecret: twitchClientSecret)
+            .getUser();
 
     setState(() {
       _loading = false;
