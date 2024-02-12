@@ -238,6 +238,22 @@ class LoggedState extends State<LoggedWidget> {
           }
           break;
 
+        case RewardAction.typeFlipSource:
+          final sourceName = action.sourceName;
+          final sceneName = action.sceneName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              sceneName != null &&
+              sceneName.isNotEmpty) {
+            await _obs.flipSource(
+                sceneName: sceneName,
+                sourceName: sourceName,
+                horizontal: action.horizontal,
+                vertical: action.vertical);
+          }
+          break;
+
         case RewardAction.typeInvertFilter:
           final sourceName = action.sourceName;
           final filterName = action.filterName;

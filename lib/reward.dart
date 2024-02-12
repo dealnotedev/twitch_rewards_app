@@ -26,6 +26,7 @@ class RewardAction {
   static const typePlayAudio = 'play_audio';
   static const typeEnableFilter = 'enable_filter';
   static const typeInvertFilter = 'invert_filter';
+  static const typeFlipSource = 'flip_source';
 
   final String type;
 
@@ -41,6 +42,11 @@ class RewardAction {
 
   String? filterName;
 
+  String? sceneName;
+
+  bool horizontal;
+  bool vertical;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -48,6 +54,9 @@ class RewardAction {
       this.filePath,
       this.sourceName,
       this.filterName,
+      this.sceneName,
+      this.horizontal = false,
+      this.vertical = false,
       this.duration = 0});
 
   Map<String, dynamic> toJson() {
@@ -58,18 +67,24 @@ class RewardAction {
       'inputName': inputName,
       'sourceName': sourceName,
       'filterName': filterName,
-      'duration': duration
+      'sceneName': sceneName,
+      'duration': duration,
+      'horizontal': horizontal,
+      'vertical': vertical
     };
   }
 
   static RewardAction fromJson(dynamic json) {
     return RewardAction(
         type: json['type'] as String,
+        horizontal: json['horizontal'] as bool? ?? false,
+        vertical: json['vertical'] as bool? ?? false,
         duration: json['duration'] as int? ?? 0,
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
         sourceName: json['sourceName'] as String?,
         filterName: json['filterName'] as String?,
+        sceneName: json['sceneName'] as String?,
         inputName: json['inputName'] as String?);
   }
 }
