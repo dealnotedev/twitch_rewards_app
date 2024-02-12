@@ -5,7 +5,6 @@ import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';
 
 class TwitchLoginWidget extends StatefulWidget {
-
   final Settings settings;
 
   const TwitchLoginWidget({super.key, required this.settings});
@@ -26,9 +25,7 @@ class _State extends State<TwitchLoginWidget> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(32),
-      constraints: const BoxConstraints(
-        minHeight: 128
-      ),
+      constraints: const BoxConstraints(minHeight: 128),
       child: Center(
         child: Material(
           color: const Color(0xFF6542A6),

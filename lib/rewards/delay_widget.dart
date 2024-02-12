@@ -69,7 +69,7 @@ class _State extends State<DelayWidget> {
   void _handleSave() {
     try {
       widget.action.duration = int.parse(_durationController.text);
-    } catch (_){
+    } catch (_) {
       widget.action.duration = 0;
     }
   }

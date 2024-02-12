@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/rewards/delay_widget.dart';
 import 'package:twitch_listener/rewards/enable_filter_widget.dart';
 import 'package:twitch_listener/rewards/enable_input_widget.dart';
-import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/rewards/play_audio_widget.dart';
 import 'package:twitch_listener/themes.dart';
 

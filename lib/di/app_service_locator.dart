@@ -6,10 +6,9 @@ import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 
 class AppServiceLocator extends ServiceLocator {
-
   static late final AppServiceLocator instance;
 
-  static AppServiceLocator init(Settings settings){
+  static AppServiceLocator init(Settings settings) {
     instance = AppServiceLocator._(settings);
     return instance;
   }
@@ -18,8 +17,11 @@ class AppServiceLocator extends ServiceLocator {
   final Map<Type, Object> map = {};
 
   AppServiceLocator._(this.settings) {
-    final wsManager = WebSocketManager('wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30', settings);
-    final twitchApi = TwitchApi(settings: settings, clientSecret: twitchClientSecret);
+    final wsManager = WebSocketManager(
+        'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30',
+        settings);
+    final twitchApi =
+        TwitchApi(settings: settings, clientSecret: twitchClientSecret);
 
     map[Settings] = settings;
     map[ServiceLocator] = this;

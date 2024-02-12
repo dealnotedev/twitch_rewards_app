@@ -9,15 +9,20 @@ class TwitchAuthenticator {
   final String clientSecret;
   final String oauthRedirectUrl;
 
-  static const _scope = 'chat:edit channel:manage:predictions chat:read channel:read:redemptions';
-  static const _scopeEncoded = 'chat%3Aedit%20channel%3Amanage%3Apredictions%20chat%3Aread%20channel%3Aread%3Aredemptions';
+  static const _scope =
+      'chat:edit channel:manage:predictions chat:read channel:read:redemptions';
+  static const _scopeEncoded =
+      'chat%3Aedit%20channel%3Amanage%3Apredictions%20chat%3Aread%20channel%3Aread%3Aredemptions';
 
-  TwitchAuthenticator({required this.clientId, required this.clientSecret, required this.oauthRedirectUrl});
+  TwitchAuthenticator(
+      {required this.clientId,
+      required this.clientSecret,
+      required this.oauthRedirectUrl});
 
   Future<TwitchCreds?> login() async {
     final authorizationCode = await _startOauth();
 
-    if(authorizationCode == null) return null;
+    if (authorizationCode == null) return null;
 
     final body = <String, String>{
       'redirect_uri': oauthRedirectUrl,
@@ -38,10 +43,10 @@ class TwitchAuthenticator {
 
     final userId = await dio
         .get('https://api.twitch.tv/helix/users',
-        options: Options(headers: {
-          'Authorization': 'Bearer $accessToken',
-          'Client-Id': clientId
-        }))
+            options: Options(headers: {
+              'Authorization': 'Bearer $accessToken',
+              'Client-Id': clientId
+            }))
         .then((value) => value.data['data'] as List<dynamic>)
         .then((array) => array[0]['id']);
 
@@ -56,7 +61,8 @@ class TwitchAuthenticator {
     final server = await HttpServer.bind('localhost', 3000);
 
     try {
-      final url = 'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=$_scopeEncoded';
+      final url =
+          'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=$_scopeEncoded';
       launchUrl(Uri.parse(url));
 
       final request = await server.first;

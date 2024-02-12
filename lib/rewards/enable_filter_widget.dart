@@ -4,26 +4,27 @@ import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/themes.dart';
 
 class EnableFilterWidget extends StatefulWidget {
-
   final SaveHook saveHook;
   final RewardAction action;
 
-  const EnableFilterWidget({super.key, required this.saveHook, required this.action});
+  const EnableFilterWidget(
+      {super.key, required this.saveHook, required this.action});
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
 class _State extends State<EnableFilterWidget> {
-
   late bool _enable;
 
   @override
   void initState() {
     _enable = widget.action.enable;
 
-    _sourceNameController = TextEditingController(text: widget.action.sourceName);
-    _filterNameController = TextEditingController(text: widget.action.filterName);
+    _sourceNameController =
+        TextEditingController(text: widget.action.sourceName);
+    _filterNameController =
+        TextEditingController(text: widget.action.filterName);
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
@@ -57,11 +58,12 @@ class _State extends State<EnableFilterWidget> {
             style: const TextStyle(
               fontSize: 14,
             ),
-            decoration:
-            const DefaultInputDecoration(hintText: 'Source name'),
+            decoration: const DefaultInputDecoration(hintText: 'Source name'),
           ),
         ),
-        const SizedBox(width: 8,),
+        const SizedBox(
+          width: 8,
+        ),
         Expanded(
           child: TextFormField(
             maxLines: 1,
@@ -69,8 +71,7 @@ class _State extends State<EnableFilterWidget> {
             style: const TextStyle(
               fontSize: 14,
             ),
-            decoration:
-            const DefaultInputDecoration(hintText: 'Filter name'),
+            decoration: const DefaultInputDecoration(hintText: 'Filter name'),
           ),
         ),
         const SizedBox(

@@ -23,8 +23,7 @@ class RingtoneUtils {
   static void playFile(String path, {bool loop = false}) async {
     if (Platform.isWindows) {
       if (loop) {
-        PlaySound(TEXT(path), NULL,
-            SND_FILENAME | SND_ASYNC | SND_LOOP);
+        PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC | SND_LOOP);
       } else {
         PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC);
       }
