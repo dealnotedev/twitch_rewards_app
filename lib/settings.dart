@@ -1,15 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
 class Settings {
-  static final instance = Settings._();
-
-  Settings._();
-
   static const _kTwitchAuth = 'twitch_auth';
   static const _kObsWsUrl = 'obs_ws_url';
   static const _kObsWsPassword = 'obs_ws_password';
@@ -35,6 +32,9 @@ class Settings {
     this.rewards = rewards;
     _rewardsSubject.add(rewards);
   }
+
+  Stream<TwitchCreds?> get twitchAuthStream =>
+      Stream.value(twitchAuth).concatWith([_twitchAuthSubject.stream]);
 
   String? obsWsUrl;
   String? obsWsPassword;

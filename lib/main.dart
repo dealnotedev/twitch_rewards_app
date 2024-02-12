@@ -5,24 +5,27 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_websocket/obs_websocket.dart';
+import 'package:twitch_listener/di/app_service_locator.dart';
+import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
-import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
 
-import 'audio/ringtone.dart';
-
 void main() async {
-  await Settings.instance.init();
+  final settings = Settings();
+  await settings.init();
+
+  AppServiceLocator.init(settings);
 
   runApp(const MyApp());
 
@@ -43,7 +46,14 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyApp> {
-  final _settings = Settings.instance;
+
+  late final Settings _settings;
+
+  @override
+  void initState() {
+    _settings = ServiceLocator.get();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -78,8 +88,8 @@ class _MyHomePageState extends State<MyApp> {
           if (data != null) {
             return LoggedWidget(creds: data);
           } else {
-            return const Center(
-              child: TwitchLoginWidget(),
+            return Center(
+              child: TwitchLoginWidget(settings: _settings),
             );
           }
         });
@@ -100,190 +110,29 @@ class LoggedState extends State<LoggedWidget> {
   late final ObsConnect _obsConnect;
   late final Settings _settings;
 
+  late final StreamSubscription _wsSubscription;
+
   @override
   void initState() {
-    _settings = Settings.instance;
-    _obsConnect = ObsConnect.instance;
-    _twitchApi =
-        TwitchApi(settings: _settings, clientSecret: twitchClientSecret);
+    _settings = ServiceLocator.get();
+    _obsConnect = ServiceLocator.get();
+    _twitchApi = ServiceLocator.get();
 
-    _subsReward();
+    final wsManager = ServiceLocator.get<WebSocketManager>();
+    _wsSubscription = wsManager.messages.listen(_handleWebSocketMessage);
     super.initState();
   }
 
   ObsWebSocket? get _obs => _obsConnect.ws;
-
-  Future<void> _mirrorScene(bool mirrored) async {
-    final items = await _obs?.sceneItems.list('Scene');
-    final game = items
-        ?.firstWhereOrNull((element) => element.sourceName == 'Game Capture');
-
-    _obs?.sendRequest(Request(
-      'SetSceneItemTransform',
-      requestData: {
-        'sceneName': 'Scene',
-        'sceneItemId': game?.sceneItemId,
-        'sceneItemTransform': {
-          'width': mirrored ? -1920 : 1920,
-          'height': 1080,
-          'scaleY': 0.5,
-          'scaleX': mirrored ? -0.5 : 0.5,
-          'positionY': 0,
-          'positionX': mirrored ? 1920 : 0
-        }
-      },
-    ));
-  }
-
-  bool _blackWhite = false;
-  bool _mirror = false;
-
-  Future<void> _toggleBlackWhite() async {
-    _blackWhite = !_blackWhite;
-
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'BlackWhite',
-        filterEnabled: _blackWhite);
-  }
 
   Future<void> _enableInput(
       {required String inputName, required bool enabled}) {
     return _obs?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
   }
 
-  Future<void> _enableVoiceInputs(Voice voice) async {
-    await _obs?.inputs
-        .setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
-    await _obs?.inputs
-        .setInputMute('Helium', voice != Voice.helium && voice != Voice.robo);
-    await _obs?.inputs
-        .setInputMute('Brutal', voice != Voice.brutal && voice != Voice.robo);
-  }
-
-  Future<void> _toggleNarkomania() async {
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'Narkomania',
-        filterEnabled: true);
-
-    await Future.delayed(const Duration(seconds: 20));
-
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'Narkomania',
-        filterEnabled: false);
-  }
-
-  Future<void> _subsReward() async {
-    final sessionId = await _connectToEventSub();
-
-    try {
-      await _twitchApi.subscribeCustomRewards(
-          broadcasterUserId: _settings.twitchAuth?.broadcasterId,
-          sessionId: sessionId);
-    } on DioException catch (e) {
-      print(e.response?.data);
-    }
-  }
-
-  Future<String> _connectToEventSub() async {
-    final channel = WebSocketChannel.connect(Uri.parse(
-        'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30'));
-    await channel.ready;
-
-    final completer = Completer<String>();
-
-    channel.stream.listen((event) {
-      final json = jsonDecode(event);
-      print(event);
-
-      final sessionId = json['payload']?['session']?['id'] as String?;
-      if (sessionId != null) {
-        completer.complete(sessionId);
-      }
-
-      final rewardTitle =
-          json['payload']?['event']?['reward']?['title'] as String?;
-      switch (rewardTitle) {
-        case 'Пустити гелій на 1хв':
-          _handleVoiceChange(Voice.helium, const Duration(minutes: 1),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
-        case 'Пан Роман':
-          RingtoneUtils.play(Assets.assets1707257933102);
-          break;
-
-        case 'Чіпі':
-          RingtoneUtils.play(Assets.assetsChipi);
-          break;
-
-        case 'Здивуватися як V4NS_':
-          RingtoneUtils.play(Assets.assets1707249127111);
-          break;
-
-        case 'Похвалити':
-          RingtoneUtils.play(Assets.assets1707249117387);
-          break;
-
-        case 'Дзеркало':
-          _mirror = !_mirror;
-          _mirrorScene(_mirror);
-          break;
-
-        case 'Підніми її':
-          RingtoneUtils.play(Assets.assets1707241703596);
-          break;
-
-        case 'Дар\'я сміється':
-          RingtoneUtils.play(Assets.assetsDaria);
-          break;
-
-        case 'Хто відповідальний':
-          RingtoneUtils.play(Assets.assets1707241061568);
-          break;
-
-        case 'Чорно-біле':
-          _toggleBlackWhite();
-          break;
-
-        case 'Наркоманія':
-          _toggleNarkomania();
-          break;
-
-        case 'Хто я':
-          RingtoneUtils.play(Assets.assets1707240876273);
-          break;
-
-        case 'Шо він зробив':
-          RingtoneUtils.play(Assets.assets1707171410229);
-          break;
-
-        case 'Шо він йому казав':
-          RingtoneUtils.play(Assets.assets1707170056254);
-          break;
-
-        case 'Ох і хуїта':
-          RingtoneUtils.play(Assets.assets1189758809049149541);
-          break;
-
-        default:
-          if (rewardTitle != null) {
-            _handleReward(rewardTitle);
-          }
-          break;
-      }
-    }, onError: (e) {
-      print(e);
-    });
-
-    print('Wss connected');
-    return completer.future;
-  }
-
   @override
   void dispose() {
+    _wsSubscription.cancel();
     super.dispose();
   }
 
@@ -355,41 +204,6 @@ class LoggedState extends State<LoggedWidget> {
 
   final _saveHook = SaveHook();
 
-  int? _activeVoiceKey;
-
-  Future<void> _showHeliumSmoke(Duration duration) async {
-    final smoke = await _obs?.sceneItems.list('Scene').then(
-        (value) => value.firstWhere((item) => item.sourceName == 'Smoke'));
-
-    if (smoke != null) {
-      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: 'Scene',
-          sceneItemId: smoke.sceneItemId,
-          sceneItemEnabled: true));
-      await Future.delayed(duration);
-      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: 'Scene',
-          sceneItemId: smoke.sceneItemId,
-          sceneItemEnabled: false));
-    }
-  }
-
-  void _handleVoiceChange(Voice voice, Duration duration,
-      {required int key}) async {
-    _activeVoiceKey = key;
-
-    if (voice == Voice.helium) {
-      await _showHeliumSmoke(const Duration(seconds: 5));
-    }
-
-    await _enableVoiceInputs(voice);
-    await Future.delayed(duration);
-
-    if (_activeVoiceKey == key) {
-      await _enableVoiceInputs(Voice.normal);
-    }
-  }
-
   void _handleSaveClick() {
     _saveHook.save();
     _settings.saveRewards(_settings.rewards);
@@ -429,6 +243,15 @@ class LoggedState extends State<LoggedWidget> {
     setState(() {
       _settings.rewards.rewards.remove(reward);
     });
+  }
+
+  void _handleWebSocketMessage(dynamic json) {
+    final rewardTitle =
+    json['payload']?['event']?['reward']?['title'] as String?;
+    if(rewardTitle != null){
+      print(rewardTitle);
+      _handleReward(rewardTitle);
+    }
   }
 }
 

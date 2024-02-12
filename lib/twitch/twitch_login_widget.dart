@@ -6,7 +6,10 @@ import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';
 
 class TwitchLoginWidget extends StatefulWidget {
-  const TwitchLoginWidget({super.key});
+
+  final Settings settings;
+
+  const TwitchLoginWidget({super.key, required this.settings});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -66,6 +69,6 @@ class _State extends State<TwitchLoginWidget> {
 
   Future<void> _login2Twitch() async {
     final creds = await _authenticator.login();
-    await Settings.instance.saveTwitchAuth(creds);
+    await widget.settings.saveTwitchAuth(creds);
   }
 }
