@@ -3,6 +3,7 @@ import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/rewards/delay_widget.dart';
 import 'package:twitch_listener/rewards/enable_filter_widget.dart';
 import 'package:twitch_listener/rewards/enable_input_widget.dart';
+import 'package:twitch_listener/rewards/enable_source_widget.dart';
 import 'package:twitch_listener/rewards/flip_source_widget.dart';
 import 'package:twitch_listener/rewards/invert_filter_widget.dart';
 import 'package:twitch_listener/rewards/play_audio_widget.dart';
@@ -50,7 +51,8 @@ class _State extends State<RewardWidget> {
     AddAction(title: 'Play audio', type: RewardAction.typePlayAudio),
     AddAction(title: 'Enable filter', type: RewardAction.typeEnableFilter),
     AddAction(title: 'Invert filter', type: RewardAction.typeInvertFilter),
-    AddAction(title: 'Flip source', type: RewardAction.typeFlipSource)
+    AddAction(title: 'Flip source', type: RewardAction.typeFlipSource),
+    AddAction(title: 'Enable source', type: RewardAction.typeEnableSource)
   ];
 
   late final TextEditingController _nameController;
@@ -152,6 +154,9 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typeFlipSource:
         return FlipSceneWidget(saveHook: widget.saveHook, action: action);
+
+      case RewardAction.typeEnableSource:
+        return EnableSourceWidget(saveHook: widget.saveHook, action: action);
     }
 
     throw StateError('Unsupported action ${action.type}');

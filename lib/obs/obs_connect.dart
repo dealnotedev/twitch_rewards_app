@@ -14,6 +14,21 @@ class ObsConnect {
     _ws = ws;
   }
 
+  Future<void> enableSource(
+      {required String sceneName,
+      required String sourceName,
+      required bool enabled}) async {
+    final source = await _ws?.sceneItems.list(sceneName).then(
+        (value) => value.firstWhere((item) => item.sourceName == sourceName));
+
+    if (source != null) {
+      await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
+          sceneName: sceneName,
+          sceneItemId: source.sceneItemId,
+          sceneItemEnabled: enabled));
+    }
+  }
+
   Future<void> flipSource(
       {required String sceneName,
       required String sourceName,

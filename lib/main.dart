@@ -267,6 +267,21 @@ class LoggedState extends State<LoggedWidget> {
           }
           break;
 
+        case RewardAction.typeEnableSource:
+          final sourceName = action.sourceName;
+          final sceneName = action.sceneName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              sceneName != null &&
+              sceneName.isNotEmpty) {
+            _obs.enableSource(
+                sceneName: sceneName,
+                sourceName: sourceName,
+                enabled: action.enable);
+          }
+          break;
+
         case RewardAction.typePlayAudio:
           final filePath = action.filePath;
           if (filePath != null && filePath.isNotEmpty) {

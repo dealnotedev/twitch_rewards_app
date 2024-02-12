@@ -27,6 +27,7 @@ class RewardAction {
   static const typeEnableFilter = 'enable_filter';
   static const typeInvertFilter = 'invert_filter';
   static const typeFlipSource = 'flip_source';
+  static const typeEnableSource = 'enable_source';
 
   final String type;
 
