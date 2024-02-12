@@ -23,6 +23,7 @@ class Reward {
 class RewardAction {
   static const typeEnableInput = 'enable_input';
   static const typeDelay = 'delay';
+  static const typePlayAudio = 'play_audio';
 
   final String type;
 
@@ -32,16 +33,20 @@ class RewardAction {
 
   int duration;
 
+  String? filePath;
+
   RewardAction(
       {required this.type,
       this.enable = false,
       this.inputName,
+        this.filePath,
       this.duration = 0});
 
   Map<String, dynamic> toJson() {
     return {
       'type': type,
       'enable': enable,
+      'filePath': filePath,
       'inputName': inputName,
       'duration': duration
     };
@@ -52,6 +57,7 @@ class RewardAction {
         type: json['type'] as String,
         duration: json['duration'] as int? ?? 0,
         enable: json['enable'] as bool? ?? false,
+        filePath: json['filePath'] as String?,
         inputName: json['inputName'] as String?);
   }
 }

@@ -20,6 +20,17 @@ class RingtoneUtils {
     }
   }
 
+  static void playFile(String path, {bool loop = false}) async {
+    if (Platform.isWindows) {
+      if (loop) {
+        PlaySound(TEXT(path), NULL,
+            SND_FILENAME | SND_ASYNC | SND_LOOP);
+      } else {
+        PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC);
+      }
+    }
+  }
+
   static void pause() async {
     if (Platform.isWindows) {
       PlaySound(Pointer.fromAddress(0), 0, 0);

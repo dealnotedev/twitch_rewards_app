@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_websocket/obs_websocket.dart';
+import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/extensions.dart';
@@ -228,6 +229,13 @@ class LoggedState extends State<LoggedWidget> {
         case RewardAction.typeEnableInput:
           await _enableInput(
               inputName: action.inputName ?? '', enabled: action.enable);
+          break;
+
+        case RewardAction.typePlayAudio:
+          final filePath = action.filePath;
+          if(filePath != null && filePath.isNotEmpty){
+            RingtoneUtils.playFile(filePath);
+          }
           break;
       }
     }

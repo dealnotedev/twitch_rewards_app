@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:twitch_listener/delay_widget.dart';
-import 'package:twitch_listener/enable_input_widget.dart';
+import 'package:twitch_listener/rewards/delay_widget.dart';
+import 'package:twitch_listener/rewards/enable_input_widget.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards/play_audio_widget.dart';
 import 'package:twitch_listener/themes.dart';
 
 class RewardWidget extends StatefulWidget {
@@ -42,7 +43,8 @@ class _State extends State<RewardWidget> {
 
   final _availableActions = <AddAction>[
     AddAction(title: 'Enable input', type: RewardAction.typeEnableInput),
-    AddAction(title: 'Delay', type: RewardAction.typeDelay)
+    AddAction(title: 'Delay', type: RewardAction.typeDelay),
+    AddAction(title: 'Play audio', type: RewardAction.typePlayAudio)
   ];
 
   late final TextEditingController _nameController;
@@ -131,6 +133,9 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typeDelay:
         return DelayWidget(saveHook: widget.saveHook, action: action);
+
+      case RewardAction.typePlayAudio:
+        return PlayAudioWidget(saveHook: widget.saveHook, action: action);
     }
 
     throw StateError('Unsupported action ${action.type}');
