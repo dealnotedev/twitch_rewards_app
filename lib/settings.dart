@@ -42,7 +42,7 @@ class Settings {
   Future<void> initObsPrefs() async {
     final prefs = await SharedPreferences.getInstance();
 
-    obsWsUrl = prefs.getString(_kObsWsUrl);
+    obsWsUrl = prefs.getString(_kObsWsUrl) ?? 'ws://127.0.0.1:4455';
     obsWsPassword = prefs.getString(_kObsWsPassword);
   }
 
