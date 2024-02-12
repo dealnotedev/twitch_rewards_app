@@ -1,8 +1,6 @@
 import 'dart:async';
-import 'dart:convert';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
@@ -19,7 +17,6 @@ import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 void main() async {
   final settings = Settings();

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/generated/assets.dart';
-
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';
