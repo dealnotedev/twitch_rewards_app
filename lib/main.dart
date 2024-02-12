@@ -275,7 +275,7 @@ class LoggedState extends State<LoggedWidget> {
               sourceName.isNotEmpty &&
               sceneName != null &&
               sceneName.isNotEmpty) {
-            _obs.enableSource(
+            await _obs.enableSource(
                 sceneName: sceneName,
                 sourceName: sourceName,
                 enabled: action.enable);
