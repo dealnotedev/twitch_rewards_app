@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:fresh_dio/fresh_dio.dart';
-import 'package:twitch_listener/twitch/settings.dart';
+import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
 class TwitchCredsInterceptor extends Fresh<TwitchCreds> {

@@ -2,18 +2,9 @@
 class Assets {
   Assets._();
 
-  static const String assets1189758809049149541 = 'assets/1189758809049149541.wav';
-  static const String assets1707170056254 = 'assets/1707170056254.wav';
-  static const String assets1707171410229 = 'assets/1707171410229.wav';
-  static const String assets1707240876273 = 'assets/1707240876273.wav';
-  static const String assets1707241061568 = 'assets/1707241061568.wav';
-  static const String assets1707241703596 = 'assets/1707241703596.wav';
-  static const String assets1707249117387 = 'assets/1707249117387.wav';
-  static const String assets1707249127111 = 'assets/1707249127111.wav';
-  static const String assets1707257933102 = 'assets/1707257933102.wav';
-  static const String assetsChipi = 'assets/chipi.wav';
-  static const String assetsDaria = 'assets/daria.wav';
-  static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
-  static const String assetsVideoplayback = 'assets/videoplayback.wav';
-
+  static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
+  static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
+  static const String assetsIcTwitchWhite24dp =
+      'assets/ic_twitch_white_24dp.png';
+  static const String assetsLogo = 'assets/logo.png';
 }

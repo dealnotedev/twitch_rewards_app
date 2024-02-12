@@ -1,30 +1,33 @@
 import 'dart:async';
-import 'dart:convert';
-import 'dart:io';
-import 'dart:math';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
-import 'package:obs_websocket/obs_websocket.dart';
+import 'package:twitch_listener/audio/ringtone.dart';
+import 'package:twitch_listener/di/app_service_locator.dart';
+import 'package:twitch_listener/di/service_locator.dart';
+import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/secrets.dart';
-import 'package:twitch_listener/twitch/settings.dart';
+import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/obs/obs_widget.dart';
+import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_widget.dart';
+import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
-import 'package:video_player/video_player.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
-
-import 'audio/ringtone.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/twitch_connect_widget.dart';
 
 void main() async {
-  await Settings.instance.init();
+  final settings = Settings();
+  await settings.init();
 
-  runApp(const MyApp());
+  final locator = AppServiceLocator.init(settings);
+
+  runApp(MyApp(locator: locator));
 
   doWhenWindowReady(() {
-    const initialSize = Size(640, 360);
+    const initialSize = Size(640, 640);
     appWindow.minSize = initialSize;
     appWindow.size = initialSize;
     appWindow.alignment = Alignment.center;
@@ -33,26 +36,43 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final ServiceLocator locator;
+
+  const MyApp({super.key, required this.locator});
 
   @override
   State<StatefulWidget> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyApp> {
-  final _settings = Settings.instance;
+  late final Settings _settings;
+
+  @override
+  void initState() {
+    _settings = widget.locator.provide();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
+        brightness: Brightness.dark,
+        colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.deepPurple, brightness: Brightness.dark),
         useMaterial3: true,
       ),
       home: Scaffold(
-        backgroundColor: Colors.green,
-        body: _createRoot(context),
+        backgroundColor: const Color(0xFF404450),
+        body: Column(
+          children: [
+            Container(
+                color: const Color(0xFF363A46),
+                child: _createWindowTitleBarBox(context)),
+            Expanded(child: _createRoot(context))
+          ],
+        ),
       ),
     );
   }
@@ -64,382 +84,283 @@ class _MyHomePageState extends State<MyApp> {
         builder: (cntx, snapshot) {
           final data = snapshot.data;
           if (data != null) {
-            return VideoPlayWidget(creds: data);
+            return LoggedWidget(creds: data, locator: widget.locator);
           } else {
-            return const Center(
-              child: TwitchLoginWidget(),
+            return Center(
+              child: TwitchLoginWidget(settings: _settings),
             );
           }
         });
   }
 }
 
-class _Media {
-  final VideoPlayerController controller;
-  final File file;
-
-  _Media({required this.controller, required this.file});
-}
-
-class VideoPlayWidget extends StatefulWidget {
+class LoggedWidget extends StatefulWidget {
+  final ServiceLocator locator;
   final TwitchCreds creds;
 
-  const VideoPlayWidget({super.key, required this.creds});
+  const LoggedWidget({super.key, required this.creds, required this.locator});
 
   @override
-  State<StatefulWidget> createState() => VideoPlayState();
+  State<StatefulWidget> createState() => LoggedState();
 }
 
-class VideoPlayState extends State<VideoPlayWidget> {
+class LoggedState extends State<LoggedWidget> {
+  late final TwitchApi _twitchApi;
+  late final ObsConnect _obs;
+  late final Settings _settings;
+  late final WebSocketManager _wsManager;
+
+  late final StreamSubscription _wsSubscription;
+
   @override
   void initState() {
-    final settings = Settings.instance;
-    final twitchApi = TwitchApi(
-        settings: Settings.instance, clientSecret: twitchClientSecret);
+    _settings = widget.locator.provide();
+    _obs = widget.locator.provide();
+    _twitchApi = widget.locator.provide();
+    _wsManager = widget.locator.provide();
 
-    _subsReward(settings, twitchApi);
-    _prepareObs();
+    _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     super.initState();
-  }
-
-  ObsWebSocket? _obs;
-
-  Future<void> _prepareObs() async {
-    final obs = _obs = await ObsWebSocket.connect('ws://127.0.0.1:4455',
-        password: 'w7yiuBi2JF70EAZ2');
-    await obs.stream.status;
-
-    _mirrorScene(false);
-    _enableVoiceInputs(Voice.normal);
-  }
-
-  Future<void> _mirrorScene(bool mirrored) async {
-    final items = await _obs?.sceneItems.list('Scene');
-    final game =
-        items?.firstWhere((element) => element.sourceName == 'Game Capture');
-
-    _obs?.sendRequest(Request(
-      'SetSceneItemTransform',
-      requestData: {
-        'sceneName': 'Scene',
-        'sceneItemId': game?.sceneItemId,
-        'sceneItemTransform': {
-          'width': mirrored ? -1920 : 1920,
-          'height': 1080,
-          'scaleY': 0.5,
-          'scaleX': mirrored ? -0.5 : 0.5,
-          'positionY': 0,
-          'positionX': mirrored ? 1920 : 0
-        }
-      },
-    ));
-  }
-
-  bool _blackWhite = false;
-  bool _mirror = false;
-
-  Future<void> _toggleBlackWhite() async {
-    _blackWhite = !_blackWhite;
-
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'BlackWhite',
-        filterEnabled: _blackWhite);
-  }
-
-  Future<void> _enableVoiceInputs(Voice voice) async {
-    await _obs?.inputs
-        .setInputMute('Mic/Aux', voice != Voice.normal && voice != Voice.robo);
-    await _obs?.inputs
-        .setInputMute('Helium', voice != Voice.helium && voice != Voice.robo);
-    await _obs?.inputs
-        .setInputMute('Brutal', voice != Voice.brutal && voice != Voice.robo);
-  }
-
-  Future<void> _toggleNarkomania() async {
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'Narkomania',
-        filterEnabled: true);
-
-    await Future.delayed(const Duration(seconds: 20));
-
-    await _obs?.filters.setSourceFilterEnabled(
-        sourceName: 'Game Capture',
-        filterName: 'Narkomania',
-        filterEnabled: false);
-  }
-
-  Future<void> _subsReward(Settings settings, TwitchApi api) async {
-    final sessionId = await _connectToEventSub();
-
-    try {
-      await api.subscribeCustomRewards(
-          broadcasterUserId: settings.twitchAuth?.broadcasterId,
-          sessionId: sessionId);
-    } on DioException catch (e) {
-      print(e.response?.data);
-    }
-  }
-
-  Future<String> _connectToEventSub() async {
-    final channel = WebSocketChannel.connect(Uri.parse(
-        'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30'));
-    await channel.ready;
-
-    final completer = Completer<String>();
-
-    channel.stream.listen((event) {
-      final json = jsonDecode(event);
-      print(event);
-
-      final sessionId = json['payload']?['session']?['id'] as String?;
-      if (sessionId != null) {
-        completer.complete(sessionId);
-      }
-
-      final rewardTitle =
-          json['payload']?['event']?['reward']?['title'] as String?;
-      switch (rewardTitle) {
-        case 'Та ти шо':
-          RingtoneUtils.play(Assets.assetsVideoplayback);
-          break;
-
-        case 'Робо':
-          _handleVoiceChange(Voice.robo, const Duration(minutes: 2),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
-        case 'Брутальність':
-          _handleVoiceChange(Voice.brutal, const Duration(minutes: 2),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
-        case 'Пустити гелій на 2хв':
-          _handleVoiceChange(Voice.helium, const Duration(minutes: 2),
-              key: DateTime.now().microsecondsSinceEpoch);
-          break;
-
-        case 'Пан Роман':
-          RingtoneUtils.play(Assets.assets1707257933102);
-          break;
-
-        case 'Чіпі':
-          RingtoneUtils.play(Assets.assetsChipi);
-          break;
-
-        case 'Здивуватися як V4NS_':
-          RingtoneUtils.play(Assets.assets1707249127111);
-          break;
-
-        case 'Похвалити':
-          RingtoneUtils.play(Assets.assets1707249117387);
-          break;
-
-        case 'Дзеркало':
-          _mirror = !_mirror;
-          _mirrorScene(_mirror);
-          break;
-
-        case 'Підніми її':
-          RingtoneUtils.play(Assets.assets1707241703596);
-          break;
-
-        case 'Дар\'я сміється':
-          RingtoneUtils.play(Assets.assetsDaria);
-          break;
-
-        case 'Хто відповідальний':
-          RingtoneUtils.play(Assets.assets1707241061568);
-          break;
-
-        case 'Чорно-біле':
-          _toggleBlackWhite();
-          break;
-
-        case 'Наркоманія':
-          _toggleNarkomania();
-          break;
-
-        case 'Хто я':
-          RingtoneUtils.play(Assets.assets1707240876273);
-          break;
-
-        case 'Шо він зробив':
-          RingtoneUtils.play(Assets.assets1707171410229);
-          break;
-
-        case 'Шо він йому казав':
-          RingtoneUtils.play(Assets.assets1707170056254);
-          break;
-
-        case 'Ох і хуїта':
-          RingtoneUtils.play(Assets.assets1189758809049149541);
-          break;
-
-        case 'Рандомна Нарізка':
-          _handlePlayRandomHighlightRequest(VideoType.saber);
-          break;
-
-        case 'Добра бійка':
-          _handlePlayRandomHighlightRequest(VideoType.funny);
-          break;
-
-        case 'Смерть півня':
-          _handlePlayRandomHighlightRequest(VideoType.death);
-          break;
-      }
-    }, onError: (e) {
-      print(e);
-    });
-
-    print('Wss connected');
-    return completer.future;
   }
 
   @override
   void dispose() {
-    _media?.controller.dispose();
+    _wsSubscription.cancel();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    return _createBody(context);
-  }
-
-  File _findRandomHighlight(VideoType type) {
-    final Directory directory;
-    switch (type) {
-      case VideoType.death:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\deaths');
-        break;
-
-      case VideoType.saber:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\saber');
-        break;
-
-      case VideoType.funny:
-        directory = Directory('C:\\Users\\dealn\\Desktop\\reward\\funny');
-        break;
-    }
-
-    final all = directory.listSync();
-
-    final mp4 = all
-        .where((element) => element.path.endsWith('.mp4'))
-        .map((e) => e as File)
-        .toList();
-    return mp4[Random().nextInt(mp4.length)];
-  }
-
-  _Media? _media;
-
-  Widget? _createVideoPlayer() {
-    final media = _media;
-
-    if (media != null) {
-      return Container(
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Colors.white, width: 4)),
-        child: ClipRRect(
-          borderRadius: BorderRadius.circular(12),
-          child: AspectRatio(
-            aspectRatio: 16.0 / 9.0,
-            child: VideoPlayer(
-              media.controller,
-              key: Key(media.file.path),
-            ),
-          ),
-        ),
-      );
-    } else {
-      return null;
-    }
-  }
-
-  Widget _createBody(BuildContext context) {
-    final player = _createVideoPlayer();
-    return Stack(
-      alignment: Alignment.center,
-      children: [
-        if (player != null) player,
-        SizedBox(
-          height: double.infinity,
-          width: double.infinity,
-          child: MoveWindow(),
-        ),
-      ],
+    return SingleChildScrollView(
+      child: _createBody(context),
     );
   }
 
-  void _resetVideo() async {
-    await _media?.controller.dispose();
-    setState(() {
-      _media = null;
-    });
+  Widget _createBody(BuildContext context) {
+    return StreamBuilder(
+        stream: _settings.rewardsStream,
+        initialData: _settings.rewards,
+        builder: (cntx, snapshot) {
+          final rewards = snapshot.requireData;
+          return Column(
+            children: [
+              const SizedBox(
+                height: 16,
+              ),
+              TwitchConnectWidget(
+                webSocketManager: _wsManager,
+                settings: _settings,
+                api: _twitchApi,
+              ),
+              const SizedBox(
+                height: 16,
+              ),
+              ObsWidget(
+                settings: _settings,
+                connect: _obs,
+              ),
+              const SizedBox(
+                height: 8,
+              ),
+              ...rewards.rewards.map((e) => RewardWidget(
+                reward: e,
+                saveHook: _saveHook,
+                onDelete: _handleDeleteClick,
+                onPlay: _applyReward,
+              )),
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                decoration: BoxDecoration(
+                    color: const Color(0xFF363A46),
+                    borderRadius: BorderRadius.circular(8)),
+                child: Row(
+                  mainAxisSize: MainAxisSize.max,
+                  mainAxisAlignment: MainAxisAlignment.end,
+                  children: [
+                    ElevatedButton(
+                        onPressed: _handleCreateClick,
+                        child: const Text('Create')),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    ElevatedButton(
+                        onPressed: _handleSaveClick,
+                        child: const Text('Save all'))
+                  ],
+                ),
+              )
+            ],
+          );
+        });
   }
 
-  void _handlePlayRandomHighlightRequest(VideoType type) async {
-    _resetVideo();
+  final _saveHook = SaveHook();
 
-    final file = _findRandomHighlight(type);
-    print(file);
+  void _handleSaveClick() {
+    _saveHook.save();
+    _settings.saveRewards(_settings.rewards);
+  }
 
-    final controller = VideoPlayerController.file(file);
-    controller.addListener(() {
-      final event = controller.value;
+  void _handleReward(String rewardTitle) {
+    final reward = _settings.rewards.rewards
+        .firstWhereOrNull((element) => element.name == rewardTitle);
+    if (reward != null) {
+      _applyReward(reward);
+    }
+  }
 
-      if (_media?.controller == controller && event.isCompleted) {
-        _resetVideo();
+  void _applyReward(Reward reward) async {
+    for (var action in reward.handlers) {
+      switch (action.type) {
+        case RewardAction.typeDelay:
+          await Future.delayed(Duration(seconds: action.duration));
+          break;
+
+        case RewardAction.typeEnableInput:
+          await _obs.enableInput(
+              inputName: action.inputName ?? '', enabled: action.enable);
+          break;
+
+        case RewardAction.typeEnableFilter:
+          final sourceName = action.sourceName;
+          final filterName = action.filterName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              filterName != null &&
+              filterName.isNotEmpty) {
+            await _obs.enableSourceFilter(
+                sourceName: sourceName,
+                filterName: filterName,
+                enabled: action.enable);
+          }
+          break;
+
+        case RewardAction.typeFlipSource:
+          final sourceName = action.sourceName;
+          final sceneName = action.sceneName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              sceneName != null &&
+              sceneName.isNotEmpty) {
+            await _obs.flipSource(
+                sceneName: sceneName,
+                sourceName: sourceName,
+                horizontal: action.horizontal,
+                vertical: action.vertical);
+          }
+          break;
+
+        case RewardAction.typeInvertFilter:
+          final sourceName = action.sourceName;
+          final filterName = action.filterName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              filterName != null &&
+              filterName.isNotEmpty) {
+            await _obs.invertSourceFilter(
+                sourceName: sourceName, filterName: filterName);
+          }
+          break;
+
+        case RewardAction.typeEnableSource:
+          final sourceName = action.sourceName;
+          final sceneName = action.sceneName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              sceneName != null &&
+              sceneName.isNotEmpty) {
+            await _obs.enableSource(
+                sceneName: sceneName,
+                sourceName: sourceName,
+                enabled: action.enable);
+          }
+          break;
+
+        case RewardAction.typePlayAudio:
+          final filePath = action.filePath;
+          if (filePath != null && filePath.isNotEmpty) {
+            RingtoneUtils.playFile(filePath);
+          }
+          break;
       }
-    });
+    }
+  }
 
-    await controller.initialize();
-
+  void _handleCreateClick() {
     setState(() {
-      _media = _Media(controller: controller, file: file);
-      _media?.controller.play();
+      _settings.rewards.rewards
+          .add(Reward(name: '', handlers: [], expanded: true));
     });
   }
 
-  int? _activeVoiceKey;
-
-  Future<void> _showHeliumSmoke(Duration duration) async {
-    final smoke = await _obs?.sceneItems.list('Scene').then(
-        (value) => value.firstWhere((item) => item.sourceName == 'Smoke'));
-
-    if (smoke != null) {
-      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: 'Scene',
-          sceneItemId: smoke.sceneItemId,
-          sceneItemEnabled: true));
-      await Future.delayed(duration);
-      await _obs?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: 'Scene',
-          sceneItemId: smoke.sceneItemId,
-          sceneItemEnabled: false));
-    }
+  void _handleDeleteClick(Reward reward) {
+    setState(() {
+      _settings.rewards.rewards.remove(reward);
+    });
   }
 
-  void _handleVoiceChange(Voice voice, Duration duration,
-      {required int key}) async {
-    _activeVoiceKey = key;
-
-    if (voice == Voice.helium) {
-      await _showHeliumSmoke(const Duration(seconds: 5));
-    }
-
-    await _enableVoiceInputs(voice);
-    await Future.delayed(duration);
-
-    if (_activeVoiceKey == key) {
-      await _enableVoiceInputs(Voice.normal);
+  void _handleWebSocketMessage(dynamic json) {
+    final rewardTitle =
+    json['payload']?['event']?['reward']?['title'] as String?;
+    if (rewardTitle != null) {
+      _handleReward(rewardTitle);
     }
   }
 }
 
-enum VideoType { death, saber, funny }
-
 enum Voice { normal, helium, brutal, robo }
+
+WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
+  return WindowTitleBarBox(
+      child: Row(children: [
+        Expanded(
+            child: MoveWindow(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: Tooltip(
+                    message: 'It\'s dealnoteDev',
+                    child: Image.asset(
+                      Assets.assetsLogo,
+                      width: 24,
+                      height: 24,
+                      filterQuality: FilterQuality.medium,
+                    ),
+                  ),
+                ))),
+        const WindowButtons()
+      ]));
+}
+
+class WindowButtons extends StatelessWidget {
+  static final buttonColors = WindowButtonColors(
+      iconNormal: const Color(0xFF737A8B),
+      mouseOver: const Color(0xFFF6A00C),
+      mouseDown: const Color(0xFF805306),
+      iconMouseOver: const Color(0xFF805306),
+      iconMouseDown: const Color(0xFFFFD500));
+
+  static final closeButtonColors = WindowButtonColors(
+      mouseOver: const Color(0xFFD32F2F),
+      mouseDown: const Color(0xFFB71C1C),
+      iconNormal: const Color(0xFF737A8B),
+      iconMouseOver: Colors.white);
+
+  const WindowButtons({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        MinimizeWindowButton(colors: buttonColors),
+        MaximizeWindowButton(colors: buttonColors),
+        CloseWindowButton(colors: closeButtonColors),
+      ],
+    );
+  }
+}

@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
-import 'package:twitch_listener/twitch/prediction.dart';
-import 'package:twitch_listener/twitch/settings.dart';
+import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_creds_interceptor.dart';
 
 class Statuses {
@@ -29,13 +29,16 @@ class TwitchApi {
       'transport': {'session_id': sessionId, 'method': 'websocket'}
     };
 
-    print(data);
+    return dio.post('/eventsub/subscriptions', data: data);
+  }
+
+  Future<UserDto> getUser() {
     return dio
-        .post('/eventsub/subscriptions', data: data)
+        .get('/users')
         .then((value) => value.data)
-        .then((value) {
-      print(value);
-    });
+        .then((value) => value['data'] as List<dynamic>)
+        .then((value) => value[0])
+        .then(UserDto.fromJson);
   }
 
   Future<Prediction> endPrediction(
