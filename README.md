@@ -1,16 +1,11 @@
-# twitch_listener
+# Twitch Rewards App
 
-A new Flutter project.
+A simple application for manipulating OBS settings using Twitch channel points
 
 ## Getting Started
 
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+1. Authorize on Twitch in application.
+2. Enable WebSocket server in OBS (Tools -> WebSocket Server Settings -> Enable WebSocket server -> Apply)
+3. Connect to OBS in application (Copy password from WebSocket Server Settings)
+4. Create reward template
+5. Save all
