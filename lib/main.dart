@@ -108,6 +108,7 @@ class LoggedState extends State<LoggedWidget> {
   late final TwitchApi _twitchApi;
   late final ObsConnect _obsConnect;
   late final Settings _settings;
+  late final WebSocketManager _wsManager;
 
   late final StreamSubscription _wsSubscription;
 
@@ -116,9 +117,9 @@ class LoggedState extends State<LoggedWidget> {
     _settings = widget.locator.provide();
     _obsConnect = widget.locator.provide();
     _twitchApi = widget.locator.provide();
+    _wsManager = widget.locator.provide();
 
-    final wsManager = ServiceLocator.get<WebSocketManager>();
-    _wsSubscription = wsManager.messages.listen(_handleWebSocketMessage);
+    _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     super.initState();
   }
 
@@ -154,6 +155,7 @@ class LoggedState extends State<LoggedWidget> {
                 height: 16,
               ),
               TwitchConnectWidget(
+                webSocketManager: _wsManager,
                 settings: _settings,
                 api: _twitchApi,
               ),

@@ -17,7 +17,7 @@ class WebSocketManager {
   final Settings _settings;
   final _stateSubject = StreamController<WsStateEvent>.broadcast();
 
-  var currentState = WsState.idle;
+  WsState currentState = WsState.idle;
 
   IOWebSocketChannel? _channel;
   StreamSubscription<dynamic>? _subscription;
@@ -62,6 +62,8 @@ class WebSocketManager {
   Stream<WsStateEvent> get state =>
       Stream.value(WsStateEvent(currentState, currentState))
           .concatWith([_stateSubject.stream]);
+
+  Stream<WsState> get stateShanges => _stateSubject.stream.map((event) => event.current);
 
   void _connectInternal({TwitchCreds? auth}) async {
     final actualAuth = auth ?? _settings.twitchAuth;

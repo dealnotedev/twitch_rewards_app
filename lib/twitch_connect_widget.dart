@@ -4,13 +4,18 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 
 class TwitchConnectWidget extends StatefulWidget {
+  final WebSocketManager webSocketManager;
   final Settings settings;
   final TwitchApi api;
 
   const TwitchConnectWidget(
-      {super.key, required this.settings, required this.api});
+      {super.key,
+      required this.settings,
+      required this.api,
+      required this.webSocketManager});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -40,6 +45,36 @@ class _State extends State<TwitchConnectWidget> {
       _loading = false;
       _user = data;
     });
+  }
+
+  Widget _createIndicator({required WsState state}) {
+    final Color color;
+
+    switch (state) {
+      case WsState.initialConnecting:
+      case WsState.reconnecting:
+        color = Colors.yellow;
+        break;
+
+      case WsState.connected:
+        color = Colors.green;
+        break;
+
+      case WsState.disconnected:
+        color = Colors.red;
+        break;
+
+      case WsState.idle:
+        color = Colors.grey;
+        break;
+    }
+
+    return Container(
+      width: 8,
+      height: 8,
+      decoration:
+          BoxDecoration(borderRadius: BorderRadius.circular(4), color: color),
+    );
   }
 
   @override
@@ -81,9 +116,22 @@ class _State extends State<TwitchConnectWidget> {
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                const Text(
-                  'Twitch Connection',
-                  style: TextStyle(color: Colors.white),
+                Row(
+                  children: [
+                    StreamBuilder(
+                        stream: widget.webSocketManager.stateShanges,
+                        initialData: widget.webSocketManager.currentState,
+                        builder: (_, snapshot) {
+                          return _createIndicator(state: snapshot.requireData);
+                        }),
+                    const SizedBox(
+                      width: 8,
+                    ),
+                    const Text(
+                      'Twitch Connection',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ],
                 ),
                 const SizedBox(
                   height: 4,
