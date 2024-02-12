@@ -22,9 +22,9 @@ void main() async {
   final settings = Settings();
   await settings.init();
 
-  AppServiceLocator.init(settings);
+  final locator = AppServiceLocator.init(settings);
 
-  runApp(const MyApp());
+  runApp(MyApp(locator: locator));
 
   doWhenWindowReady(() {
     const initialSize = Size(640, 640);
@@ -36,19 +36,20 @@ void main() async {
 }
 
 class MyApp extends StatefulWidget {
-  const MyApp({super.key});
+  final ServiceLocator locator;
+
+  const MyApp({super.key, required this.locator});
 
   @override
   State<StatefulWidget> createState() => _MyHomePageState();
 }
 
 class _MyHomePageState extends State<MyApp> {
-
   late final Settings _settings;
 
   @override
   void initState() {
-    _settings = ServiceLocator.get();
+    _settings = widget.locator.provide();
     super.initState();
   }
 
@@ -83,7 +84,7 @@ class _MyHomePageState extends State<MyApp> {
         builder: (cntx, snapshot) {
           final data = snapshot.data;
           if (data != null) {
-            return LoggedWidget(creds: data);
+            return LoggedWidget(creds: data, locator: widget.locator);
           } else {
             return Center(
               child: TwitchLoginWidget(settings: _settings),
@@ -94,9 +95,10 @@ class _MyHomePageState extends State<MyApp> {
 }
 
 class LoggedWidget extends StatefulWidget {
+  final ServiceLocator locator;
   final TwitchCreds creds;
 
-  const LoggedWidget({super.key, required this.creds});
+  const LoggedWidget({super.key, required this.creds, required this.locator});
 
   @override
   State<StatefulWidget> createState() => LoggedState();
@@ -111,9 +113,9 @@ class LoggedState extends State<LoggedWidget> {
 
   @override
   void initState() {
-    _settings = ServiceLocator.get();
-    _obsConnect = ServiceLocator.get();
-    _twitchApi = ServiceLocator.get();
+    _settings = widget.locator.provide();
+    _obsConnect = widget.locator.provide();
+    _twitchApi = widget.locator.provide();
 
     final wsManager = ServiceLocator.get<WebSocketManager>();
     _wsSubscription = wsManager.messages.listen(_handleWebSocketMessage);
@@ -244,9 +246,8 @@ class LoggedState extends State<LoggedWidget> {
 
   void _handleWebSocketMessage(dynamic json) {
     final rewardTitle =
-    json['payload']?['event']?['reward']?['title'] as String?;
-    if(rewardTitle != null){
-      print(rewardTitle);
+        json['payload']?['event']?['reward']?['title'] as String?;
+    if (rewardTitle != null) {
       _handleReward(rewardTitle);
     }
   }
