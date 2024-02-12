@@ -24,6 +24,7 @@ class RewardAction {
   static const typeEnableInput = 'enable_input';
   static const typeDelay = 'delay';
   static const typePlayAudio = 'play_audio';
+  static const typeEnableFilter = 'enable_filter';
 
   final String type;
 
@@ -35,11 +36,17 @@ class RewardAction {
 
   String? filePath;
 
+  String? sourceName;
+
+  String? filterName;
+
   RewardAction(
       {required this.type,
       this.enable = false,
       this.inputName,
-        this.filePath,
+      this.filePath,
+      this.sourceName,
+      this.filterName,
       this.duration = 0});
 
   Map<String, dynamic> toJson() {
@@ -48,6 +55,8 @@ class RewardAction {
       'enable': enable,
       'filePath': filePath,
       'inputName': inputName,
+      'sourceName': sourceName,
+      'filterName': filterName,
       'duration': duration
     };
   }
@@ -58,6 +67,8 @@ class RewardAction {
         duration: json['duration'] as int? ?? 0,
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
+        sourceName: json['sourceName'] as String?,
+        filterName: json['filterName'] as String?,
         inputName: json['inputName'] as String?);
   }
 }

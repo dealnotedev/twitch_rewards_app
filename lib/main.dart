@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
@@ -107,7 +106,7 @@ class LoggedWidget extends StatefulWidget {
 
 class LoggedState extends State<LoggedWidget> {
   late final TwitchApi _twitchApi;
-  late final ObsConnect _obsConnect;
+  late final ObsConnect _obs;
   late final Settings _settings;
   late final WebSocketManager _wsManager;
 
@@ -116,19 +115,12 @@ class LoggedState extends State<LoggedWidget> {
   @override
   void initState() {
     _settings = widget.locator.provide();
-    _obsConnect = widget.locator.provide();
+    _obs = widget.locator.provide();
     _twitchApi = widget.locator.provide();
     _wsManager = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     super.initState();
-  }
-
-  ObsWebSocket? get _obs => _obsConnect.ws;
-
-  Future<void> _enableInput(
-      {required String inputName, required bool enabled}) {
-    return _obs?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
   }
 
   @override
@@ -165,7 +157,7 @@ class LoggedState extends State<LoggedWidget> {
               ),
               ObsWidget(
                 settings: _settings,
-                connect: _obsConnect,
+                connect: _obs,
               ),
               const SizedBox(
                 height: 8,
@@ -227,13 +219,28 @@ class LoggedState extends State<LoggedWidget> {
           break;
 
         case RewardAction.typeEnableInput:
-          await _enableInput(
+          await _obs.enableInput(
               inputName: action.inputName ?? '', enabled: action.enable);
+          break;
+
+        case RewardAction.typeEnableFilter:
+          final sourceName = action.sourceName;
+          final filterName = action.filterName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              filterName != null &&
+              filterName.isNotEmpty) {
+            await _obs.enableSourceFilter(
+                sourceName: sourceName,
+                filterName: filterName,
+                enabled: action.enable);
+          }
           break;
 
         case RewardAction.typePlayAudio:
           final filePath = action.filePath;
-          if(filePath != null && filePath.isNotEmpty){
+          if (filePath != null && filePath.isNotEmpty) {
             RingtoneUtils.playFile(filePath);
           }
           break;
@@ -272,11 +279,14 @@ WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
         child: MoveWindow(
             child: Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Image.asset(
-        Assets.assetsLogo,
-        width: 24,
-        height: 24,
-        filterQuality: FilterQuality.medium,
+      child: Tooltip(
+        message: 'It\'s dealnoteDev',
+        child: Image.asset(
+          Assets.assetsLogo,
+          width: 24,
+          height: 24,
+          filterQuality: FilterQuality.medium,
+        ),
       ),
     ))),
     const WindowButtons()
