@@ -1,18 +1,46 @@
+import 'dart:async';
+
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/observable_value.dart';
 
 class ObsConnect {
   ObsWebSocket? _ws;
 
   ObsWebSocket? get ws => _ws;
 
-  Future<void> apply(ObsWebSocket? ws) async {
+  ObsConnect() {
+    Timer.periodic(const Duration(seconds: 10), _handleTimerTick);
+  }
+
+  void _handleTimerTick(Timer _) async {
+    try {
+      await ws?.stream.status;
+    } catch (_) {
+      _release();
+    }
+  }
+
+  void _release() {
     try {
       _ws?.close();
-    } catch (_) {}
+    } catch (_) {
+    } finally {
+      _ws = null;
+    }
+
+    state.set(ObsState.failed);
+  }
+
+  Future<void> apply(ObsWebSocket? ws) async {
+    _release();
 
     _ws = ws;
+
+    state.set(ws != null ? ObsState.connected : ObsState.failed);
   }
+
+  final state = ObservableValue(current: ObsState.failed);
 
   Future<void> enableSource(
       {required String sceneName,
@@ -100,3 +128,5 @@ class ObsConnect {
         Future.value();
   }
 }
+
+enum ObsState { failed, connected }

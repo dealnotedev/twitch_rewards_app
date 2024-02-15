@@ -31,6 +31,28 @@ class _State extends State<ObsWidget> {
     super.initState();
   }
 
+  Widget _createIndicator({required ObsState state}) {
+    final Color color;
+
+    switch (state) {
+      case ObsState.connected:
+        color = Colors.green;
+        break;
+
+      case ObsState.failed:
+      default:
+        color = Colors.red;
+        break;
+    }
+
+    return Container(
+      width: 8,
+      height: 8,
+      decoration:
+          BoxDecoration(borderRadius: BorderRadius.circular(4), color: color),
+    );
+  }
+
   Future<void> _initExistingConnect() async {
     final url = _settings.obsWsUrl;
     final password = _settings.obsWsPassword;
@@ -41,8 +63,6 @@ class _State extends State<ObsWidget> {
         password.isNotEmpty) {
       final obs = await ObsWebSocket.connect(url, password: password);
       await obs.stream.status;
-
-      debugPrint('Obs connected');
 
       _connect.apply(obs);
     }
@@ -82,9 +102,22 @@ class _State extends State<ObsWidget> {
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const Text(
-                'OBS Connection',
-                style: TextStyle(color: Colors.white),
+              Row(
+                children: [
+                  StreamBuilder(
+                      stream: widget.connect.state.changes,
+                      initialData: widget.connect.state.current,
+                      builder: (_, snapshot) {
+                        return _createIndicator(state: snapshot.requireData);
+                      }),
+                  const SizedBox(
+                    width: 8,
+                  ),
+                  const Text(
+                    'OBS Connection',
+                    style: TextStyle(color: Colors.white),
+                  ),
+                ],
               ),
               const SizedBox(
                 height: 8,
@@ -109,7 +142,7 @@ class _State extends State<ObsWidget> {
                 alignment: Alignment.centerRight,
                 child: ElevatedButton(
                     onPressed: _handleApplyClick,
-                    child: Text(_connecting ? 'Connecting...' : 'Apply')),
+                    child: Text(_connecting ? 'Connecting...' : 'Connect')),
               )
             ],
           ))
