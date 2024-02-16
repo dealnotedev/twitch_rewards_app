@@ -26,7 +26,7 @@ void main() async {
   runApp(MyApp(locator: locator));
 
   doWhenWindowReady(() {
-    const initialSize = Size(640, 640);
+    const initialSize = Size(640, 840);
     appWindow.minSize = initialSize;
     appWindow.size = initialSize;
     appWindow.alignment = Alignment.center;
@@ -128,8 +128,33 @@ class LoggedState extends State<LoggedWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      child: _createBody(context),
+    return Column(
+      children: [
+        Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 8),
+          child: _createBody(context),
+        )),
+        Divider(height: 1, thickness: 1, color: Colors.white.withOpacity(0.1),),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          color: const Color(0xFF363A46),
+          child: Row(
+            mainAxisSize: MainAxisSize.max,
+            mainAxisAlignment: MainAxisAlignment.end,
+            children: [
+              ElevatedButton(
+                  onPressed: _handleCreateClick, child: const Text('Create')),
+              const SizedBox(
+                width: 8,
+              ),
+              ElevatedButton(
+                  onPressed: _handleSaveClick, child: const Text('Save all'))
+            ],
+          ),
+        )
+      ],
     );
   }
 
@@ -159,34 +184,11 @@ class LoggedState extends State<LoggedWidget> {
                 height: 8,
               ),
               ...rewards.rewards.map((e) => RewardWidget(
-                reward: e,
-                saveHook: _saveHook,
-                onDelete: _handleDeleteClick,
-                onPlay: _applyReward,
-              )),
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(16),
-                margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                decoration: BoxDecoration(
-                    color: const Color(0xFF363A46),
-                    borderRadius: BorderRadius.circular(8)),
-                child: Row(
-                  mainAxisSize: MainAxisSize.max,
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    ElevatedButton(
-                        onPressed: _handleCreateClick,
-                        child: const Text('Create')),
-                    const SizedBox(
-                      width: 8,
-                    ),
-                    ElevatedButton(
-                        onPressed: _handleSaveClick,
-                        child: const Text('Save all'))
-                  ],
-                ),
-              )
+                    reward: e,
+                    saveHook: _saveHook,
+                    onDelete: _handleDeleteClick,
+                    onPlay: _applyReward,
+                  ))
             ],
           );
         });
@@ -303,7 +305,7 @@ class LoggedState extends State<LoggedWidget> {
 
   void _handleWebSocketMessage(dynamic json) {
     final rewardTitle =
-    json['payload']?['event']?['reward']?['title'] as String?;
+        json['payload']?['event']?['reward']?['title'] as String?;
     if (rewardTitle != null) {
       _handleReward(rewardTitle);
     }
@@ -315,22 +317,22 @@ enum Voice { normal, helium, brutal, robo }
 WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
   return WindowTitleBarBox(
       child: Row(children: [
-        Expanded(
-            child: MoveWindow(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  child: Tooltip(
-                    message: 'It\'s dealnoteDev',
-                    child: Image.asset(
-                      Assets.assetsLogo,
-                      width: 24,
-                      height: 24,
-                      filterQuality: FilterQuality.medium,
-                    ),
-                  ),
-                ))),
-        const WindowButtons()
-      ]));
+    Expanded(
+        child: MoveWindow(
+            child: Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+      child: Tooltip(
+        message: 'It\'s dealnoteDev',
+        child: Image.asset(
+          Assets.assetsLogo,
+          width: 24,
+          height: 24,
+          filterQuality: FilterQuality.medium,
+        ),
+      ),
+    ))),
+    const WindowButtons()
+  ]));
 }
 
 class WindowButtons extends StatelessWidget {
