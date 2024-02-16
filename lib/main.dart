@@ -132,10 +132,14 @@ class LoggedState extends State<LoggedWidget> {
       children: [
         Expanded(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.only(bottom: 8),
+          padding: const EdgeInsets.only(bottom: 8),
           child: _createBody(context),
         )),
-        Divider(height: 1, thickness: 1, color: Colors.white.withOpacity(0.1),),
+        Divider(
+          height: 1,
+          thickness: 1,
+          color: Colors.white.withOpacity(0.1),
+        ),
         Container(
           width: double.infinity,
           padding: const EdgeInsets.all(16),
@@ -184,6 +188,7 @@ class LoggedState extends State<LoggedWidget> {
                 height: 8,
               ),
               ...rewards.rewards.map((e) => RewardWidget(
+                    key: Key(e.id),
                     reward: e,
                     saveHook: _saveHook,
                     onDelete: _handleDeleteClick,
@@ -293,7 +298,7 @@ class LoggedState extends State<LoggedWidget> {
   void _handleCreateClick() {
     setState(() {
       _settings.rewards.rewards
-          .add(Reward(name: '', handlers: [], expanded: true));
+          .insert(0, Reward(name: '', handlers: [], expanded: true));
     });
   }
 

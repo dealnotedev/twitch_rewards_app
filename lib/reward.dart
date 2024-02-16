@@ -1,11 +1,15 @@
+import 'package:uuid/uuid.dart';
+
 class Reward {
   String name;
 
+  final String id;
   final List<RewardAction> handlers;
 
   bool expanded;
 
-  Reward({required this.name, required this.handlers, this.expanded = false});
+  Reward({required this.name, required this.handlers, this.expanded = false})
+      : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
     return {'name': name, 'handlers': handlers.map((e) => e.toJson()).toList()};
