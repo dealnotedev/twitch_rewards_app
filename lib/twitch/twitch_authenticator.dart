@@ -10,9 +10,9 @@ class TwitchAuthenticator {
   final String oauthRedirectUrl;
 
   static const _scope =
-      'chat:edit channel:manage:predictions chat:read channel:read:redemptions';
+      'channel:read:redemptions';
   static const _scopeEncoded =
-      'chat%3Aedit%20channel%3Amanage%3Apredictions%20chat%3Aread%20channel%3Aread%3Aredemptions';
+      'channel%3Aread%3Aredemptions';
 
   TwitchAuthenticator(
       {required this.clientId,
@@ -98,7 +98,7 @@ class TwitchAuthenticator {
   </head>
 
   <body>
-    <h2 style="text-align: center">Hunt: Predictor is ready for your game</h2>
+    <h2 style="text-align: center">Dealnote Rewards App is ready</h2>
     <p style="text-align: center">This window can be closed now.</p>
   </body>
 </html>''',
