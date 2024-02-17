@@ -1,27 +1,94 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/observable_value.dart';
+import 'package:twitch_listener/settings.dart';
 
 class ObsConnect {
+  final Settings settings;
+
   ObsWebSocket? _ws;
 
-  ObsWebSocket? get ws => _ws;
+  StreamSubscription? _prefsSubscription;
 
-  ObsConnect() {
-    Timer.periodic(const Duration(seconds: 10), _handleTimerTick);
+  bool _released = false;
+
+  ObsConnect({required this.settings}) {
+    _prefsSubscription = settings.obsPrefsStream.listen(_connectIfCan);
+    _startTickerLoop();
   }
 
-  void _handleTimerTick(Timer _) async {
-    try {
-      await ws?.stream.status;
-    } catch (_) {
-      _release();
+  void _startTickerLoop() async {
+    while (true) {
+      if (_released) break;
+
+      await Future.delayed(const Duration(seconds: 10));
+      await _handleTimerTick();
     }
   }
 
-  void _release() {
+  void release() {
+    _released = true;
+    _prefsSubscription?.cancel();
+
+    _releaseConnection();
+  }
+
+  Future<void> _connectIfCan(ObsPrefs? prefs) async {
+    _releaseConnection();
+
+    final url = prefs?.url;
+    final password = prefs?.password;
+
+    if (url != null &&
+        url.isNotEmpty &&
+        password != null &&
+        password.isNotEmpty) {
+      state.set(ObsState.connecting);
+
+      try {
+        debugPrint('Try connect obs');
+
+        final obs = await ObsWebSocket.connect(url,
+            password: password, timeout: const Duration(seconds: 10));
+        await obs.stream.status;
+
+        debugPrint('Obs connected');
+
+        if (settings.obsPrefs != prefs) {
+          // This prefs is not actual now
+          return;
+        }
+
+        _ws = obs;
+        state.set(ObsState.connected);
+      } catch (_) {
+        state.set(ObsState.failed);
+      }
+    }
+  }
+
+  Future<void> _handleTimerTick() async {
+    try {
+      final ws = _ws;
+
+      if (ws != null) {
+        await ws.stream.status;
+        return;
+      }
+    } catch (_) {
+      debugPrint('Obs failed');
+      _releaseConnection();
+    }
+
+    await _connectIfCan(settings.obsPrefs);
+  }
+
+  void _releaseConnection() {
+    if (_ws == null) return;
+
     try {
       _ws?.close();
     } catch (_) {
@@ -30,14 +97,6 @@ class ObsConnect {
     }
 
     state.set(ObsState.failed);
-  }
-
-  Future<void> apply(ObsWebSocket? ws) async {
-    _release();
-
-    _ws = ws;
-
-    state.set(ws != null ? ObsState.connected : ObsState.failed);
   }
 
   final state = ObservableValue(current: ObsState.failed);
@@ -129,4 +188,4 @@ class ObsConnect {
   }
 }
 
-enum ObsState { failed, connected }
+enum ObsState { failed, connecting, connected }

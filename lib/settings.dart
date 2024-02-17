@@ -36,14 +36,14 @@ class Settings {
   Stream<TwitchCreds?> get twitchAuthStream =>
       Stream.value(twitchAuth).concatWith([_twitchAuthSubject.stream]);
 
-  String? obsWsUrl;
-  String? obsWsPassword;
+  ObsPrefs? obsPrefs;
 
   Future<void> initObsPrefs() async {
     final prefs = await SharedPreferences.getInstance();
 
-    obsWsUrl = prefs.getString(_kObsWsUrl) ?? 'ws://127.0.0.1:4455';
-    obsWsPassword = prefs.getString(_kObsWsPassword);
+    obsPrefs = ObsPrefs(
+        url: prefs.getString(_kObsWsUrl) ?? 'ws://127.0.0.1:4455',
+        password: prefs.getString(_kObsWsPassword));
   }
 
   Future<void> initRewards() async {
@@ -55,10 +55,17 @@ class Settings {
         : Rewards(rewards: []);
   }
 
+  Stream<ObsPrefs?> get obsPrefsChanges => _obsPrefsSubject.stream;
+
+  Stream<ObsPrefs?> get obsPrefsStream =>
+      Stream.value(obsPrefs).concatWith([_obsPrefsSubject.stream]);
+
+  final _obsPrefsSubject = StreamController<ObsPrefs?>.broadcast();
+
   Future<void> saveObsPrefs(
       {required String url, required String password}) async {
-    obsWsUrl = url;
-    obsWsPassword = password;
+    final updated = obsPrefs = ObsPrefs(url: url, password: password);
+    _obsPrefsSubject.add(updated);
 
     final prefs = await SharedPreferences.getInstance();
     prefs.setString(_kObsWsUrl, url);
@@ -90,4 +97,22 @@ class Settings {
 
     twitchAuth = json != null ? TwitchCreds.fromJson(jsonDecode(json)) : null;
   }
+}
+
+class ObsPrefs {
+  final String? url;
+  final String? password;
+
+  ObsPrefs({required this.url, required this.password});
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is ObsPrefs &&
+          runtimeType == other.runtimeType &&
+          url == other.url &&
+          password == other.password;
+
+  @override
+  int get hashCode => url.hashCode ^ password.hashCode;
 }

@@ -22,7 +22,7 @@ class AppServiceLocator extends ServiceLocator {
     map[Settings] = settings;
     map[ServiceLocator] = this;
     map[WebSocketManager] = wsManager;
-    map[ObsConnect] = ObsConnect();
+    map[ObsConnect] = ObsConnect(settings: settings);
   }
 
   @override

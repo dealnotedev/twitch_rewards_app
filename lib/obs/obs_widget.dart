@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/settings.dart';
@@ -16,18 +15,15 @@ class ObsWidget extends StatefulWidget {
 }
 
 class _State extends State<ObsWidget> {
-  late final ObsConnect _connect;
   late final Settings _settings;
 
   @override
   void initState() {
-    _connect = widget.connect;
     _settings = widget.settings;
 
-    _urlController = TextEditingController(text: _settings.obsWsUrl);
-    _passwordController = TextEditingController(text: _settings.obsWsPassword);
-
-    _initExistingConnect();
+    _urlController = TextEditingController(text: _settings.obsPrefs?.url);
+    _passwordController =
+        TextEditingController(text: _settings.obsPrefs?.password);
     super.initState();
   }
 
@@ -51,21 +47,6 @@ class _State extends State<ObsWidget> {
       decoration:
           BoxDecoration(borderRadius: BorderRadius.circular(4), color: color),
     );
-  }
-
-  Future<void> _initExistingConnect() async {
-    final url = _settings.obsWsUrl;
-    final password = _settings.obsWsPassword;
-
-    if (url != null &&
-        url.isNotEmpty &&
-        password != null &&
-        password.isNotEmpty) {
-      final obs = await ObsWebSocket.connect(url, password: password);
-      await obs.stream.status;
-
-      _connect.apply(obs);
-    }
   }
 
   @override
@@ -140,14 +121,41 @@ class _State extends State<ObsWidget> {
               ),
               Align(
                 alignment: Alignment.centerRight,
-                child: ElevatedButton(
-                    onPressed: _handleApplyClick,
-                    child: Text(_connecting ? 'Connecting...' : 'Connect')),
+                child: _createConnectButton(context),
               )
             ],
           ))
         ],
       ),
+    );
+  }
+
+  Widget _createConnectButton(BuildContext context) {
+    return StreamBuilder(
+      stream: widget.connect.state.changes,
+      initialData: widget.connect.state.current,
+      builder: (cntx, snapshot) {
+        final state = snapshot.requireData;
+        final connecting = state == ObsState.connecting;
+        final String text;
+
+        switch (state) {
+          case ObsState.failed:
+            text = 'Connect';
+            break;
+
+          case ObsState.connecting:
+            text = 'Connecting...';
+            break;
+
+          case ObsState.connected:
+            text = 'Apply';
+            break;
+        }
+        return ElevatedButton(
+            onPressed: connecting ? null : _handleApplyClick,
+            child: Text(text));
+      },
     );
   }
 
@@ -163,32 +171,10 @@ class _State extends State<ObsWidget> {
     );
   }
 
-  bool _connecting = false;
-
   void _handleApplyClick() async {
-    if (_connecting) return;
-
     final url = _urlController.text.trim();
     final pass = _passwordController.text.trim();
 
-    await _settings.saveObsPrefs(url: url, password: pass);
-    await _connect.apply(null);
-
-    if (url.isEmpty || pass.isEmpty) return;
-
-    setState(() {
-      _connecting = true;
-    });
-
-    try {
-      final obs = await ObsWebSocket.connect(url, password: pass);
-      await obs.stream.status;
-
-      await _connect.apply(obs);
-    } finally {
-      setState(() {
-        _connecting = false;
-      });
-    }
+    _settings.saveObsPrefs(url: url, password: pass);
   }
 }
