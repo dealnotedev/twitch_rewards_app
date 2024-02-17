@@ -6,7 +6,7 @@
 
 1. Завантажте актуальний білд застосунку (.zip архів) тут [Releases](https://github.com/dealnotedev/twitch_rewards_app/releases).
 2. Розпакуйте архів в зручне для вас місце на диску і запустіть twitch_listener.exe.
-![plot](./images/login.jpg)
+![plot](./images/login.jpg =250x)
 3. Авторизуйтесь на Twitch, ознайомившись з правами, які ви надасте застосунку.
 ![plot](./images/browser_permissions.jpg)
 4. Після успішної авторизації в браузері ви маєте побачити наступне.
