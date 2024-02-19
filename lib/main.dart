@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
-import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
@@ -207,9 +206,10 @@ class LoggedState extends State<LoggedWidget> {
   }
 
   void _handleReward(String rewardTitle) {
-    final reward = _settings.rewards.rewards
-        .firstWhereOrNull((element) => element.name == rewardTitle);
-    if (reward != null) {
+    final rewards = _settings.rewards.rewards
+        .where((element) => element.name == rewardTitle);
+
+    for (var reward in rewards) {
       _applyReward(reward);
     }
   }
