@@ -4,7 +4,7 @@ class Assets {
 
   static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
-  static const String assetsIcTwitchWhite24dp =
-      'assets/ic_twitch_white_24dp.png';
+  static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
   static const String assetsLogo = 'assets/logo.png';
+
 }

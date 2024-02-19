@@ -21,11 +21,13 @@ class ObsConnect {
   }
 
   void _startTickerLoop() async {
+    int tick = 0;
     while (true) {
+      tick++;
       if (_released) break;
 
       await Future.delayed(const Duration(seconds: 10));
-      await _handleTimerTick();
+      await _handleTimerTick(tick);
     }
   }
 
@@ -70,8 +72,12 @@ class ObsConnect {
     }
   }
 
-  Future<void> _handleTimerTick() async {
+  Future<void> _handleTimerTick(int tick) async {
     try {
+      if (tick % 10 == 0) {
+        throw StateError('Reconnect on $tick tick');
+      }
+
       final ws = _ws;
 
       if (ws != null) {
