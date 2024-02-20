@@ -122,6 +122,10 @@ class ObsConnect {
     }
   }
 
+  Future<void> enableScene({required String sceneName}) {
+    return _ws?.scenes.setCurrentProgramScene(sceneName) ?? Future.value();
+  }
+
   Future<void> flipSource(
       {required String sceneName,
       required String sourceName,
