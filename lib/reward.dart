@@ -36,6 +36,8 @@ class RewardAction {
 
   final String type;
 
+  final String id;
+
   String? inputName;
 
   bool enable;
@@ -63,7 +65,8 @@ class RewardAction {
       this.sceneName,
       this.horizontal = false,
       this.vertical = false,
-      this.duration = 0});
+      this.duration = 0})
+      : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
     return {

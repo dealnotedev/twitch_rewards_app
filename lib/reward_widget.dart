@@ -140,28 +140,36 @@ class _State extends State<RewardWidget> {
       {required RewardAction action}) {
     switch (action.type) {
       case RewardAction.typeEnableInput:
-        return EnableInputWidget(action: action, saveHook: widget.saveHook);
+        return EnableInputWidget(
+            action: action, saveHook: widget.saveHook, key: Key(action.id));
 
       case RewardAction.typeDelay:
-        return DelayWidget(saveHook: widget.saveHook, action: action);
+        return DelayWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typePlayAudio:
-        return PlayAudioWidget(saveHook: widget.saveHook, action: action);
+        return PlayAudioWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeEnableFilter:
-        return EnableFilterWidget(saveHook: widget.saveHook, action: action);
+        return EnableFilterWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeInvertFilter:
-        return InvertFilterWidget(saveHook: widget.saveHook, action: action);
+        return InvertFilterWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeFlipSource:
-        return FlipSceneWidget(saveHook: widget.saveHook, action: action);
+        return FlipSceneWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeEnableSource:
-        return EnableSourceWidget(saveHook: widget.saveHook, action: action);
+        return EnableSourceWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeSetScene:
-        return SetSceneWidget(saveHook: widget.saveHook, action: action);
+        return SetSceneWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
     }
 
     throw StateError('Unsupported action ${action.type}');
