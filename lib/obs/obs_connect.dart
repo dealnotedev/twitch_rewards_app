@@ -137,12 +137,14 @@ class ObsConnect {
 
     if (source == null) return;
 
-    final transform = (await _ws?.sendRequest(Request('GetSceneItemTransform',
+    final response = (await _ws?.sendRequest(Request('GetSceneItemTransform',
             requestData: {
           'sceneName': sceneName,
           'sceneItemId': source.sceneItemId
         })))
-        ?.responseData?['sceneItemTransform'];
+        ?.responseData;
+
+    final transform = response?['sceneItemTransform'];
 
     final width = transform['width'] as double;
     final height = transform['height'] as double;
@@ -153,21 +155,20 @@ class ObsConnect {
     final positionX = transform['positionX'] as double;
     final positionY = transform['positionY'] as double;
 
-    _ws?.sendRequest(Request(
-      'SetSceneItemTransform',
-      requestData: {
-        'sceneName': sceneName,
-        'sceneItemId': source.sceneItemId,
-        'sceneItemTransform': {
-          'width': horizontal ? -width : width,
-          'height': vertical ? -height : height,
-          'scaleY': vertical ? -scaleY : scaleY,
-          'scaleX': horizontal ? -scaleX : scaleX,
-          'positionY': vertical ? (positionY + height) : positionY,
-          'positionX': horizontal ? (positionX + width) : positionX
-        }
-      },
-    ));
+    final data = {
+      'sceneName': sceneName,
+      'sceneItemId': source.sceneItemId,
+      'sceneItemTransform': {
+        'width': horizontal ? -width : width,
+        'height': vertical ? -height : height,
+        'scaleY': vertical ? -scaleY : scaleY,
+        'scaleX': horizontal ? -scaleX : scaleX,
+        'positionY': vertical ? (positionY + height) : positionY,
+        'positionX': horizontal ? (positionX + width) : positionX
+      }
+    };
+
+    _ws?.sendRequest(Request('SetSceneItemTransform', requestData: data));
   }
 
   Future<void> enableInput({required String inputName, required bool enabled}) {

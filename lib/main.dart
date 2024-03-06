@@ -315,10 +315,16 @@ class LoggedState extends State<LoggedWidget> {
     });
   }
 
+  static final _handledMessages = <String>{};
+
   void _handleWebSocketMessage(dynamic json) {
+    final messageId = json['metadata']?['message_id'] as String?;
     final rewardTitle =
         json['payload']?['event']?['reward']?['title'] as String?;
-    if (rewardTitle != null) {
+
+    if (rewardTitle != null &&
+        messageId != null &&
+        _handledMessages.add(messageId)) {
       _handleReward(rewardTitle);
     }
   }
