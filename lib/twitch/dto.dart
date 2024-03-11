@@ -101,6 +101,17 @@ class Predictor {
       channelPointsWon: json['channel_points_won'] as int);
 }
 
+class StreamDto {
+  final int viewerCount;
+  final String userId;
+
+  StreamDto({required this.viewerCount, required this.userId});
+
+  static StreamDto fromJson(dynamic json) => StreamDto(
+      viewerCount: json['viewer_count'] as int,
+      userId: json['user_id'] as String);
+}
+
 class UserDto {
   final String id;
   final String login;

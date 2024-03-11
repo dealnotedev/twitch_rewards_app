@@ -41,6 +41,14 @@ class TwitchApi {
         .then(UserDto.fromJson);
   }
 
+  Future<List<StreamDto>> getStreams({required String? broadcasterId}) {
+    return dio
+        .get('/streams', queryParameters: {'user_id': broadcasterId})
+        .then((value) => value.data)
+        .then((json) => json['data'] as List<dynamic>)
+        .then((value) => value.map(StreamDto.fromJson).toList());
+  }
+
   Future<Prediction> endPrediction(
       {required String? broadcasterId,
       required String id,

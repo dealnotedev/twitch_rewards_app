@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
@@ -12,9 +15,7 @@ class TwitchConnectWidget extends StatefulWidget {
   final Settings settings;
 
   const TwitchConnectWidget(
-      {super.key,
-      required this.settings,
-      required this.webSocketManager});
+      {super.key, required this.settings, required this.webSocketManager});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -22,10 +23,13 @@ class TwitchConnectWidget extends StatefulWidget {
 
 class _State extends State<TwitchConnectWidget> {
   late final Settings _settings;
+  late final TwitchApi _api;
 
   @override
   void initState() {
     _settings = widget.settings;
+    _api = TwitchApi(settings: _settings, clientSecret: twitchClientSecret);
+
     _fetchUserInfo();
     super.initState();
   }
@@ -33,19 +37,27 @@ class _State extends State<TwitchConnectWidget> {
   UserDto? _user;
   bool _loading = false;
 
+  Timer? _timer;
+
   Future<void> _fetchUserInfo() async {
     setState(() {
       _loading = true;
     });
 
-    final data =
-        await TwitchApi(settings: _settings, clientSecret: twitchClientSecret)
-            .getUser();
+    final data = await _api.getUser();
+    _timer = Timer.periodic(
+        const Duration(minutes: 1), (_) => _handleTimerTick(dto: data));
 
     setState(() {
       _loading = false;
       _user = data;
     });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
   }
 
   Widget _createIndicator({required WsState state}) {
@@ -102,6 +114,7 @@ class _State extends State<TwitchConnectWidget> {
       );
     }
 
+    final stream = _stream;
     return Container(
         padding: const EdgeInsets.all(16),
         margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -153,6 +166,23 @@ class _State extends State<TwitchConnectWidget> {
                         text: 'failed', style: TextStyle(color: Colors.red))
                   ]
                 ])),
+                if (stream != null) ...[
+                  const SizedBox(
+                    height: 8,
+                  ),
+                  Container(
+                    decoration: BoxDecoration(
+                        color: Colors.red,
+                        borderRadius: BorderRadius.circular(4)),
+                    padding:
+                        const EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 4),
+                    child: Text(
+                      '${stream.viewerCount} viewers',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.w500, color: Colors.white),
+                    ),
+                  )
+                ],
                 Align(
                   alignment: Alignment.centerRight,
                   child: ElevatedButton(
@@ -165,5 +195,16 @@ class _State extends State<TwitchConnectWidget> {
 
   void _handleLogoutClick() {
     _settings.saveTwitchAuth(null);
+  }
+
+  StreamDto? _stream;
+
+  void _handleTimerTick({required UserDto dto}) async {
+    final steam = await _api.getStreams(broadcasterId: dto.id).then((value) =>
+        value.firstWhereOrNull((element) => element.userId == dto.id));
+
+    setState(() {
+      _stream = steam;
+    });
   }
 }
