@@ -144,6 +144,8 @@ class ObsConnect {
         })))
         ?.responseData;
 
+    print('GetSceneItemTransform <- $response');
+
     final transform = response?['sceneItemTransform'];
 
     final width = transform['width'] as double;
@@ -167,6 +169,8 @@ class ObsConnect {
         'positionX': horizontal ? (positionX + width) : positionX
       }
     };
+
+    print('SetSceneItemTransform -> $data');
 
     _ws?.sendRequest(Request('SetSceneItemTransform', requestData: data));
   }
