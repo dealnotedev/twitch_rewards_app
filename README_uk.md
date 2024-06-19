@@ -42,6 +42,16 @@
 
 ## Як зробити гелій або інші фільтри голосу?
 1. Завантажте і встановіть потрібний фільтр, наприклад https://www.reaper.fm/reaplugs/ або https://aegeanmusic.com/pitchproof-specs.
+2. Накладіть на ваш мікрофон потрібний фільтр і вимкніть його.
+   ![plot](./images/obs_input_filter.jpg)
+3. Для прикладу додам налаштування "Гелію" для https://www.reaper.fm/reaplugs/
+   ![plot](./images/obs_input_helium.jpg)
+4. Створюємо обробник в застосунку, де будемо вмикати доданий "гелієвий" фільтр. А через 2 хвилини перемикаємо назад.
+   ![plot](./images/main_helium_example_actual.jpg)
+5. Зберігаємо і перевіряємо
+
+## (ЗАСТАРІЛО) Як зробити гелій або інші фільтри голосу?
+1. Завантажте і встановіть потрібний фільтр, наприклад https://www.reaper.fm/reaplugs/ або https://aegeanmusic.com/pitchproof-specs.
 2. Додайте ще один мікрофон (копію вашого) в налаштуваннях OBS
 ![plot](./images/obs_input_copy.jpg)
 3. Перейменуйте його як вам зручно і вимкніть.
