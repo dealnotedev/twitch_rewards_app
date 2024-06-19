@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards/crash_process_widget.dart';
 import 'package:twitch_listener/rewards/delay_widget.dart';
 import 'package:twitch_listener/rewards/enable_filter_widget.dart';
 import 'package:twitch_listener/rewards/enable_input_widget.dart';
@@ -54,7 +55,8 @@ class _State extends State<RewardWidget> {
     AddAction(title: 'Invert filter', type: RewardAction.typeInvertFilter),
     AddAction(title: 'Flip source', type: RewardAction.typeFlipSource),
     AddAction(title: 'Enable source', type: RewardAction.typeEnableSource),
-    AddAction(title: 'Set scene', type: RewardAction.typeSetScene)
+    AddAction(title: 'Set scene', type: RewardAction.typeSetScene),
+    AddAction(title: 'Crash process', type: RewardAction.typeCrashProcess)
   ];
 
   late final TextEditingController _nameController;
@@ -116,15 +118,25 @@ class _State extends State<RewardWidget> {
             const SizedBox(
               height: 8,
             ),
-            Wrap(
-              alignment: WrapAlignment.center,
-              spacing: 8,
-              runSpacing: 8,
-              children: _availableActions
-                  .map((e) => ElevatedButton(
-                      onPressed: () => _handleAddAction(e),
-                      child: Text(e.title)))
-                  .toList(),
+            Padding(
+              padding: const EdgeInsets.only(right: 8),
+              child: Wrap(
+                alignment: WrapAlignment.center,
+                spacing: 8,
+                runSpacing: 8,
+                children: _availableActions
+                    .map((e) => ElevatedButton(
+                        onPressed: () => _handleAddAction(e),
+                        style: ButtonStyle(
+                            padding: WidgetStateProperty.all(
+                                const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 8))),
+                        child: Text(
+                          e.title,
+                          style: const TextStyle(fontSize: 13),
+                        )))
+                    .toList(),
+              ),
             )
           ] else ...[
             const SizedBox(
@@ -169,6 +181,10 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typeSetScene:
         return SetSceneWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
+
+      case RewardAction.typeCrashProcess:
+        return CrashProcessWidget(
             saveHook: widget.saveHook, action: action, key: Key(action.id));
     }
 

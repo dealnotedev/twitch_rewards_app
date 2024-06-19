@@ -51,7 +51,9 @@ dependencies:
 
   bitsdojo_window: ^0.1.6
 
-  win32: ^5.2.0
+  win32: ^5.5.1
+
+  ffi: ^2.1.2
 
   path: ^1.8.3
 

@@ -33,6 +33,7 @@ class RewardAction {
   static const typeFlipSource = 'flip_source';
   static const typeEnableSource = 'enable_source';
   static const typeSetScene = 'set_scene';
+  static const typeCrashProcess = 'crash_process';
 
   final String type;
 
@@ -55,6 +56,8 @@ class RewardAction {
   bool horizontal;
   bool vertical;
 
+  String? target;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -63,6 +66,7 @@ class RewardAction {
       this.sourceName,
       this.filterName,
       this.sceneName,
+      this.target,
       this.horizontal = false,
       this.vertical = false,
       this.duration = 0})
@@ -78,6 +82,7 @@ class RewardAction {
       'filterName': filterName,
       'sceneName': sceneName,
       'duration': duration,
+      'target': target,
       'horizontal': horizontal,
       'vertical': vertical
     };
@@ -91,6 +96,7 @@ class RewardAction {
         duration: json['duration'] as int? ?? 0,
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
+        target: json['target'] as String?,
         sourceName: json['sourceName'] as String?,
         filterName: json['filterName'] as String?,
         sceneName: json['sceneName'] as String?,

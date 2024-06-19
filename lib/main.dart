@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
@@ -8,6 +9,7 @@ import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
+import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/settings.dart';
@@ -15,6 +17,7 @@ import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
+import 'package:win32/win32.dart' as win32;
 
 void main() async {
   final settings = Settings();
@@ -277,6 +280,13 @@ class LoggedState extends State<LoggedWidget> {
           }
           break;
 
+        case RewardAction.typeCrashProcess:
+          final target = action.target;
+          if (target != null) {
+            compute(_crashProcess, target);
+          }
+          break;
+
         case RewardAction.typeEnableSource:
           final sourceName = action.sourceName;
           final sceneName = action.sceneName;
@@ -325,9 +335,29 @@ class LoggedState extends State<LoggedWidget> {
     if (rewardTitle != null &&
         eventId != null &&
         _handledMessages.add(eventId)) {
-      print(json);
       _handleReward(rewardTitle);
     }
+  }
+
+  static void _crashProcess(String processName) {
+    ProcessFinder.initialize();
+
+    final processId = ProcessFinder.listRunningProcesses()
+        .where((element) {
+          return element.name.trim() == processName;
+        })
+        .firstOrNull
+        ?.processId;
+
+    if (processId != null) {
+      final handle = win32.OpenProcess(
+          win32.PROCESS_ACCESS_RIGHTS.PROCESS_TERMINATE, 0, processId);
+
+      win32.TerminateProcess(handle, 0);
+      win32.CloseHandle(handle);
+    }
+
+    ProcessFinder.uninitialize();
   }
 }
 

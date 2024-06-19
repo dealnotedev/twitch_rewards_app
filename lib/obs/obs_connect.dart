@@ -144,8 +144,6 @@ class ObsConnect {
         })))
         ?.responseData;
 
-    print('GetSceneItemTransform <- $response');
-
     final transform = response?['sceneItemTransform'];
 
     final width = transform['width'] as double;
@@ -170,13 +168,13 @@ class ObsConnect {
       }
     };
 
-    print('SetSceneItemTransform -> $data');
-
     _ws?.sendRequest(Request('SetSceneItemTransform', requestData: data));
   }
 
   Future<void> enableInput({required String inputName, required bool enabled}) {
-    return _ws?.inputs.setInputMute(inputName, !enabled) ?? Future.value();
+    return _ws?.inputs
+            .setInputMute(inputName: inputName, inputMuted: !enabled) ??
+        Future.value();
   }
 
   Future<void> invertSourceFilter(
