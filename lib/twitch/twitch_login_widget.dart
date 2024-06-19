@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/settings.dart';
@@ -44,9 +45,7 @@ class _State extends State<TwitchLoginWidget> {
                     height: 24,
                     filterQuality: FilterQuality.medium,
                   ),
-                  const SizedBox(
-                    width: 8,
-                  ),
+                  const Gap(8),
                   const Text(
                     'Connect with Twitch',
                     style: TextStyle(

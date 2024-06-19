@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/themes.dart';
@@ -48,9 +49,7 @@ class _State extends State<EnableFilterWidget> {
           'Enable filter',
           style: TextStyle(color: Colors.white),
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const Gap(16),
         Expanded(
           child: TextFormField(
             maxLines: 1,
@@ -61,9 +60,7 @@ class _State extends State<EnableFilterWidget> {
             decoration: const DefaultInputDecoration(hintText: 'Source name'),
           ),
         ),
-        const SizedBox(
-          width: 8,
-        ),
+        const Gap(8),
         Expanded(
           child: TextFormField(
             maxLines: 1,
@@ -74,9 +71,7 @@ class _State extends State<EnableFilterWidget> {
             decoration: const DefaultInputDecoration(hintText: 'Filter name'),
           ),
         ),
-        const SizedBox(
-          width: 8,
-        ),
+        const Gap(8),
         Switch(value: _enable, onChanged: _handleEnableCheck)
       ])
     ]);

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/themes.dart';
@@ -43,9 +44,7 @@ class _State extends State<DelayWidget> {
               'Delay, sec',
               style: TextStyle(color: Colors.white),
             ),
-            const SizedBox(
-              width: 16,
-            ),
+            const Gap(16),
             Expanded(
               child: TextField(
                 maxLines: 1,

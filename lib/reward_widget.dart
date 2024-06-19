@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/rewards/crash_process_widget.dart';
 import 'package:twitch_listener/rewards/delay_widget.dart';
@@ -84,9 +85,7 @@ class _State extends State<RewardWidget> {
                 decoration:
                     const DefaultInputDecoration(hintText: 'Reward name'),
               )),
-              const SizedBox(
-                width: 8,
-              ),
+              const Gap(8),
               IconButton(
                   onPressed: _handleExpandClick,
                   icon: Icon(_reward.expanded
@@ -100,9 +99,7 @@ class _State extends State<RewardWidget> {
             ],
           ),
           if (_reward.expanded) ...[
-            const SizedBox(
-              height: 8,
-            ),
+            const Gap(8),
             ..._reward.handlers.map((e) => Container(
                   width: double.infinity,
                   padding: const EdgeInsets.only(left: 48, top: 8, bottom: 8),
@@ -115,9 +112,7 @@ class _State extends State<RewardWidget> {
                     ],
                   ),
                 )),
-            const SizedBox(
-              height: 8,
-            ),
+            const Gap(8),
             Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Wrap(
@@ -137,11 +132,10 @@ class _State extends State<RewardWidget> {
                         )))
                     .toList(),
               ),
-            )
+            ),
+            const Gap(8),
           ] else ...[
-            const SizedBox(
-              height: 8,
-            )
+            const Gap(8),
           ]
         ],
       ),

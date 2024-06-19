@@ -1,5 +1,6 @@
 import 'package:filepicker_windows/filepicker_windows.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/themes.dart';
@@ -38,9 +39,7 @@ class _State extends State<PlayAudioWidget> {
           'Play audio',
           style: TextStyle(color: Colors.white),
         ),
-        const SizedBox(
-          width: 16,
-        ),
+        const Gap(16),
         Expanded(
           child: TextFormField(
             maxLines: 1,
@@ -52,9 +51,7 @@ class _State extends State<PlayAudioWidget> {
                 const DefaultInputDecoration(hintText: 'File path, .wav only'),
           ),
         ),
-        const SizedBox(
-          width: 8,
-        ),
+        const Gap(8),
         ElevatedButton(onPressed: _selectFile, child: const Text('Select'))
       ])
     ]);

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/secrets.dart';
@@ -123,9 +124,7 @@ class _State extends State<TwitchConnectWidget> {
             borderRadius: BorderRadius.circular(8)),
         child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
           image,
-          const SizedBox(
-            width: 16,
-          ),
+          const Gap(16),
           Expanded(
               child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -138,18 +137,14 @@ class _State extends State<TwitchConnectWidget> {
                         builder: (_, snapshot) {
                           return _createIndicator(state: snapshot.requireData);
                         }),
-                    const SizedBox(
-                      width: 8,
-                    ),
+                    const Gap(8),
                     const Text(
                       'Twitch Connection',
                       style: TextStyle(color: Colors.white),
                     ),
                   ],
                 ),
-                const SizedBox(
-                  height: 4,
-                ),
+                    const Gap(4),
                 RichText(
                     text: TextSpan(children: [
                   const TextSpan(
@@ -167,9 +162,7 @@ class _State extends State<TwitchConnectWidget> {
                   ]
                 ])),
                 if (stream != null) ...[
-                  const SizedBox(
-                    height: 8,
-                  ),
+                  const Gap(8),
                   Container(
                     decoration: BoxDecoration(
                         color: Colors.red,

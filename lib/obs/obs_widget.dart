@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/settings.dart';
@@ -76,9 +77,7 @@ class _State extends State<ObsWidget> {
             width: 32,
             height: 32,
           ),
-          const SizedBox(
-            width: 16,
-          ),
+          const Gap(16),
           Expanded(
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -91,34 +90,26 @@ class _State extends State<ObsWidget> {
                       builder: (_, snapshot) {
                         return _createIndicator(state: snapshot.requireData);
                       }),
-                  const SizedBox(
-                    width: 8,
-                  ),
+                  const Gap(8),
                   const Text(
                     'OBS Connection',
                     style: TextStyle(color: Colors.white),
                   ),
                 ],
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const Gap(8),
               Row(
                 children: [
                   Expanded(
                       child: _createTextInputWidget(context,
                           hint: 'Address', controller: _urlController)),
-                  const SizedBox(
-                    width: 16,
-                  ),
+                  const Gap(16),
                   Expanded(
                       child: _createTextInputWidget(context,
                           hint: 'Password', controller: _passwordController))
                 ],
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const Gap(8),
               Align(
                 alignment: Alignment.centerRight,
                 child: _createConnectButton(context),

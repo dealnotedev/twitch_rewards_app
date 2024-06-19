@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
@@ -152,9 +153,7 @@ class LoggedState extends State<LoggedWidget> {
             children: [
               ElevatedButton(
                   onPressed: _handleCreateClick, child: const Text('Create')),
-              const SizedBox(
-                width: 8,
-              ),
+              const Gap(8),
               ElevatedButton(
                   onPressed: _handleSaveClick, child: const Text('Save all'))
             ],
@@ -172,23 +171,17 @@ class LoggedState extends State<LoggedWidget> {
           final rewards = snapshot.requireData;
           return Column(
             children: [
-              const SizedBox(
-                height: 16,
-              ),
+              const Gap(16),
               TwitchConnectWidget(
                 webSocketManager: _wsManager,
                 settings: _settings,
               ),
-              const SizedBox(
-                height: 16,
-              ),
+              const Gap(16),
               ObsWidget(
                 settings: _settings,
                 connect: _obs,
               ),
-              const SizedBox(
-                height: 8,
-              ),
+              const Gap(8),
               ...rewards.rewards.map((e) => RewardWidget(
                     key: Key(e.id),
                     reward: e,

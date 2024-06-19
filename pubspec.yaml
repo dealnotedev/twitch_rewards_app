@@ -44,9 +44,6 @@ dependencies:
 
   web_socket_channel: ^2.4.0
 
-  video_player: ^2.5.1
-  video_player_win: ^2.0.0
-
   url_launcher: ^6.1.14
 
   bitsdojo_window: ^0.1.6
@@ -70,6 +67,8 @@ dependencies:
   filepicker_windows: ^2.1.0
 
   uuid: ^4.3.3
+
+  gap: ^3.0.1
 
 dev_dependencies:
   flutter_test:
