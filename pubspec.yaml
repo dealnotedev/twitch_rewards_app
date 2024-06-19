@@ -56,7 +56,7 @@ dependencies:
 
   path_provider: ^2.1.2
 
-  obs_websocket: ^5.1.0+4
+  obs_websocket: ^5.1.0+8
 
   collection: ^1.18.0
 

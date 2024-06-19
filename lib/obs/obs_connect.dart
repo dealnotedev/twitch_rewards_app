@@ -74,7 +74,7 @@ class ObsConnect {
 
   Future<void> _handleTimerTick(int tick) async {
     try {
-      if (tick % 10 == 0) {
+      if (tick % 25 == 0) {
         throw StateError('Reconnect on $tick tick');
       }
 
