@@ -107,6 +107,20 @@ class ObsConnect {
 
   final state = ObservableValue(current: ObsState.failed);
 
+  Future<void> toggleSource(
+      {required String sceneName, required String sourceName}) async {
+    final source = await _ws?.sceneItems.list(sceneName).then(
+        (value) => value.firstWhere((item) => item.sourceName == sourceName));
+
+    if (source != null) {
+      final enabled = source.sceneItemEnabled;
+      await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
+          sceneName: sceneName,
+          sceneItemId: source.sceneItemId,
+          sceneItemEnabled: !enabled));
+    }
+  }
+
   Future<void> enableSource(
       {required String sceneName,
       required String sourceName,

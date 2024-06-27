@@ -280,6 +280,20 @@ class LoggedState extends State<LoggedWidget> {
           }
           break;
 
+        case RewardAction.typeToggleSource:
+          final sourceName = action.sourceName;
+          final sceneName = action.sceneName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              sceneName != null &&
+              sceneName.isNotEmpty) {
+            await _obs.toggleSource(
+                sceneName: sceneName,
+                sourceName: sourceName);
+          }
+          break;
+
         case RewardAction.typeEnableSource:
           final sourceName = action.sourceName;
           final sceneName = action.sceneName;

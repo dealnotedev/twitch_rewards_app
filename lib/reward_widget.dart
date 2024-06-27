@@ -10,6 +10,7 @@ import 'package:twitch_listener/rewards/flip_source_widget.dart';
 import 'package:twitch_listener/rewards/invert_filter_widget.dart';
 import 'package:twitch_listener/rewards/play_audio_widget.dart';
 import 'package:twitch_listener/rewards/set_scene_widget.dart';
+import 'package:twitch_listener/rewards/toggle_source_widget.dart';
 import 'package:twitch_listener/themes.dart';
 
 class RewardWidget extends StatefulWidget {
@@ -56,6 +57,7 @@ class _State extends State<RewardWidget> {
     AddAction(title: 'Invert filter', type: RewardAction.typeInvertFilter),
     AddAction(title: 'Flip source', type: RewardAction.typeFlipSource),
     AddAction(title: 'Enable source', type: RewardAction.typeEnableSource),
+    AddAction(title: 'Toggle source', type: RewardAction.typeToggleSource),
     AddAction(title: 'Set scene', type: RewardAction.typeSetScene),
     AddAction(title: 'Crash process', type: RewardAction.typeCrashProcess)
   ];
@@ -171,6 +173,10 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typeEnableSource:
         return EnableSourceWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
+
+      case RewardAction.typeToggleSource:
+        return ToggleSourceWidget(
             saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeSetScene:

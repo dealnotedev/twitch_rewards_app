@@ -34,6 +34,7 @@ class RewardAction {
   static const typeEnableSource = 'enable_source';
   static const typeSetScene = 'set_scene';
   static const typeCrashProcess = 'crash_process';
+  static const typeToggleSource = 'toggle_source';
 
   final String type;
 
