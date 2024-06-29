@@ -106,6 +106,9 @@ class _State extends State<RewardWidget> {
                   width: double.infinity,
                   padding: const EdgeInsets.only(left: 48, top: 8, bottom: 8),
                   child: Row(
+                    crossAxisAlignment: e.type == RewardAction.typeSetScene
+                        ? CrossAxisAlignment.start
+                        : CrossAxisAlignment.center,
                     children: [
                       Expanded(child: _createActionWidget(context, action: e)),
                       IconButton(

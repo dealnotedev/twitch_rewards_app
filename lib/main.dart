@@ -267,9 +267,9 @@ class LoggedState extends State<LoggedWidget> {
           break;
 
         case RewardAction.typeSetScene:
-          final sceneName = action.sceneName;
-          if (sceneName != null) {
-            await _obs.enableScene(sceneName: sceneName);
+          final sceneNames = action.targets;
+          if (sceneNames.isNotEmpty) {
+            await _obs.enableScene(sceneNames: sceneNames);
           }
           break;
 

@@ -59,6 +59,8 @@ class RewardAction {
 
   String? target;
 
+  List<String> targets;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -70,6 +72,7 @@ class RewardAction {
       this.target,
       this.horizontal = false,
       this.vertical = false,
+      this.targets = const [],
       this.duration = 0})
       : id = const Uuid().v4();
 
@@ -85,11 +88,13 @@ class RewardAction {
       'duration': duration,
       'target': target,
       'horizontal': horizontal,
-      'vertical': vertical
+      'vertical': vertical,
+      'targets': targets
     };
   }
 
   static RewardAction fromJson(dynamic json) {
+    final targetsJson = json['targets'] as List<dynamic>?;
     return RewardAction(
         type: json['type'] as String,
         horizontal: json['horizontal'] as bool? ?? false,
@@ -98,6 +103,9 @@ class RewardAction {
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
         target: json['target'] as String?,
+        targets: targetsJson != null
+            ? targetsJson.map((e) => e.toString()).toList()
+            : [],
         sourceName: json['sourceName'] as String?,
         filterName: json['filterName'] as String?,
         sceneName: json['sceneName'] as String?,

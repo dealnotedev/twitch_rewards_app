@@ -136,8 +136,18 @@ class ObsConnect {
     }
   }
 
-  Future<void> enableScene({required String sceneName}) {
-    return _ws?.scenes.setCurrentProgramScene(sceneName) ?? Future.value();
+  Future<void> enableScene({required List<String> sceneNames}) async {
+    final current = await _ws?.scenes.getCurrentProgramScene();
+    final currentIndex = current != null ? sceneNames.indexOf(current) : -1;
+
+    final String nextSceneName;
+    if (currentIndex != -1 && currentIndex != sceneNames.length - 1) {
+      nextSceneName = sceneNames[currentIndex + 1];
+    } else {
+      nextSceneName = sceneNames[0];
+    }
+
+    return _ws?.scenes.setCurrentProgramScene(nextSceneName) ?? Future.value();
   }
 
   Future<void> flipSource(
