@@ -14,6 +14,7 @@ import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
@@ -113,6 +114,8 @@ class LoggedState extends State<LoggedWidget> {
 
   late final StreamSubscription _wsSubscription;
 
+  final _searchController = TextEditingController();
+
   @override
   void initState() {
     _settings = widget.locator.provide();
@@ -120,11 +123,13 @@ class LoggedState extends State<LoggedWidget> {
     _wsManager = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
+    _searchController.addListener(_handleSearchQuery);
     super.initState();
   }
 
   @override
   void dispose() {
+    _searchController.dispose();
     _wsSubscription.cancel();
     super.dispose();
   }
@@ -169,7 +174,9 @@ class LoggedState extends State<LoggedWidget> {
         initialData: _settings.rewards,
         builder: (cntx, snapshot) {
           final rewards = snapshot.requireData;
+          final q = _searchController.text.toLowerCase().trim();
           return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Gap(16),
               TwitchConnectWidget(
@@ -181,14 +188,30 @@ class LoggedState extends State<LoggedWidget> {
                 settings: _settings,
                 connect: _obs,
               ),
+              const Gap(16),
+              Container(
+                constraints: const BoxConstraints(maxWidth: 320),
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: TextField(
+                  maxLines: 1,
+                  controller: _searchController,
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
+                  decoration: const DefaultInputDecoration(
+                      hintText: 'Type to search...'),
+                ),
+              ),
               const Gap(8),
-              ...rewards.rewards.map((e) => RewardWidget(
-                    key: Key(e.id),
-                    reward: e,
-                    saveHook: _saveHook,
-                    onDelete: _handleDeleteClick,
-                    onPlay: _applyReward,
-                  ))
+              ...rewards.rewards
+                  .where((r) => q.isEmpty || r.name.toLowerCase().contains(q))
+                  .map((e) => RewardWidget(
+                        key: Key(e.id),
+                        reward: e,
+                        saveHook: _saveHook,
+                        onDelete: _handleDeleteClick,
+                        onPlay: _applyReward,
+                      ))
             ],
           );
         });
@@ -289,8 +312,7 @@ class LoggedState extends State<LoggedWidget> {
               sceneName != null &&
               sceneName.isNotEmpty) {
             await _obs.toggleSource(
-                sceneName: sceneName,
-                sourceName: sourceName);
+                sceneName: sceneName, sourceName: sourceName);
           }
           break;
 
@@ -365,6 +387,10 @@ class LoggedState extends State<LoggedWidget> {
     }
 
     ProcessFinder.uninitialize();
+  }
+
+  void _handleSearchQuery() {
+    setState(() {});
   }
 }
 
