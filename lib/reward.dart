@@ -35,6 +35,7 @@ class RewardAction {
   static const typeSetScene = 'set_scene';
   static const typeCrashProcess = 'crash_process';
   static const typeToggleSource = 'toggle_source';
+  static const typeSendInput = 'send_input';
 
   final String type;
 
@@ -61,6 +62,8 @@ class RewardAction {
 
   List<String> targets;
 
+  List<InputEntry> inputs;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -73,6 +76,7 @@ class RewardAction {
       this.horizontal = false,
       this.vertical = false,
       this.targets = const [],
+      this.inputs = const [],
       this.duration = 0})
       : id = const Uuid().v4();
 
@@ -89,12 +93,14 @@ class RewardAction {
       'target': target,
       'horizontal': horizontal,
       'vertical': vertical,
-      'targets': targets
+      'targets': targets,
+      'inputs': inputs.map((e) => e.toJson()).toList()
     };
   }
 
   static RewardAction fromJson(dynamic json) {
     final targetsJson = json['targets'] as List<dynamic>?;
+    final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
         type: json['type'] as String,
         horizontal: json['horizontal'] as bool? ?? false,
@@ -106,11 +112,45 @@ class RewardAction {
         targets: targetsJson != null
             ? targetsJson.map((e) => e.toString()).toList()
             : [],
+        inputs: inputsJson != null
+            ? inputsJson.map(InputEntry.fromJson).toList()
+            : [],
         sourceName: json['sourceName'] as String?,
         filterName: json['filterName'] as String?,
         sceneName: json['sceneName'] as String?,
         inputName: json['inputName'] as String?);
   }
+}
+
+class InputEntry {
+  final int code;
+  final int type;
+  final String name;
+
+  InputEntry({required this.code, required this.type, required this.name});
+
+  static InputEntry fromJson(dynamic json) {
+    return InputEntry(
+        code: json['code'] as int,
+        type: json['type'] as int,
+        name: json['name'] as String);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'code': code, 'type': type, 'name': name};
+  }
+
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      other is InputEntry &&
+          runtimeType == other.runtimeType &&
+          code == other.code &&
+          type == other.type &&
+          name == other.name;
+
+  @override
+  int get hashCode => code.hashCode ^ type.hashCode ^ name.hashCode;
 }
 
 class Rewards {

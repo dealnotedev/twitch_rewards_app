@@ -4,12 +4,10 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:hid_listener/hid_listener.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/input_sender.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
@@ -38,30 +36,6 @@ void main() async {
     appWindow.alignment = Alignment.center;
     appWindow.show();
   });
-
-  final listenerBackend = getListenerBackend();
-
-  if (listenerBackend != null) {
-    final initialized = listenerBackend.initialize();
-
-    if (initialized) {
-      final keyboardListenerId = listenerBackend.addKeyboardListener((event) {
-        print('${event.data} + ${event.logicalKey}');
-      });
-
-      final mouseListener = listenerBackend.addMouseListener((event) {
-        if(event is MouseMoveEvent){
-          return;
-
-        }
-        if(event is MouseButtonEvent){
-          print(event.type);
-        }
-      });
-
-      InputSender().mouseTest();
-    }
-  }
 }
 
 class MyApp extends StatefulWidget {

@@ -9,6 +9,7 @@ import 'package:twitch_listener/rewards/enable_source_widget.dart';
 import 'package:twitch_listener/rewards/flip_source_widget.dart';
 import 'package:twitch_listener/rewards/invert_filter_widget.dart';
 import 'package:twitch_listener/rewards/play_audio_widget.dart';
+import 'package:twitch_listener/rewards/send_input_widget.dart';
 import 'package:twitch_listener/rewards/set_scene_widget.dart';
 import 'package:twitch_listener/rewards/toggle_source_widget.dart';
 import 'package:twitch_listener/themes.dart';
@@ -59,7 +60,8 @@ class _State extends State<RewardWidget> {
     AddAction(title: 'Enable source', type: RewardAction.typeEnableSource),
     AddAction(title: 'Toggle source', type: RewardAction.typeToggleSource),
     AddAction(title: 'Set scene', type: RewardAction.typeSetScene),
-    AddAction(title: 'Crash process', type: RewardAction.typeCrashProcess)
+    AddAction(title: 'Crash process', type: RewardAction.typeCrashProcess),
+    AddAction(title: 'Send input', type: RewardAction.typeSendInput)
   ];
 
   late final TextEditingController _nameController;
@@ -189,6 +191,9 @@ class _State extends State<RewardWidget> {
       case RewardAction.typeCrashProcess:
         return CrashProcessWidget(
             saveHook: widget.saveHook, action: action, key: Key(action.id));
+
+      case RewardAction.typeSendInput:
+        return SendInputWidget(saveHook: widget.saveHook, action: action, key: Key(action.id));
     }
 
     throw StateError('Unsupported action ${action.type}');
