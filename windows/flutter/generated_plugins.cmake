@@ -4,7 +4,7 @@
 
 list(APPEND FLUTTER_PLUGIN_LIST
   bitsdojo_window_windows
-  url_launcher_windows
+  hid_listener
 )
 
 list(APPEND FLUTTER_FFI_PLUGIN_LIST

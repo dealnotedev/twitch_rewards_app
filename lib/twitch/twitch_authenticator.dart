@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:dio/dio.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
-import 'package:url_launcher/url_launcher.dart';
+//import 'package:url_launcher/url_launcher.dart';
 
 class TwitchAuthenticator {
   final String clientId;
@@ -63,7 +63,7 @@ class TwitchAuthenticator {
     try {
       final url =
           'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=$_scopeEncoded';
-      launchUrl(Uri.parse(url));
+      //launchUrl(Uri.parse(url));
 
       final request = await server.first;
 

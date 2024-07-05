@@ -44,7 +44,7 @@ dependencies:
 
   web_socket_channel: ^2.4.0
 
-  url_launcher: ^6.1.14
+  #url_launcher: ^6.1.14
 
   bitsdojo_window: ^0.1.6
 
@@ -69,6 +69,8 @@ dependencies:
   uuid: ^4.3.3
 
   gap: ^3.0.1
+
+  hid_listener: ^2.0.1
 
 dev_dependencies:
   flutter_test:
