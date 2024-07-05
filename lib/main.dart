@@ -269,7 +269,7 @@ class LoggedState extends State<LoggedWidget> {
               sceneName != null &&
               sceneName.isNotEmpty) {
             await _obs.flipSource(
-                sceneName: sceneName,
+                rootSceneName: sceneName,
                 sourceName: sourceName,
                 horizontal: action.horizontal,
                 vertical: action.vertical);

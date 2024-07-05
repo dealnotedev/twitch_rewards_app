@@ -107,16 +107,53 @@ class ObsConnect {
 
   final state = ObservableValue(current: ObsState.failed);
 
+  Future<void> _fillSceneItemsIncludeGroups(String sceneName,
+      {required List<_SourceEntry> all,
+      String? groupName,
+      required bool includeGroups}) async {
+    final List<SceneItemDetail>? list;
+
+    if (groupName != null) {
+      list = await _ws?.sceneItems.getGroupSceneItemList(groupName);
+    } else {
+      list = await _ws?.sceneItems.list(sceneName);
+    }
+
+    if (list != null) {
+      all.addAll(
+          list.map((e) => _SourceEntry(groupName: groupName, detail: e)));
+
+      if (includeGroups) {
+        for (var source in list) {
+          if (source.isGroup ?? false) {
+            await _fillSceneItemsIncludeGroups(sceneName,
+                all: all,
+                groupName: source.sourceName,
+                includeGroups: includeGroups);
+          }
+        }
+      }
+    }
+  }
+
+  Future<_SourceEntry?> _findSource(String sceneName, String sourceName,
+      {bool recursively = true}) async {
+    final List<_SourceEntry> all = [];
+    await _fillSceneItemsIncludeGroups(sceneName,
+        all: all, includeGroups: recursively);
+    return all.firstWhereOrNull((s) => s.detail.sourceName == sourceName);
+  }
+
   Future<void> toggleSource(
       {required String sceneName, required String sourceName}) async {
-    final source = await _ws?.sceneItems.list(sceneName).then(
-        (value) => value.firstWhere((item) => item.sourceName == sourceName));
+    final source = await _findSource(sceneName, sourceName, recursively: true);
 
     if (source != null) {
-      final enabled = source.sceneItemEnabled;
+      final enabled = source.detail.sceneItemEnabled;
+
       await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: sceneName,
-          sceneItemId: source.sceneItemId,
+          sceneName: source.groupName ?? sceneName,
+          sceneItemId: source.detail.sceneItemId,
           sceneItemEnabled: !enabled));
     }
   }
@@ -125,13 +162,12 @@ class ObsConnect {
       {required String sceneName,
       required String sourceName,
       required bool enabled}) async {
-    final source = await _ws?.sceneItems.list(sceneName).then(
-        (value) => value.firstWhere((item) => item.sourceName == sourceName));
+    final source = await _findSource(sceneName, sourceName, recursively: true);
 
     if (source != null) {
       await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: sceneName,
-          sceneItemId: source.sceneItemId,
+          sceneName: source.groupName ?? sceneName,
+          sceneItemId: source.detail.sceneItemId,
           sceneItemEnabled: enabled));
     }
   }
@@ -151,20 +187,20 @@ class ObsConnect {
   }
 
   Future<void> flipSource(
-      {required String sceneName,
+      {required String rootSceneName,
       required String sourceName,
       required bool horizontal,
       required bool vertical}) async {
-    final items = await _ws?.sceneItems.list(sceneName) ?? [];
-    final source =
-        items.firstWhereOrNull((element) => element.sourceName == sourceName);
+    final source = await _findSource(rootSceneName, sourceName);
 
     if (source == null) return;
+
+    final sceneName = source.groupName ?? rootSceneName;
 
     final response = (await _ws?.sendRequest(Request('GetSceneItemTransform',
             requestData: {
           'sceneName': sceneName,
-          'sceneItemId': source.sceneItemId
+          'sceneItemId': source.detail.sceneItemId
         })))
         ?.responseData;
 
@@ -181,7 +217,7 @@ class ObsConnect {
 
     final data = {
       'sceneName': sceneName,
-      'sceneItemId': source.sceneItemId,
+      'sceneItemId': source.detail.sceneItemId,
       'sceneItemTransform': {
         'width': horizontal ? -width : width,
         'height': vertical ? -height : height,
@@ -226,3 +262,10 @@ class ObsConnect {
 }
 
 enum ObsState { failed, connecting, connected }
+
+class _SourceEntry {
+  final String? groupName;
+  final SceneItemDetail detail;
+
+  _SourceEntry({required this.groupName, required this.detail});
+}

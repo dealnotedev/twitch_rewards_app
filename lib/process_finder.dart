@@ -138,7 +138,7 @@ class ProcessFinder {
     // For example, query for all the running processes
     var hr = wbemServices.execQuery(
         TEXT('WQL'),
-        TEXT('SELECT * FROM Win32_Process WHERE Priority = $priority'),
+        TEXT('SELECT * FROM Win32_Process'), // OLD WHERE Priority = $priority
         // ExecutablePath IS NOT NULL removed because apex legends
         WBEM_GENERIC_FLAG_TYPE.WBEM_FLAG_FORWARD_ONLY |
             WBEM_GENERIC_FLAG_TYPE.WBEM_FLAG_RETURN_IMMEDIATELY,
