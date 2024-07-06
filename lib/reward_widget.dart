@@ -230,6 +230,14 @@ class _State extends State<RewardWidget> {
     return [
       ReorderableList(
           shrinkWrap: true,
+          proxyDecorator: (child, index, _) {
+            return Material(
+              color: const Color(0xFF424654),
+              elevation: 8,
+              borderRadius: BorderRadius.circular(4),
+              child: child,
+            );
+          },
           itemBuilder: (context, index) {
             final e = handlers[index];
             return Material(
