@@ -1,13 +1,10 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
+import 'package:twitch_listener/reward.dart';
 import 'package:win32/win32.dart';
 
 class InputSender {
-  static const VK_A = 0x41;
-  static const VK_V = 0x00000076;
-  static const CTRL = 0x200000100;
-
   void sendTestKey() async {
     final kbd = calloc<INPUT>(2);
     kbd[0].type = INPUT_TYPE.INPUT_MOUSE;
@@ -35,7 +32,7 @@ class InputSender {
     calloc.free(kbd);
   }
 
-  void mouseTest(){
+  void mouseTest() {
     final mouse = calloc<INPUT>();
     mouse.ref.type = INPUT_TYPE.INPUT_MOUSE;
     mouse.ref.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTDOWN;
@@ -47,5 +44,29 @@ class InputSender {
     mouse.ref.mi.dwFlags = MOUSE_EVENT_FLAGS.MOUSEEVENTF_RIGHTUP;
     result = SendInput(1, mouse, sizeOf<INPUT>());
     if (result != TRUE) print('Error: ${GetLastError()}');
+  }
+
+  static void sendInputs(List<InputEntry> inputs) {
+    print(inputs);
+
+    final kbd = calloc<INPUT>(inputs.length * 2);
+
+    for (int i = 0; i < inputs.length; i++) {
+      final input = inputs[i];
+
+      kbd[i].type = INPUT_TYPE.INPUT_KEYBOARD;
+      kbd[i].ki.wVk = input.code;
+    }
+
+    for (int i = 0; i < inputs.length; i++) {
+      final input = inputs[i];
+
+      kbd[i + inputs.length].type = INPUT_TYPE.INPUT_KEYBOARD;
+      kbd[i + inputs.length].ki.wVk = input.code;
+      kbd[i + inputs.length].ki.dwFlags = KEYBD_EVENT_FLAGS.KEYEVENTF_KEYUP;
+    }
+
+    SendInput(inputs.length * 2, kbd, sizeOf<INPUT>());
+    calloc.free(kbd);
   }
 }

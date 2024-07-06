@@ -8,6 +8,7 @@ import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/input_sender.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
@@ -313,6 +314,13 @@ class LoggedState extends State<LoggedWidget> {
               sceneName.isNotEmpty) {
             await _obs.toggleSource(
                 sceneName: sceneName, sourceName: sourceName);
+          }
+          break;
+
+        case RewardAction.typeSendInput:
+          final inputs = action.inputs;
+          if (inputs.isNotEmpty) {
+            InputSender.sendInputs(inputs);
           }
           break;
 

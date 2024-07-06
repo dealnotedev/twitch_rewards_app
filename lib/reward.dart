@@ -151,6 +151,11 @@ class InputEntry {
 
   @override
   int get hashCode => code.hashCode ^ type.hashCode ^ name.hashCode;
+
+  @override
+  String toString() {
+    return name;
+  }
 }
 
 class Rewards {

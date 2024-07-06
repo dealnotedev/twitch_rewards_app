@@ -20,6 +20,7 @@ class SendInputWidget extends StatefulWidget {
 class _State extends State<SendInputWidget> {
   @override
   void initState() {
+    _entries = widget.action.inputs;
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
@@ -32,21 +33,58 @@ class _State extends State<SendInputWidget> {
 
   @override
   Widget build(BuildContext context) {
-    return const Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(children: [
-            Text(
-              'Send input',
-              style: TextStyle(color: Colors.white),
-            ),
-            Gap(16),
-            Expanded(
-              child: _KeylogWidget(),
-            ),
-          ])
-        ]);
+    return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+      Row(children: [
+        const Text(
+          'Send input',
+          style: TextStyle(color: Colors.white),
+        ),
+        const Gap(16),
+        Expanded(
+          child: _recording
+              ? _KeylogWidget(onCompleted: _handleEntriesRecorded)
+              : _createConbinationState(),
+        ),
+        const Gap(8),
+        ElevatedButton(
+            onPressed: _recording ? null : () => _handleSetupClick(context),
+            child: const Text('Setup'))
+      ])
+    ]);
   }
+
+  Widget _createConbinationState() {
+    const radius = Radius.circular(4);
+
+    final text = _entries.isEmpty
+        ? 'Click "Setup" to configure'
+        : _entries.map((e) => e.name).join("+");
+
+    return Container(
+      decoration: const BoxDecoration(
+          color: Color(0xFF272E37),
+          borderRadius: BorderRadius.only(topLeft: radius, topRight: radius)),
+      child: Column(
+        children: [
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            child: Text(
+              text,
+              style: TextStyle(
+                  color:
+                      _entries.isEmpty ? const Color(0xFFA9ABAF) : Colors.white,
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600),
+            ),
+          ),
+          const Divider(color: Color(0xFFCBC4CF), height: 1, thickness: 1)
+        ],
+      ),
+    );
+  }
+
+  List<InputEntry> _entries = [];
+  bool _recording = false;
 
   @override
   void didUpdateWidget(covariant SendInputWidget oldWidget) {
@@ -57,11 +95,26 @@ class _State extends State<SendInputWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _handleSave() {}
+  void _handleSave() {
+    widget.action.inputs = _entries;
+  }
+
+  void _handleSetupClick(BuildContext context) {
+    setState(() {
+      _recording = true;
+    });
+  }
+
+  void _handleEntriesRecorded(Set<InputEntry> entries) {
+    setState(() {
+      _recording = false;
+      _entries = List.of(entries);
+    });
+  }
 }
 
 class _KeylogWidget extends StatefulWidget {
-  final VoidCallback? onCompleted;
+  final void Function(Set<InputEntry> entries)? onCompleted;
 
   const _KeylogWidget({this.onCompleted});
 
@@ -113,6 +166,9 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     const radius = Radius.circular(4);
+    final text = _entries.isEmpty
+        ? "Press the combination..."
+        : _entries.map((e) => e.name).join("+");
     return Container(
       decoration: const BoxDecoration(
           color: Color(0xFF272E37),
@@ -122,12 +178,16 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             child: Text(
-              _entries.map((e) => e.name).join("+"),
-              style: const TextStyle(color: Colors.white),
+              text,
+              style: TextStyle(
+                  color:
+                      _entries.isEmpty ? const Color(0xFFA9ABAF) : Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14),
             ),
           ),
           LinearProgressIndicator(
-            minHeight: 2,
+            minHeight: 1,
             color: Colors.green,
             value: _controller?.value,
           ),
@@ -137,22 +197,14 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
   }
 
   final _entries = <InputEntry>{};
-  final _current = <InputEntry>{};
 
   void _handleKeyboardEvent(
       {required int keyCode, required String keyLabel, required bool down}) {
     debugPrint('Keyboard $keyCode $keyLabel $down');
 
-    if (_current.isEmpty && down) {
-      _entries.clear();
-    }
-
     final entry = InputEntry(code: keyCode, type: 0, name: keyLabel);
     if (down) {
       _entries.add(entry);
-      _current.add(entry);
-    } else {
-      _current.remove(entry);
     }
 
     setState(() {});
@@ -160,7 +212,7 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
 
   void _handleAnimationStatus(AnimationStatus status) {
     if (status == AnimationStatus.completed) {
-      widget.onCompleted?.call();
+      widget.onCompleted?.call(_entries);
     }
   }
 
