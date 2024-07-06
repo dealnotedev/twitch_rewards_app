@@ -1,3 +1,4 @@
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
@@ -104,21 +105,7 @@ class _State extends State<RewardWidget> {
           ),
           if (_reward.expanded) ...[
             const Gap(8),
-            ..._reward.handlers.map((e) => Container(
-                  width: double.infinity,
-                  padding: const EdgeInsets.only(left: 48, top: 8, bottom: 8),
-                  child: Row(
-                    crossAxisAlignment: e.type == RewardAction.typeSetScene
-                        ? CrossAxisAlignment.start
-                        : CrossAxisAlignment.center,
-                    children: [
-                      Expanded(child: _createActionWidget(context, action: e)),
-                      IconButton(
-                          onPressed: () => _handleActionDelete(e),
-                          icon: const Icon(Icons.delete))
-                    ],
-                  ),
-                )),
+            ..._createRewarActionsWidget(context, _reward.handlers),
             const Gap(8),
             Padding(
               padding: const EdgeInsets.only(right: 8),
@@ -193,7 +180,8 @@ class _State extends State<RewardWidget> {
             saveHook: widget.saveHook, action: action, key: Key(action.id));
 
       case RewardAction.typeSendInput:
-        return SendInputWidget(saveHook: widget.saveHook, action: action, key: Key(action.id));
+        return SendInputWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
     }
 
     throw StateError('Unsupported action ${action.type}');
@@ -237,6 +225,42 @@ class _State extends State<RewardWidget> {
   void _handlePlayClick() {
     widget.onPlay.call(_reward);
   }
+
+  List<Widget> _createRewarActionsWidget(
+      BuildContext context, List<RewardAction> handlers) {
+    return handlers.mapIndexed((index, e) {
+      final canUp = index > 0;
+      final canDown = index < handlers.length - 1;
+      return Container(
+        width: double.infinity,
+        padding: const EdgeInsets.only(top: 8, bottom: 8),
+        child: Row(
+          crossAxisAlignment: e.type == RewardAction.typeSetScene
+              ? CrossAxisAlignment.start
+              : CrossAxisAlignment.center,
+          children: [
+            _ReorderWidget(
+              onDown:
+                  canDown ? () => _moveItem(handlers, index, up: false) : null,
+              onUp: canUp ? () => _moveItem(handlers, index, up: true) : null,
+            ),
+            const Gap(16),
+            Expanded(child: _createActionWidget(context, action: e)),
+            IconButton(
+                onPressed: () => _handleActionDelete(e),
+                icon: const Icon(Icons.delete))
+          ],
+        ),
+      );
+    }).toList();
+  }
+
+  void _moveItem(List<RewardAction> actions, int from, {required bool up}) {
+    setState(() {
+      final h = actions.removeAt(from);
+      actions.insert(from + (up ? -1 : 1), h);
+    });
+  }
 }
 
 class AddAction {
@@ -261,5 +285,59 @@ class SaveHook {
     for (var callback in _handlers) {
       callback.call();
     }
+  }
+}
+
+class _ReorderWidget extends StatefulWidget {
+  final VoidCallback? onUp;
+  final VoidCallback? onDown;
+
+  const _ReorderWidget({this.onUp, this.onDown});
+
+  @override
+  State<StatefulWidget> createState() => _ReorderWidgetState();
+}
+
+class _ReorderWidgetState extends State<_ReorderWidget> {
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      onEnter: (_) => _handleMouseEnter(true),
+      onExit: (_) => _handleMouseEnter(false),
+      child: Visibility(
+        visible: _entered,
+        maintainState: true,
+        maintainSize: true,
+        maintainAnimation: true,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              IconButton(
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(2),
+                  constraints: const BoxConstraints(minHeight: 0, minWidth: 0),
+                  onPressed: widget.onUp,
+                  icon: const Icon(Icons.arrow_upward)),
+              IconButton(
+                  iconSize: 16,
+                  padding: const EdgeInsets.all(2),
+                  constraints: const BoxConstraints(minHeight: 0, minWidth: 0),
+                  onPressed: widget.onDown,
+                  icon: const Icon(Icons.arrow_downward))
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  bool _entered = false;
+
+  void _handleMouseEnter(bool entered) {
+    setState(() {
+      _entered = entered;
+    });
   }
 }
