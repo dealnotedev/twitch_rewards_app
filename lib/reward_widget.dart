@@ -51,17 +51,50 @@ class _State extends State<RewardWidget> {
   }
 
   final _availableActions = <AddAction>[
-    AddAction(title: 'Enable input', type: RewardAction.typeEnableInput),
-    AddAction(title: 'Delay', type: RewardAction.typeDelay),
-    AddAction(title: 'Play audio', type: RewardAction.typePlayAudio),
-    AddAction(title: 'Enable filter', type: RewardAction.typeEnableFilter),
-    AddAction(title: 'Invert filter', type: RewardAction.typeInvertFilter),
-    AddAction(title: 'Flip source', type: RewardAction.typeFlipSource),
-    AddAction(title: 'Enable source', type: RewardAction.typeEnableSource),
-    AddAction(title: 'Toggle source', type: RewardAction.typeToggleSource),
-    AddAction(title: 'Set scene', type: RewardAction.typeSetScene),
-    AddAction(title: 'Crash process', type: RewardAction.typeCrashProcess),
-    AddAction(title: 'Send input', type: RewardAction.typeSendInput)
+    AddAction(
+        title: 'Enable input',
+        type: RewardAction.typeEnableInput,
+        icon: Icons.mic_outlined),
+    AddAction(
+        title: 'Delay',
+        type: RewardAction.typeDelay,
+        icon: Icons.timer_outlined),
+    AddAction(
+        title: 'Play audio',
+        type: RewardAction.typePlayAudio,
+        icon: Icons.audiotrack_outlined),
+    AddAction(
+        title: 'Enable filter',
+        type: RewardAction.typeEnableFilter,
+        icon: Icons.photo_filter_outlined),
+    AddAction(
+        title: 'Invert filter',
+        type: RewardAction.typeInvertFilter,
+        icon: Icons.photo_filter_outlined),
+    AddAction(
+        title: 'Flip source',
+        type: RewardAction.typeFlipSource,
+        icon: Icons.flip_outlined),
+    AddAction(
+        title: 'Enable source',
+        type: RewardAction.typeEnableSource,
+        icon: Icons.check_box_outlined),
+    AddAction(
+        title: 'Toggle source',
+        type: RewardAction.typeToggleSource,
+        icon: Icons.check_box_outlined),
+    AddAction(
+        title: 'Set scene',
+        type: RewardAction.typeSetScene,
+        icon: Icons.forward_outlined),
+    AddAction(
+        title: 'Crash process',
+        type: RewardAction.typeCrashProcess,
+        icon: Icons.error_outline),
+    AddAction(
+        title: 'Send input',
+        type: RewardAction.typeSendInput,
+        icon: Icons.keyboard_alt_outlined)
   ];
 
   late final TextEditingController _nameController;
@@ -105,28 +138,45 @@ class _State extends State<RewardWidget> {
           if (_reward.expanded) ...[
             const Gap(8),
             ..._createRewarActionsWidget(context, _reward.handlers),
-            const Gap(8),
-            Padding(
-              padding: const EdgeInsets.only(right: 8),
-              child: Wrap(
-                alignment: WrapAlignment.center,
-                spacing: 8,
-                runSpacing: 8,
-                children: _availableActions
-                    .map((e) => ElevatedButton(
-                        onPressed: () => _handleAddAction(e),
-                        style: ButtonStyle(
-                            padding: WidgetStateProperty.all(
-                                const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 8))),
-                        child: Text(
-                          e.title,
-                          style: const TextStyle(fontSize: 13),
-                        )))
-                    .toList(),
+            PopupMenuButton(
+              tooltip: '',
+              elevation: 1,
+              onSelected: (action) {
+                _handleAddAction(action);
+              },
+              itemBuilder: (context) {
+                return _availableActions
+                    .map((a) => PopupMenuItem(
+                          padding: EdgeInsets.zero,
+                          value: a,
+                          height: 32,
+                          child: Row(
+                            children: [
+                              const Gap(12),
+                              Icon(
+                                a.icon,
+                                size: 20,
+                              ),
+                              const Gap(12),
+                              Expanded(child: Text(a.title)),
+                              const Gap(12)
+                            ],
+                          ),
+                        ))
+                    .toList();
+              },
+              icon: const Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.add,
+                    size: 20,
+                  ),
+                  Gap(4),
+                  Text('Add action')
+                ],
               ),
             ),
-            const Gap(8),
           ] else ...[
             const Gap(8),
           ]
@@ -255,11 +305,15 @@ class _State extends State<RewardWidget> {
                       index: index,
                       child: const Padding(
                         padding: EdgeInsets.all(8),
-                        child: Icon(Icons.list),
+                        child: Icon(
+                          Icons.list,
+                          color: Color(0xFFCBC4CF),
+                        ),
                       ),
                     ),
-                    const Gap(16),
+                    const Gap(12),
                     Expanded(child: _createActionWidget(context, action: e)),
+                    const Gap(4),
                     IconButton(
                         onPressed: () => _handleActionDelete(e),
                         icon: const Icon(Icons.delete))
@@ -285,8 +339,9 @@ class _State extends State<RewardWidget> {
 class AddAction {
   final String title;
   final String type;
+  final IconData icon;
 
-  AddAction({required this.title, required this.type});
+  AddAction({required this.title, required this.type, required this.icon});
 }
 
 class SaveHook {
