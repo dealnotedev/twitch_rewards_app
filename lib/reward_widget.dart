@@ -141,9 +141,7 @@ class _State extends State<RewardWidget> {
             PopupMenuButton(
               tooltip: '',
               elevation: 1,
-              onSelected: (action) {
-                _handleAddAction(action);
-              },
+              onSelected: _handleAddAction,
               itemBuilder: (context) {
                 return _availableActions
                     .map((a) => PopupMenuItem(

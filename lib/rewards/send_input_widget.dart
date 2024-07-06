@@ -56,9 +56,20 @@ class _State extends State<SendInputWidget> {
   Widget _createConbinationState() {
     const radius = Radius.circular(4);
 
-    final text = _entries.isEmpty
-        ? 'Click "Setup" to configure'
-        : _entries.map((e) => e.name).join("+");
+    final TextSpan text;
+    if (_entries.isEmpty) {
+      text = const TextSpan(
+          text: 'Click "Setup" to configure',
+          style:
+              TextStyle(color: Color(0xFFA9ABAF), fontWeight: FontWeight.w600));
+    } else {
+      text = TextSpan(
+          style: const TextStyle(color: Colors.white),
+          children: _createKeysSpans(_entries,
+              style: const TextStyle(
+                  color: Colors.green, fontWeight: FontWeight.w600),
+              delimiter: ' + '));
+    }
 
     return Container(
       decoration: const BoxDecoration(
@@ -68,14 +79,7 @@ class _State extends State<SendInputWidget> {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              text,
-              style: TextStyle(
-                  color:
-                      _entries.isEmpty ? const Color(0xFFA9ABAF) : Colors.white,
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600),
-            ),
+            child: RichText(text: text),
           ),
           const Divider(color: Color(0xFFCBC4CF), height: 1, thickness: 1)
         ],
@@ -111,6 +115,23 @@ class _State extends State<SendInputWidget> {
       _entries = List.of(entries);
     });
   }
+}
+
+List<TextSpan> _createKeysSpans(List<InputEntry> entries,
+    {required TextStyle style, required String delimiter}) {
+  final spans = <TextSpan>[];
+
+  for (int i = 0; i < entries.length; i++) {
+    final entry = entries[i];
+
+    if (i > 0) {
+      spans.add(TextSpan(text: delimiter));
+    }
+
+    spans.add(TextSpan(text: entry.name, style: style));
+  }
+
+  return spans;
 }
 
 class _KeylogWidget extends StatefulWidget {
@@ -166,9 +187,22 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     const radius = Radius.circular(4);
-    final text = _entries.isEmpty
-        ? "Press the combination..."
-        : _entries.map((e) => e.name).join("+");
+
+    final TextSpan text;
+    if (_entries.isEmpty) {
+      text = const TextSpan(
+          text: 'Press the combination...',
+          style:
+              TextStyle(fontWeight: FontWeight.w600, color: Color(0xFFA9ABAF)));
+    } else {
+      text = TextSpan(
+          style: const TextStyle(color: Colors.white),
+          children: _createKeysSpans(_entries.toList(),
+              style: const TextStyle(
+                  color: Colors.green, fontWeight: FontWeight.w600),
+              delimiter: ' + '));
+    }
+
     return Container(
       decoration: const BoxDecoration(
           color: Color(0xFF272E37),
@@ -177,13 +211,8 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
         children: [
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            child: Text(
-              text,
-              style: TextStyle(
-                  color:
-                      _entries.isEmpty ? const Color(0xFFA9ABAF) : Colors.white,
-                  fontWeight: FontWeight.w600,
-                  fontSize: 14),
+            child: RichText(
+              text: text,
             ),
           ),
           LinearProgressIndicator(
