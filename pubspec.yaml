@@ -46,6 +46,8 @@ dependencies:
 
   #url_launcher: ^6.1.14
 
+  open_url: ^2.0.1
+
   bitsdojo_window: ^0.1.6
 
   win32: ^5.5.1
