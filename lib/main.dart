@@ -205,7 +205,10 @@ class LoggedState extends State<LoggedWidget> {
               ),
               const Gap(8),
               ...rewards.rewards
-                  .where((r) => q.isEmpty || r.name.toLowerCase().contains(q))
+                  .where((r) =>
+                      q.isEmpty ||
+                      (r.name.toLowerCase().contains(q)) ||
+                      r.groups.toLowerCase().contains(q))
                   .map((e) => RewardWidget(
                         key: Key(e.id),
                         reward: e,
@@ -234,125 +237,148 @@ class LoggedState extends State<LoggedWidget> {
     }
   }
 
+  final _activeRewards = <_RewardEvent>{};
+
   void _applyReward(Reward reward) async {
+    final groups = reward.groups.split(',').where((g) => g.isNotEmpty).toSet();
+
+    _activeRewards.where((r) => r.constainsGroup(groups)).forEach((r) {
+      debugPrint('${r.reward.name} will be interruped');
+      r.interrupted = true;
+    });
+
+    final event = _RewardEvent(
+        reward: reward,
+        groups: reward.groups.split(',').where((g) => g.isNotEmpty).toSet());
+    _activeRewards.add(event);
+
     for (var action in reward.handlers) {
-      switch (action.type) {
-        case RewardAction.typeDelay:
-          await Future.delayed(Duration(seconds: action.duration));
-          break;
+      if (event.interrupted) break;
 
-        case RewardAction.typeEnableInput:
-          await _obs.enableInput(
-              inputName: action.inputName ?? '', enabled: action.enable);
-          break;
+      try {
+        await _executeAction(action);
+      } catch (_) {}
+    }
 
-        case RewardAction.typeEnableFilter:
-          final sourceName = action.sourceName;
-          final filterName = action.filterName;
+    _activeRewards.remove(event);
+  }
 
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              filterName != null &&
-              filterName.isNotEmpty) {
-            await _obs.enableSourceFilter(
-                sourceName: sourceName,
-                filterName: filterName,
-                enabled: action.enable);
-          }
-          break;
+  Future<void> _executeAction(RewardAction action) async {
+    switch (action.type) {
+      case RewardAction.typeDelay:
+        await Future.delayed(Duration(seconds: action.duration));
+        break;
 
-        case RewardAction.typeFlipSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
+      case RewardAction.typeEnableInput:
+        await _obs.enableInput(
+            inputName: action.inputName ?? '', enabled: action.enable);
+        break;
 
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.flipSource(
-                rootSceneName: sceneName,
-                sourceName: sourceName,
-                horizontal: action.horizontal,
-                vertical: action.vertical);
-          }
-          break;
+      case RewardAction.typeEnableFilter:
+        final sourceName = action.sourceName;
+        final filterName = action.filterName;
 
-        case RewardAction.typeInvertFilter:
-          final sourceName = action.sourceName;
-          final filterName = action.filterName;
+        if (sourceName != null &&
+            sourceName.isNotEmpty &&
+            filterName != null &&
+            filterName.isNotEmpty) {
+          await _obs.enableSourceFilter(
+              sourceName: sourceName,
+              filterName: filterName,
+              enabled: action.enable);
+        }
+        break;
 
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              filterName != null &&
-              filterName.isNotEmpty) {
-            await _obs.invertSourceFilter(
-                sourceName: sourceName, filterName: filterName);
-          }
-          break;
+      case RewardAction.typeFlipSource:
+        final sourceName = action.sourceName;
+        final sceneName = action.sceneName;
 
-        case RewardAction.typeSetScene:
-          final sceneNames = action.targets;
-          if (sceneNames.isNotEmpty) {
-            await _obs.enableScene(sceneNames: sceneNames);
-          }
-          break;
+        if (sourceName != null &&
+            sourceName.isNotEmpty &&
+            sceneName != null &&
+            sceneName.isNotEmpty) {
+          await _obs.flipSource(
+              rootSceneName: sceneName,
+              sourceName: sourceName,
+              horizontal: action.horizontal,
+              vertical: action.vertical);
+        }
+        break;
 
-        case RewardAction.typeCrashProcess:
-          final target = action.target;
-          if (target != null) {
-            compute(_crashProcess, target);
-          }
-          break;
+      case RewardAction.typeInvertFilter:
+        final sourceName = action.sourceName;
+        final filterName = action.filterName;
 
-        case RewardAction.typeToggleSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
+        if (sourceName != null &&
+            sourceName.isNotEmpty &&
+            filterName != null &&
+            filterName.isNotEmpty) {
+          await _obs.invertSourceFilter(
+              sourceName: sourceName, filterName: filterName);
+        }
+        break;
 
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.toggleSource(
-                sceneName: sceneName, sourceName: sourceName);
-          }
-          break;
+      case RewardAction.typeSetScene:
+        final sceneNames = action.targets;
+        if (sceneNames.isNotEmpty) {
+          await _obs.enableScene(sceneNames: sceneNames);
+        }
+        break;
 
-        case RewardAction.typeSendInput:
-          final inputs = action.inputs;
-          if (inputs.isNotEmpty) {
-            InputSender.sendInputs(inputs);
-          }
-          break;
+      case RewardAction.typeCrashProcess:
+        final target = action.target;
+        if (target != null) {
+          compute(_crashProcess, target);
+        }
+        break;
 
-        case RewardAction.typeEnableSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
+      case RewardAction.typeToggleSource:
+        final sourceName = action.sourceName;
+        final sceneName = action.sceneName;
 
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.enableSource(
-                sceneName: sceneName,
-                sourceName: sourceName,
-                enabled: action.enable);
-          }
-          break;
+        if (sourceName != null &&
+            sourceName.isNotEmpty &&
+            sceneName != null &&
+            sceneName.isNotEmpty) {
+          await _obs.toggleSource(sceneName: sceneName, sourceName: sourceName);
+        }
+        break;
 
-        case RewardAction.typePlayAudio:
-          final filePath = action.filePath;
-          if (filePath != null && filePath.isNotEmpty) {
-            RingtoneUtils.playFile(filePath);
-          }
-          break;
-      }
+      case RewardAction.typeSendInput:
+        final inputs = action.inputs;
+        if (inputs.isNotEmpty) {
+          InputSender.sendInputs(inputs);
+        }
+        break;
+
+      case RewardAction.typeEnableSource:
+        final sourceName = action.sourceName;
+        final sceneName = action.sceneName;
+
+        if (sourceName != null &&
+            sourceName.isNotEmpty &&
+            sceneName != null &&
+            sceneName.isNotEmpty) {
+          await _obs.enableSource(
+              sceneName: sceneName,
+              sourceName: sourceName,
+              enabled: action.enable);
+        }
+        break;
+
+      case RewardAction.typePlayAudio:
+        final filePath = action.filePath;
+        if (filePath != null && filePath.isNotEmpty) {
+          RingtoneUtils.playFile(filePath);
+        }
+        break;
     }
   }
 
   void _handleCreateClick() {
     setState(() {
-      _settings.rewards.rewards
-          .insert(0, Reward(name: '', handlers: [], expanded: true));
+      _settings.rewards.rewards.insert(
+          0, Reward(name: '', handlers: [], expanded: true, groups: ''));
     });
   }
 
@@ -423,6 +449,24 @@ WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
     ))),
     const WindowButtons()
   ]));
+}
+
+class _RewardEvent {
+  final Reward reward;
+  final Set<String> groups;
+
+  bool interrupted = false;
+
+  _RewardEvent({required this.reward, required this.groups});
+
+  bool constainsGroup(Iterable<String> groups) {
+    for (String g in groups) {
+      if (this.groups.contains(g)) {
+        return true;
+      }
+    }
+    return false;
+  }
 }
 
 class WindowButtons extends StatelessWidget {

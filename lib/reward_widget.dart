@@ -39,6 +39,7 @@ class _State extends State<RewardWidget> {
   void initState() {
     _reward = widget.reward;
     _nameController = TextEditingController(text: _reward.name);
+    _groupController = TextEditingController(text: _reward.groups);
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
@@ -46,6 +47,7 @@ class _State extends State<RewardWidget> {
   @override
   void dispose() {
     _nameController.dispose();
+    _groupController.dispose();
     widget.saveHook.removeHandler(_handleSave);
     super.dispose();
   }
@@ -98,6 +100,7 @@ class _State extends State<RewardWidget> {
   ];
 
   late final TextEditingController _nameController;
+  late final TextEditingController _groupController;
 
   @override
   Widget build(BuildContext context) {
@@ -113,15 +116,28 @@ class _State extends State<RewardWidget> {
           Row(
             children: [
               Expanded(
+                  flex: 3,
                   child: TextField(
-                maxLines: 1,
-                controller: _nameController,
-                style: const TextStyle(
-                  fontSize: 14,
+                    maxLines: 1,
+                    controller: _nameController,
+                    style: const TextStyle(
+                      fontSize: 14,
+                    ),
+                    decoration:
+                        const DefaultInputDecoration(hintText: 'Reward name'),
+                  )),
+              const Gap(8),
+              Expanded(
+                flex: 1,
+                child: TextField(
+                  maxLines: 1,
+                  controller: _groupController,
+                  style: const TextStyle(
+                    fontSize: 14,
+                  ),
+                  decoration: const DefaultInputDecoration(hintText: 'Group'),
                 ),
-                decoration:
-                    const DefaultInputDecoration(hintText: 'Reward name'),
-              )),
+              ),
               const Gap(8),
               IconButton(
                   onPressed: _handleExpandClick,
@@ -245,6 +261,7 @@ class _State extends State<RewardWidget> {
 
   void _handleSave() {
     _reward.name = _nameController.text;
+    _reward.groups = _groupController.text;
   }
 
   void _handleAddAction(AddAction e) {

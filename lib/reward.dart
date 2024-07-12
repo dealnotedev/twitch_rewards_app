@@ -6,18 +6,29 @@ class Reward {
   final String id;
   final List<RewardAction> handlers;
 
+  String groups;
+
   bool expanded;
 
-  Reward({required this.name, required this.handlers, this.expanded = false})
+  Reward(
+      {required this.name,
+      required this.handlers,
+      this.expanded = false,
+      required this.groups})
       : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'handlers': handlers.map((e) => e.toJson()).toList()};
+    return {
+      'name': name,
+      'handlers': handlers.map((e) => e.toJson()).toList(),
+      'groups': groups
+    };
   }
 
   static Reward fromJson(dynamic json) {
     return Reward(
         name: json['name'] as String,
+        groups: json['groups'] as String? ?? '',
         handlers: (json['handlers'] as List<dynamic>)
             .map(RewardAction.fromJson)
             .toList());
