@@ -206,25 +206,15 @@ class ObsConnect {
 
     final transform = response?['sceneItemTransform'];
 
-    final width = transform['width'] as double;
-    final height = transform['height'] as double;
-
     final scaleX = transform['scaleX'] as double;
     final scaleY = transform['scaleY'] as double;
-
-    final positionX = transform['positionX'] as double;
-    final positionY = transform['positionY'] as double;
 
     final data = {
       'sceneName': sceneName,
       'sceneItemId': source.detail.sceneItemId,
       'sceneItemTransform': {
-        'width': horizontal ? -width : width,
-        'height': vertical ? -height : height,
         'scaleY': vertical ? -scaleY : scaleY,
-        'scaleX': horizontal ? -scaleX : scaleX,
-        'positionY': vertical ? (positionY + height) : positionY,
-        'positionX': horizontal ? (positionX + width) : positionX
+        'scaleX': horizontal ? -scaleX : scaleX
       }
     };
 
