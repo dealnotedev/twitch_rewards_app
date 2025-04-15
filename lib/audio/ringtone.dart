@@ -1,6 +1,7 @@
 import 'dart:ffi';
 import 'dart:io';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
@@ -18,6 +19,33 @@ class RingtoneUtils {
         PlaySound(TEXT(File.fromUri(uri).path), NULL, SND_FILENAME | SND_ASYNC);
       }
     }
+  }
+
+  static Future<Duration?> getWavDuration(String path) async {
+    final file = File(path);
+    final bytes = await file.readAsBytes();
+
+    if (bytes.length < 44) return null;
+
+    final byteData = ByteData.sublistView(bytes);
+    final byteRate = byteData.getUint32(28, Endian.little);
+
+    int offset = 12;
+
+    while (offset < bytes.length - 8) {
+      final chunkId = String.fromCharCodes(bytes.sublist(offset, offset + 4));
+      final chunkSize = byteData.getUint32(offset + 4, Endian.little);
+
+      if (chunkId == 'data') {
+        final dataSize = chunkSize;
+        final durationSeconds = dataSize / byteRate;
+        return Duration(milliseconds: (durationSeconds * 1000).toInt());
+      } else {
+        offset += 8 + chunkSize;
+      }
+    }
+
+    return null;
   }
 
   static void playFile(String path, {bool loop = false}) {

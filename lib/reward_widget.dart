@@ -9,6 +9,7 @@ import 'package:twitch_listener/rewards/enable_source_widget.dart';
 import 'package:twitch_listener/rewards/flip_source_widget.dart';
 import 'package:twitch_listener/rewards/invert_filter_widget.dart';
 import 'package:twitch_listener/rewards/play_audio_widget.dart';
+import 'package:twitch_listener/rewards/play_audios_widget.dart';
 import 'package:twitch_listener/rewards/send_input_widget.dart';
 import 'package:twitch_listener/rewards/set_scene_widget.dart';
 import 'package:twitch_listener/rewards/toggle_source_widget.dart';
@@ -60,8 +61,12 @@ class _State extends State<RewardWidget> {
         type: RewardAction.typeDelay,
         icon: Icons.timer_outlined),
     AddAction(
-        title: 'Play audio',
+        title: 'Play audio (legacy)',
         type: RewardAction.typePlayAudio,
+        icon: Icons.audiotrack_outlined),
+    AddAction(
+        title: 'Play audio',
+        type: RewardAction.typePlayAudios,
         icon: Icons.audiotrack_outlined),
     AddAction(
         title: 'Enable filter',
@@ -198,6 +203,10 @@ class _State extends State<RewardWidget> {
         return PlayAudioWidget(
             saveHook: widget.saveHook, action: action, key: Key(action.id));
 
+      case RewardAction.typePlayAudios:
+        return PlayAudiosWidget(
+            saveHook: widget.saveHook, action: action, key: Key(action.id));
+
       case RewardAction.typeEnableFilter:
         return EnableFilterWidget(
             saveHook: widget.saveHook, action: action, key: Key(action.id));
@@ -295,7 +304,7 @@ class _State extends State<RewardWidget> {
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 child: Row(
-                  crossAxisAlignment: e.type == RewardAction.typeSetScene
+                  crossAxisAlignment: ([RewardAction.typeSetScene, RewardAction.typePlayAudios].contains(e.type))
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.center,
                   children: [

@@ -28,6 +28,7 @@ class RewardAction {
   static const typeEnableInput = 'enable_input';
   static const typeDelay = 'delay';
   static const typePlayAudio = 'play_audio';
+  static const typePlayAudios = 'play_audios';
   static const typeEnableFilter = 'enable_filter';
   static const typeInvertFilter = 'invert_filter';
   static const typeFlipSource = 'flip_source';
@@ -64,6 +65,12 @@ class RewardAction {
 
   List<InputEntry> inputs;
 
+  bool awaitCompletion;
+
+  int? count;
+
+  bool randomize;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -73,12 +80,16 @@ class RewardAction {
       this.filterName,
       this.sceneName,
       this.target,
+      this.count,
+      this.randomize = false,
+      this.awaitCompletion = false,
       this.horizontal = false,
       this.vertical = false,
-      this.targets = const [],
+      List<String>? targets,
       this.inputs = const [],
       this.duration = 0})
-      : id = const Uuid().v4();
+      : id = const Uuid().v4(),
+        targets = targets ?? <String>[];
 
   Map<String, dynamic> toJson() {
     return {
@@ -94,6 +105,9 @@ class RewardAction {
       'horizontal': horizontal,
       'vertical': vertical,
       'targets': targets,
+      'count': count,
+      'randomize': randomize,
+      'awaitCompletion': awaitCompletion,
       'inputs': inputs.map((e) => e.toJson()).toList()
     };
   }
@@ -102,6 +116,8 @@ class RewardAction {
     final targetsJson = json['targets'] as List<dynamic>?;
     final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
+        randomize: json['randomize'] as bool? ?? false,
+        count: json['count'] as int?,
         type: json['type'] as String,
         horizontal: json['horizontal'] as bool? ?? false,
         vertical: json['vertical'] as bool? ?? false,
@@ -109,6 +125,7 @@ class RewardAction {
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
         target: json['target'] as String?,
+        awaitCompletion: json['awaitCompletion'] as bool? ?? false,
         targets: targetsJson != null
             ? targetsJson.map((e) => e.toString()).toList()
             : [],
