@@ -75,7 +75,7 @@ class _State extends State<PlayAudiosWidget> {
           ],
         ),
       ),
-      const Gap(8),
+      const Gap(12),
       Row(
         children: [
           ElevatedButton(onPressed: _selectFile, child: const Text('Add')),
@@ -88,35 +88,37 @@ class _State extends State<PlayAudiosWidget> {
                     value: _action.randomize, onChanged: _handleRandomCheck),
               ]),
           const Gap(8),
+          if(_action.randomize) ... [
+            _BorderedContainer(
+                padding: const EdgeInsets.only(left: 8),
+                children: [
+                  const Text('Count'),
+                  RippleIcon(
+                      size: 16,
+                      iconWidget: const Icon(
+                        Icons.remove,
+                        size: 16,
+                      ),
+                      onTap: _decrementCount),
+                  Text(
+                    _action.count?.toString() ?? 'All',
+                    style: const TextStyle(
+                        color: Colors.green, fontWeight: FontWeight.w600),
+                  ),
+                  RippleIcon(
+                      size: 16,
+                      iconWidget: const Icon(
+                        Icons.add,
+                        size: 16,
+                      ),
+                      onTap: _incrementCount),
+                ]),
+            const Gap(8),
+          ],
           _BorderedContainer(
               padding: const EdgeInsets.only(left: 8),
               children: [
-                const Text('Count'),
-                RippleIcon(
-                    size: 16,
-                    iconWidget: const Icon(
-                      Icons.remove,
-                      size: 16,
-                    ),
-                    onTap: _decrementCount),
-                Text(
-                  _action.count?.toString() ?? 'All',
-                  style: const TextStyle(
-                      color: Colors.green, fontWeight: FontWeight.w600),
-                ),
-                RippleIcon(
-                    size: 16,
-                    iconWidget: const Icon(
-                      Icons.add,
-                      size: 16,
-                    ),
-                    onTap: _incrementCount),
-              ]),
-          const Gap(8),
-          _BorderedContainer(
-              padding: const EdgeInsets.only(left: 8),
-              children: [
-                const Text('Await completion'),
+                const Text('Wait completion'),
                 Checkbox(
                     value: _action.awaitCompletion,
                     onChanged: _handleAwaitCompletionCheck),

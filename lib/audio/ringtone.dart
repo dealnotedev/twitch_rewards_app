@@ -48,6 +48,18 @@ class RingtoneUtils {
     return null;
   }
 
+  static Future<void> playFileAwaitComplete(String path) async {
+    if (Platform.isWindows && await File(path).exists()) {
+      final duration = await getWavDuration(path);
+
+      PlaySound(TEXT(path), NULL, SND_FILENAME | SND_ASYNC);
+
+      if (duration != null) {
+        await Future.delayed(duration);
+      }
+    }
+  }
+
   static void playFile(String path, {bool loop = false}) {
     if (Platform.isWindows) {
       if (loop) {

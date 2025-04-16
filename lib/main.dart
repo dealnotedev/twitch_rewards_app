@@ -345,7 +345,40 @@ class LoggedState extends State<LoggedWidget> {
             RingtoneUtils.playFile(filePath);
           }
           break;
+
+        case RewardAction.typePlayAudios:
+          if (action.awaitCompletion) {
+            await _playAudios(action);
+          } else {
+            _playAudios(action);
+          }
+          break;
       }
+    }
+  }
+
+  Future<void> _playAudios(RewardAction action) async {
+    final all = List.of(action.targets);
+    final count = action.count;
+
+    if (all.isEmpty) return;
+
+    final List<String> audios;
+
+    if (action.randomize) {
+      all.shuffle();
+
+      if (count != null) {
+        audios = all.take(count).toList();
+      } else {
+        audios = all;
+      }
+    } else {
+      audios = all;
+    }
+
+    for (String file in audios) {
+      await RingtoneUtils.playFileAwaitComplete(file);
     }
   }
 
