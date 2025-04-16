@@ -147,7 +147,7 @@ class LoggedState extends State<LoggedWidget> {
         Divider(
           height: 1,
           thickness: 1,
-          color: Colors.white.withOpacity(0.1),
+          color: Colors.white.withValues(alpha: 0.1),
         ),
         Container(
           width: double.infinity,

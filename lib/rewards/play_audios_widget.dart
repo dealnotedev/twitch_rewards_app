@@ -37,6 +37,7 @@ class _State extends State<PlayAudiosWidget> {
   @override
   Widget build(BuildContext context) {
     const radius = Radius.circular(4);
+    final files = _action.targets;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Gap(8),
@@ -52,46 +53,126 @@ class _State extends State<PlayAudiosWidget> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: _action.targets.mapIndexed((index, f) {
-                  return Row(
-                    children: [
-                      Expanded(
-                          child: Text(
-                        f,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                            height: 1,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w400),
-                      )),
-                      OnHoverVisibility(
-                          child: RippleIcon(
-                              onTap: () {
-                                _handleFileDeleteClick(index);
-                              },
-                              size: 16,
-                              padding: 8,
-                              iconWidget: const Icon(
-                                Icons.delete,
-                                size: 16,
-                              )))
-                    ],
-                  );
-                }).toList(),
-              ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              constraints: const BoxConstraints(minHeight: 38),
+              alignment: Alignment.center,
+              child: files.isNotEmpty
+                  ? Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: files.mapIndexed((index, file) {
+                        return _createFileWidget(index, file);
+                      }).toList(),
+                    )
+                  : const Text(
+                      '¯\\_(ツ)_/¯ where is your music?',
+                      style: TextStyle(
+                          color: Color(0xFFA9ABAF),
+                          fontWeight: FontWeight.w600),
+                    ),
             ),
             const Divider(color: Color(0xFFCBC4CF), height: 1, thickness: 1)
           ],
         ),
       ),
       const Gap(8),
-      ElevatedButton(onPressed: _selectFile, child: const Text('Add'))
+      Row(
+        children: [
+          ElevatedButton(onPressed: _selectFile, child: const Text('Add')),
+          const Gap(8),
+          _BorderedContainer(
+              padding: const EdgeInsets.only(left: 8),
+              children: [
+                const Text('Random'),
+                Checkbox(
+                    value: _action.randomize, onChanged: _handleRandomCheck),
+              ]),
+          const Gap(8),
+          _BorderedContainer(
+              padding: const EdgeInsets.only(left: 8),
+              children: [
+                const Text('Count'),
+                RippleIcon(
+                    size: 16,
+                    iconWidget: const Icon(
+                      Icons.remove,
+                      size: 16,
+                    ),
+                    onTap: _decrementCount),
+                Text(
+                  _action.count?.toString() ?? 'All',
+                  style: const TextStyle(
+                      color: Colors.green, fontWeight: FontWeight.w600),
+                ),
+                RippleIcon(
+                    size: 16,
+                    iconWidget: const Icon(
+                      Icons.add,
+                      size: 16,
+                    ),
+                    onTap: _incrementCount),
+              ]),
+          const Gap(8),
+          _BorderedContainer(
+              padding: const EdgeInsets.only(left: 8),
+              children: [
+                const Text('Await completion'),
+                Checkbox(
+                    value: _action.awaitCompletion,
+                    onChanged: _handleAwaitCompletionCheck),
+              ])
+        ],
+      )
     ]);
+  }
+
+  void _incrementCount() {
+    setState(() {
+      final count = _action.count;
+      if (count == null) {
+        _action.count = 1;
+      } else {
+        _action.count = count + 1;
+      }
+    });
+  }
+
+  void _decrementCount() {
+    setState(() {
+      final count = _action.count;
+      if (count != null && count > 1) {
+        _action.count = count - 1;
+      } else if (count != null) {
+        _action.count = null;
+      }
+    });
+  }
+
+  Widget _createFileWidget(int index, String file) {
+    return Row(
+      children: [
+        const Gap(8),
+        Expanded(
+            child: Text(
+          file,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: const TextStyle(
+              height: 1, fontSize: 13, fontWeight: FontWeight.w400),
+        )),
+        OnHoverVisibility(
+            child: RippleIcon(
+                onTap: () {
+                  _handleFileDeleteClick(index);
+                },
+                size: 16,
+                padding: 4,
+                iconWidget: const Icon(
+                  Icons.delete,
+                  size: 16,
+                )))
+      ],
+    );
   }
 
   void _selectFile() {
@@ -124,5 +205,36 @@ class _State extends State<PlayAudiosWidget> {
     setState(() {
       _action.targets.removeAt(index);
     });
+  }
+
+  void _handleRandomCheck(bool? value) {
+    setState(() {
+      _action.randomize = value ?? false;
+    });
+  }
+
+  void _handleAwaitCompletionCheck(bool? value) {
+    setState(() {
+      _action.awaitCompletion = value ?? false;
+    });
+  }
+}
+
+class _BorderedContainer extends StatelessWidget {
+  final List<Widget> children;
+  final EdgeInsets? padding;
+
+  const _BorderedContainer({required this.children, this.padding});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: padding ?? const EdgeInsets.symmetric(horizontal: 8),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(4),
+          border: Border.all(
+              color: const Color(0xFFCBC4CF).withValues(alpha: 0.2), width: 1)),
+      child: Row(children: children),
+    );
   }
 }
