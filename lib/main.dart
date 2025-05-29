@@ -18,6 +18,7 @@ import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
+import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:win32/win32.dart' as win32;
@@ -113,7 +114,7 @@ class LoggedState extends State<LoggedWidget> {
   late final Settings _settings;
   late final WebSocketManager _wsManager;
 
-  late final StreamSubscription _wsSubscription;
+  late final StreamSubscription<WsMessage> _wsSubscription;
 
   final _searchController = TextEditingController();
 
@@ -401,10 +402,10 @@ class LoggedState extends State<LoggedWidget> {
 
   static final _handledMessages = <String>{};
 
-  void _handleWebSocketMessage(dynamic json) {
-    final eventId = json['payload']?['event']?['id'] as String?;
+  void _handleWebSocketMessage(WsMessage json) {
+    final eventId = json.payload.event?.id;
     final rewardTitle =
-        json['payload']?['event']?['reward']?['title'] as String?;
+        json.payload.event?.reward?.title;
 
     if (rewardTitle != null &&
         eventId != null &&

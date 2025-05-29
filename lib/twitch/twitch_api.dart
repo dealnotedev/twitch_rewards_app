@@ -32,6 +32,40 @@ class TwitchApi {
     return dio.post('/eventsub/subscriptions', data: data);
   }
 
+  Future<void> subscribeChat({
+    required String? broadcasterUserId,
+    required String sessionId,
+  }) {
+    final data = {
+      'version': '1',
+      'type': 'channel.chat.message',
+      'condition': {
+        'broadcaster_user_id': broadcasterUserId,
+        'user_id': broadcasterUserId,
+      },
+      'transport': {'session_id': sessionId, 'method': 'websocket'},
+    };
+
+    return dio.post('/eventsub/subscriptions', data: data);
+  }
+
+  Future<void> subscribeFollowEvents({
+    required String? broadcasterUserId,
+    required String sessionId,
+  }) {
+    final data = {
+      'version': '2',
+      'type': 'channel.follow',
+      'condition': {
+        'broadcaster_user_id': broadcasterUserId,
+        'moderator_user_id': broadcasterUserId,
+      },
+      'transport': {'session_id': sessionId, 'method': 'websocket'},
+    };
+
+    return dio.post('/eventsub/subscriptions', data: data);
+  }
+
   Future<UserDto> getUser() {
     return dio
         .get('/users')

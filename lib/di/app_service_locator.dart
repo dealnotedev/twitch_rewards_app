@@ -17,7 +17,9 @@ class AppServiceLocator extends ServiceLocator {
   AppServiceLocator._(this.settings) {
     final wsManager = WebSocketManager(
         'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30',
-        settings);
+        settings,
+        listenChat: false,
+        listenFollow: false);
 
     map[Settings] = settings;
     map[ServiceLocator] = this;
