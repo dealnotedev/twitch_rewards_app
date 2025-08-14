@@ -353,10 +353,15 @@ class LoggedState extends State<LoggedWidget> {
             final source = await _soLoud.loadFile(filePath);
 
             final duration = _soLoud.getLength(source);
-            final handle = await _soLoud.play(source, volume: 1.0);
+            final handle = await _soLoud.play(source, volume: action.volume.current);
+
+            final volumeSub = action.volume.changes.listen((v) {
+              _soLoud.setVolume(handle, v);
+            });
 
             await Future.delayed(duration);
 
+            volumeSub.cancel();
             await _soLoud.stop(handle);
           }
           break;

@@ -20,6 +20,7 @@ class _State extends State<PlayAudioWidget> {
   @override
   void initState() {
     _pathController = TextEditingController(text: widget.action.filePath);
+    _volume = widget.action.volume.current;
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
@@ -31,14 +32,33 @@ class _State extends State<PlayAudioWidget> {
     super.dispose();
   }
 
+  double _volume = 1.0;
+
   @override
   Widget build(BuildContext context) {
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       Row(children: [
-        const Text(
-          'Play audio',
-          style: TextStyle(color: Colors.white),
-        ),
+        Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          const Text(
+            'Play audio',
+            style: TextStyle(color: Colors.white),
+          ),
+          const Gap(4),
+          SizedBox(
+            width: 66,
+            child: SliderTheme(
+                data: SliderTheme.of(context).copyWith(
+                    inactiveTrackColor: Colors.white.withValues(alpha: 0.5),
+                    trackHeight: 1.0,
+                    thumbShape:
+                        const RoundSliderThumbShape(enabledThumbRadius: 4)),
+                child: Slider(
+                    padding: EdgeInsets.zero,
+                    max: 5.0,
+                    value: _volume,
+                    onChanged: _changeVolume)),
+          )
+        ]),
         const Gap(16),
         Expanded(
           child: TextFormField(
@@ -47,8 +67,7 @@ class _State extends State<PlayAudioWidget> {
             style: const TextStyle(
               fontSize: 14,
             ),
-            decoration:
-                const DefaultInputDecoration(hintText: 'File path, .wav only'),
+            decoration: const DefaultInputDecoration(hintText: 'File path'),
           ),
         ),
         const Gap(8),
@@ -61,11 +80,10 @@ class _State extends State<PlayAudioWidget> {
 
   void _selectFile() async {
     final result = await FilePicker.platform.pickFiles(
-      dialogTitle: 'Select audio file',
-      type: FileType.custom,
-      allowedExtensions: ['wav'],
-      allowMultiple: false
-    );
+        dialogTitle: 'Select audio file',
+        type: FileType.custom,
+        allowedExtensions: ['wav', 'mp3'],
+        allowMultiple: false);
 
     final path = result?.files.firstOrNull?.path;
 
@@ -85,5 +103,12 @@ class _State extends State<PlayAudioWidget> {
 
   void _handleSave() {
     widget.action.filePath = _pathController.text;
+  }
+
+  void _changeVolume(double volume) {
+    setState(() {
+      _volume = volume;
+    });
+    widget.action.volume.set(volume);
   }
 }

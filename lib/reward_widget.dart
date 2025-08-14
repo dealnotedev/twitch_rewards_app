@@ -262,7 +262,9 @@ class _State extends State<RewardWidget> {
     });
   }
 
-  _handleActionDelete(RewardAction e) {
+  void _handleActionDelete(RewardAction e) {
+    e.dispose();
+
     setState(() {
       _reward.handlers.remove(e);
     });
@@ -304,7 +306,10 @@ class _State extends State<RewardWidget> {
                 width: double.infinity,
                 padding: const EdgeInsets.only(top: 8, bottom: 8),
                 child: Row(
-                  crossAxisAlignment: ([RewardAction.typeSetScene, RewardAction.typePlayAudios].contains(e.type))
+                  crossAxisAlignment: ([
+                    RewardAction.typeSetScene,
+                    RewardAction.typePlayAudios
+                  ].contains(e.type))
                       ? CrossAxisAlignment.start
                       : CrossAxisAlignment.center,
                   children: [

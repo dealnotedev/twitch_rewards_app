@@ -1,3 +1,4 @@
+import 'package:twitch_listener/observable_value.dart';
 import 'package:uuid/uuid.dart';
 
 class Reward {
@@ -71,6 +72,8 @@ class RewardAction {
 
   bool randomize;
 
+  ObservableValue<double> volume;
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -81,6 +84,7 @@ class RewardAction {
       this.sceneName,
       this.target,
       this.count,
+      double? volume,
       this.randomize = false,
       this.awaitCompletion = false,
       this.horizontal = false,
@@ -89,7 +93,8 @@ class RewardAction {
       this.inputs = const [],
       this.duration = 0})
       : id = const Uuid().v4(),
-        targets = targets ?? <String>[];
+        targets = targets ?? <String>[],
+        volume = ObservableValue(current: volume ?? 1.0);
 
   Map<String, dynamic> toJson() {
     return {
@@ -106,6 +111,7 @@ class RewardAction {
       'vertical': vertical,
       'targets': targets,
       'count': count,
+      'volume': volume?.current,
       'randomize': randomize,
       'awaitCompletion': awaitCompletion,
       'inputs': inputs.map((e) => e.toJson()).toList()
@@ -126,6 +132,7 @@ class RewardAction {
         filePath: json['filePath'] as String?,
         target: json['target'] as String?,
         awaitCompletion: json['awaitCompletion'] as bool? ?? false,
+        volume: json['volume'] as double?,
         targets: targetsJson != null
             ? targetsJson.map((e) => e.toString()).toList()
             : [],
@@ -136,6 +143,10 @@ class RewardAction {
         filterName: json['filterName'] as String?,
         sceneName: json['sceneName'] as String?,
         inputName: json['inputName'] as String?);
+  }
+
+  void dispose(){
+    volume.dispose();
   }
 }
 
