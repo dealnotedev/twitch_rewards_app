@@ -1,5 +1,5 @@
 import 'package:collection/collection.dart';
-import 'package:filepicker_windows/filepicker_windows.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/common_widgets.dart';
@@ -177,18 +177,21 @@ class _State extends State<PlayAudiosWidget> {
     );
   }
 
-  void _selectFile() {
-    final file = OpenFilePicker()
-      ..filterSpecification = {
-        'Audio File (*.wav)': '*.wav',
-      }
-      ..defaultFilterIndex = 0
-      ..defaultExtension = 'wav'
-      ..title = 'Select audio files';
+  void _selectFile() async {
+    final result = await FilePicker.platform.pickFiles(
+        dialogTitle: 'Select audio files',
+        type: FileType.custom,
+        allowedExtensions: ['wav'],
+        allowMultiple: true
+    );
 
-    final result = file.getFiles();
+    final paths = result?.files
+        .where((f) => f.path != null)
+        .map((f) => f.path!)
+        .toList() ?? [];
+
     setState(() {
-      _action.targets.addAll(result.map((f) => f.path));
+      _action.targets.addAll(paths);
     });
   }
 

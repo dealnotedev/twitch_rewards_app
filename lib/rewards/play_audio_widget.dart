@@ -1,4 +1,4 @@
-import 'package:filepicker_windows/filepicker_windows.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/reward.dart';
@@ -59,18 +59,18 @@ class _State extends State<PlayAudioWidget> {
 
   late final TextEditingController _pathController;
 
-  void _selectFile() {
-    final file = OpenFilePicker()
-      ..filterSpecification = {
-        'Audio File (*.wav)': '*.wav',
-      }
-      ..defaultFilterIndex = 0
-      ..defaultExtension = 'wav'
-      ..title = 'Select audio file';
+  void _selectFile() async {
+    final result = await FilePicker.platform.pickFiles(
+      dialogTitle: 'Select audio file',
+      type: FileType.custom,
+      allowedExtensions: ['wav'],
+      allowMultiple: false
+    );
 
-    final result = file.getFile();
-    if (result != null) {
-      _pathController.text = result.path;
+    final path = result?.files.firstOrNull?.path;
+
+    if (path != null) {
+      _pathController.text = path;
     }
   }
 
