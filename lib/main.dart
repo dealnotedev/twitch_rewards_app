@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
@@ -24,10 +25,13 @@ import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:win32/win32.dart' as win32;
 
 void main() async {
+  final soloud = SoLoud.instance;
+  await soloud.init();
+
   final settings = Settings();
   await settings.init();
 
-  final locator = AppServiceLocator.init(settings);
+  final locator = AppServiceLocator.init(settings: settings, soloud: soloud);
 
   runApp(MyApp(locator: locator));
 
@@ -113,6 +117,7 @@ class LoggedState extends State<LoggedWidget> {
   late final ObsConnect _obs;
   late final Settings _settings;
   late final WebSocketManager _wsManager;
+  late final SoLoud _soLoud;
 
   late final StreamSubscription<WsMessage> _wsSubscription;
 
@@ -123,6 +128,7 @@ class LoggedState extends State<LoggedWidget> {
     _settings = widget.locator.provide();
     _obs = widget.locator.provide();
     _wsManager = widget.locator.provide();
+    _soLoud = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     _searchController.addListener(_handleSearchQuery);
@@ -342,8 +348,16 @@ class LoggedState extends State<LoggedWidget> {
 
         case RewardAction.typePlayAudio:
           final filePath = action.filePath;
+
           if (filePath != null && filePath.isNotEmpty) {
-            RingtoneUtils.playFile(filePath);
+            final source = await _soLoud.loadFile(filePath);
+
+            final duration = _soLoud.getLength(source);
+            final handle = await _soLoud.play(source, volume: 1.0);
+
+            await Future.delayed(duration);
+
+            await _soLoud.stop(handle);
           }
           break;
 
@@ -404,8 +418,7 @@ class LoggedState extends State<LoggedWidget> {
 
   void _handleWebSocketMessage(WsMessage json) {
     final eventId = json.payload.event?.id;
-    final rewardTitle =
-        json.payload.event?.reward?.title;
+    final rewardTitle = json.payload.event?.reward?.title;
 
     if (rewardTitle != null &&
         eventId != null &&
