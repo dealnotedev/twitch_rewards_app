@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/foundation.dart';
@@ -42,6 +43,14 @@ void main() async {
     appWindow.alignment = Alignment.center;
     appWindow.show();
   });
+
+  AppLifecycleListener(
+    binding: WidgetsBinding.instance,
+    onExitRequested: () async {
+      soloud.deinit();
+      return AppExitResponse.exit;
+    }
+  );
 }
 
 class MyApp extends StatefulWidget {
