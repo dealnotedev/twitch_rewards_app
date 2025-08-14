@@ -54,7 +54,7 @@ class _State extends State<PlayAudioWidget> {
                         const RoundSliderThumbShape(enabledThumbRadius: 4)),
                 child: Slider(
                     padding: EdgeInsets.zero,
-                    max: 5.0,
+                    max: 3.0,
                     value: _volume,
                     onChanged: _changeVolume)),
           )
