@@ -64,6 +64,8 @@ class RewardAction {
 
   List<String> targets;
 
+  List<AudioEntry> audios;
+
   List<InputEntry> inputs;
 
   bool awaitCompletion;
@@ -90,11 +92,19 @@ class RewardAction {
       this.horizontal = false,
       this.vertical = false,
       List<String>? targets,
+      List<AudioEntry>? audios,
       this.inputs = const [],
       this.duration = 0})
       : id = const Uuid().v4(),
         targets = targets ?? <String>[],
-        volume = ObservableValue(current: volume ?? 1.0);
+        audios = audios ?? <AudioEntry>[],
+        volume = ObservableValue(current: volume ?? 1.0) {
+    if (type == typePlayAudios) {
+      // Migration to new json format
+      this.audios.addAll(this.targets.map((t) => AudioEntry(path: t)));
+      this.targets.clear();
+    }
+  }
 
   Map<String, dynamic> toJson() {
     return {
@@ -111,15 +121,17 @@ class RewardAction {
       'vertical': vertical,
       'targets': targets,
       'count': count,
-      'volume': volume?.current,
+      'volume': volume.current,
       'randomize': randomize,
       'awaitCompletion': awaitCompletion,
-      'inputs': inputs.map((e) => e.toJson()).toList()
+      'inputs': inputs.map((e) => e.toJson()).toList(),
+      'audios': audios.map((e) => e.toJson()).toList()
     };
   }
 
   static RewardAction fromJson(dynamic json) {
     final targetsJson = json['targets'] as List<dynamic>?;
+    final audiosJson = json['audios'] as List<dynamic>?;
     final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
         randomize: json['randomize'] as bool? ?? false,
@@ -139,13 +151,40 @@ class RewardAction {
         inputs: inputsJson != null
             ? inputsJson.map(InputEntry.fromJson).toList()
             : [],
+        audios: audiosJson != null
+            ? audiosJson.map(AudioEntry.fromJson).toList()
+            : [],
         sourceName: json['sourceName'] as String?,
         filterName: json['filterName'] as String?,
         sceneName: json['sceneName'] as String?,
         inputName: json['inputName'] as String?);
   }
 
-  void dispose(){
+  void dispose() {
+    volume.dispose();
+    for (var audio in audios) {
+      audio.dispose();
+    }
+  }
+}
+
+class AudioEntry {
+  final String path;
+  final ObservableValue<double> volume;
+
+  AudioEntry({required this.path, double? volume})
+      : volume = ObservableValue(current: volume ?? 1.0);
+
+  static AudioEntry fromJson(dynamic json) {
+    return AudioEntry(
+        path: json['path'] as String, volume: json['volume'] as double?);
+  }
+
+  Map<String, dynamic> toJson() {
+    return {'path': path, 'volume': volume.current};
+  }
+
+  void dispose() {
     volume.dispose();
   }
 }

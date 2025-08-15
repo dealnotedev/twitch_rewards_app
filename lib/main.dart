@@ -377,12 +377,12 @@ class LoggedState extends State<LoggedWidget> {
   }
 
   Future<void> _playAudios(RewardAction action) async {
-    final all = List.of(action.targets);
+    final all = List.of(action.audios);
     final count = action.count;
 
     if (all.isEmpty) return;
 
-    final List<String> audios;
+    final List<AudioEntry> audios;
 
     if (action.randomize) {
       all.shuffle();
@@ -401,7 +401,7 @@ class LoggedState extends State<LoggedWidget> {
       if (i > 0) {
         await Future.delayed(const Duration(milliseconds: 250));
       }
-      await RingtoneUtils.playFileAwaitComplete(file);
+      await RingtoneUtils.playFileAwaitComplete(file.path);
     }
   }
 

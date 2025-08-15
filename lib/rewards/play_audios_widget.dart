@@ -37,7 +37,7 @@ class _State extends State<PlayAudiosWidget> {
   @override
   Widget build(BuildContext context) {
     const radius = Radius.circular(4);
-    final files = _action.targets;
+    final files = _action.audios;
 
     return Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
       const Gap(8),
@@ -88,7 +88,7 @@ class _State extends State<PlayAudiosWidget> {
                     value: _action.randomize, onChanged: _handleRandomCheck),
               ]),
           const Gap(8),
-          if(_action.randomize) ... [
+          if (_action.randomize) ...[
             _BorderedContainer(
                 padding: const EdgeInsets.only(left: 8),
                 children: [
@@ -150,13 +150,13 @@ class _State extends State<PlayAudiosWidget> {
     });
   }
 
-  Widget _createFileWidget(int index, String file) {
+  Widget _createFileWidget(int index, AudioEntry file) {
     return Row(
       children: [
         const Gap(8),
         Expanded(
             child: Text(
-          file,
+          file.path,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
           style: const TextStyle(
@@ -182,16 +182,16 @@ class _State extends State<PlayAudiosWidget> {
         dialogTitle: 'Select audio files',
         type: FileType.custom,
         allowedExtensions: ['wav'],
-        allowMultiple: true
-    );
+        allowMultiple: true);
 
     final paths = result?.files
-        .where((f) => f.path != null)
-        .map((f) => f.path!)
-        .toList() ?? [];
+            .where((f) => f.path != null)
+            .map((f) => f.path!)
+            .toList() ??
+        [];
 
     setState(() {
-      _action.targets.addAll(paths);
+      _action.audios.addAll(paths.map((p) => AudioEntry(path: p)));
     });
   }
 
@@ -204,11 +204,14 @@ class _State extends State<PlayAudiosWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _handleSave() {}
+  void _handleSave() {
+
+  }
 
   void _handleFileDeleteClick(int index) {
     setState(() {
-      _action.targets.removeAt(index);
+      final removed = _action.audios.removeAt(index);
+      removed.dispose();
     });
   }
 
