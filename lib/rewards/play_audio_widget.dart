@@ -142,6 +142,8 @@ class _State extends State<PlayAudioWidget> {
   }
 
   void _onVolumeStart(double value) async {
+    _stopVolumePlaying();
+
     final file = File(_pathController.text);
 
     if (file.existsSync()) {
