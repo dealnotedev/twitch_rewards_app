@@ -39,6 +39,7 @@ class _State extends State<PlayAudiosWidget> {
 
   @override
   void dispose() {
+    _stopVolumePlaying();
     widget.saveHook.removeHandler(_handleSave);
     super.dispose();
   }
@@ -252,7 +253,9 @@ class _State extends State<PlayAudiosWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _handleSave() {}
+  void _handleSave() {
+
+  }
 
   void _handleFileDeleteClick(int index) {
     setState(() {

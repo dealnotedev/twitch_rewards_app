@@ -24,16 +24,21 @@ class PlayAudioWidget extends StatefulWidget {
 }
 
 class _State extends State<PlayAudioWidget> {
+
+  late final Audioplayer _audioplayer;
+
   @override
   void initState() {
     _pathController = TextEditingController(text: widget.action.filePath);
     _volume = widget.action.volume.current;
+    _audioplayer = widget.audioplayer;
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
 
   @override
   void dispose() {
+    _stopVolumePlaying();
     _pathController.dispose();
     widget.saveHook.removeHandler(_handleSave);
     super.dispose();
@@ -123,12 +128,16 @@ class _State extends State<PlayAudioWidget> {
 
   PlayToken? _playToken;
 
-  void _onVolumeEnd(double value) {
+  void _onVolumeEnd(double _) {
+    _stopVolumePlaying();
+  }
+
+  void _stopVolumePlaying() {
     final playToken = _playToken;
     _playToken = null;
 
     if (playToken != null) {
-      widget.audioplayer.cancelByToken(playToken);
+      _audioplayer.cancelByToken(playToken);
     }
   }
 
@@ -136,7 +145,7 @@ class _State extends State<PlayAudioWidget> {
     final file = File(_pathController.text);
 
     if (file.existsSync()) {
-      _playToken = await widget.audioplayer
+      _playToken = await _audioplayer
           .playFileInfinitely(file.path, volume: widget.action.volume);
     }
   }
