@@ -1,6 +1,9 @@
+import 'dart:io';
+
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/themes.dart';
@@ -8,9 +11,13 @@ import 'package:twitch_listener/themes.dart';
 class PlayAudioWidget extends StatefulWidget {
   final SaveHook saveHook;
   final RewardAction action;
+  final Audioplayer audioplayer;
 
   const PlayAudioWidget(
-      {super.key, required this.saveHook, required this.action});
+      {super.key,
+      required this.saveHook,
+      required this.action,
+      required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -56,6 +63,8 @@ class _State extends State<PlayAudioWidget> {
                     padding: EdgeInsets.zero,
                     max: 3.0,
                     value: _volume,
+                    onChangeStart: _onVolumeStart,
+                    onChangeEnd: _onVolumeEnd,
                     onChanged: _changeVolume)),
           )
         ]),
@@ -110,5 +119,25 @@ class _State extends State<PlayAudioWidget> {
       _volume = volume;
     });
     widget.action.volume.set(volume);
+  }
+
+  PlayToken? _playToken;
+
+  void _onVolumeEnd(double value) {
+    final playToken = _playToken;
+    _playToken = null;
+
+    if (playToken != null) {
+      widget.audioplayer.cancelByToken(playToken);
+    }
+  }
+
+  void _onVolumeStart(double value) async {
+    final file = File(_pathController.text);
+
+    if (file.existsSync()) {
+      _playToken = await widget.audioplayer
+          .playFileInfinitely(file.path, volume: widget.action.volume);
+    }
   }
 }

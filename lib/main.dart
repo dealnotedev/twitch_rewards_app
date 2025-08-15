@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/audio/ringtone.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/generated/assets.dart';
@@ -32,7 +33,8 @@ void main() async {
   final settings = Settings();
   await settings.init();
 
-  final locator = AppServiceLocator.init(settings: settings, soloud: soloud);
+  final locator = AppServiceLocator.init(
+      settings: settings, audioplayer: Audioplayer(soloud: soloud));
 
   runApp(MyApp(locator: locator));
 
@@ -45,12 +47,11 @@ void main() async {
   });
 
   AppLifecycleListener(
-    binding: WidgetsBinding.instance,
-    onExitRequested: () async {
-      soloud.deinit();
-      return AppExitResponse.exit;
-    }
-  );
+      binding: WidgetsBinding.instance,
+      onExitRequested: () async {
+        soloud.deinit();
+        return AppExitResponse.exit;
+      });
 }
 
 class MyApp extends StatefulWidget {
@@ -126,7 +127,7 @@ class LoggedState extends State<LoggedWidget> {
   late final ObsConnect _obs;
   late final Settings _settings;
   late final WebSocketManager _wsManager;
-  late final SoLoud _soLoud;
+  late final Audioplayer _audioplayer;
 
   late final StreamSubscription<WsMessage> _wsSubscription;
 
@@ -137,7 +138,7 @@ class LoggedState extends State<LoggedWidget> {
     _settings = widget.locator.provide();
     _obs = widget.locator.provide();
     _wsManager = widget.locator.provide();
-    _soLoud = widget.locator.provide();
+    _audioplayer = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     _searchController.addListener(_handleSearchQuery);
@@ -225,6 +226,7 @@ class LoggedState extends State<LoggedWidget> {
                   .map((e) => RewardWidget(
                         key: Key(e.id),
                         reward: e,
+                        audioplayer: _audioplayer,
                         saveHook: _saveHook,
                         onDelete: _handleDeleteClick,
                         onPlay: _applyReward,
@@ -359,19 +361,7 @@ class LoggedState extends State<LoggedWidget> {
           final filePath = action.filePath;
 
           if (filePath != null && filePath.isNotEmpty) {
-            final source = await _soLoud.loadFile(filePath);
-
-            final duration = _soLoud.getLength(source);
-            final handle = await _soLoud.play(source, volume: action.volume.current);
-
-            final volumeSub = action.volume.changes.listen((v) {
-              _soLoud.setVolume(handle, v);
-            });
-
-            await Future.delayed(duration);
-
-            volumeSub.cancel();
-            await _soLoud.stop(handle);
+            _audioplayer.playFileWaitCompletion(filePath, volume: action.volume);
           }
           break;
 

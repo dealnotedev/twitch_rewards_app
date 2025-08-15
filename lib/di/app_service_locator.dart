@@ -1,4 +1,4 @@
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/settings.dart';
@@ -7,16 +7,16 @@ import 'package:twitch_listener/twitch/ws_manager.dart';
 class AppServiceLocator extends ServiceLocator {
   static late final AppServiceLocator instance;
 
-  static AppServiceLocator init({required Settings settings, required SoLoud soloud}) {
-    instance = AppServiceLocator._(settings, soloud);
+  static AppServiceLocator init({required Settings settings, required Audioplayer audioplayer}) {
+    instance = AppServiceLocator._(settings, audioplayer);
     return instance;
   }
 
   final Settings settings;
-  final SoLoud soloud;
+  final Audioplayer audioplayer;
   final Map<Type, Object> map = {};
 
-  AppServiceLocator._(this.settings, this.soloud) {
+  AppServiceLocator._(this.settings, this.audioplayer) {
     final wsManager = WebSocketManager(
         'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30',
         settings,
@@ -27,7 +27,7 @@ class AppServiceLocator extends ServiceLocator {
     map[ServiceLocator] = this;
     map[WebSocketManager] = wsManager;
     map[ObsConnect] = ObsConnect(settings: settings);
-    map[SoLoud] = soloud;
+    map[Audioplayer] = audioplayer;
   }
 
   @override

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/rewards/crash_process_widget.dart';
 import 'package:twitch_listener/rewards/delay_widget.dart';
@@ -21,13 +22,15 @@ class RewardWidget extends StatefulWidget {
 
   final SaveHook saveHook;
   final Reward reward;
+  final Audioplayer audioplayer;
 
   const RewardWidget(
       {super.key,
       required this.reward,
       required this.saveHook,
       required this.onDelete,
-      required this.onPlay});
+      required this.onPlay,
+      required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -201,7 +204,10 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typePlayAudio:
         return PlayAudioWidget(
-            saveHook: widget.saveHook, action: action, key: Key(action.id));
+            audioplayer: widget.audioplayer,
+            saveHook: widget.saveHook,
+            action: action,
+            key: Key(action.id));
 
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(
