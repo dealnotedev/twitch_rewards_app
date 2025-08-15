@@ -211,7 +211,10 @@ class _State extends State<RewardWidget> {
 
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(
-            saveHook: widget.saveHook, action: action, key: Key(action.id));
+            audioplayer: widget.audioplayer,
+            saveHook: widget.saveHook,
+            action: action,
+            key: Key(action.id));
 
       case RewardAction.typeEnableFilter:
         return EnableFilterWidget(

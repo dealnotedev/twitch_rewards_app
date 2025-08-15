@@ -1,7 +1,10 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/common_widgets.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
@@ -10,20 +13,26 @@ import 'package:twitch_listener/ripple_icon.dart';
 class PlayAudiosWidget extends StatefulWidget {
   final SaveHook saveHook;
   final RewardAction action;
+  final Audioplayer audioplayer;
 
   const PlayAudiosWidget(
-      {super.key, required this.saveHook, required this.action});
+      {super.key,
+      required this.saveHook,
+      required this.action,
+      required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
 class _State extends State<PlayAudiosWidget> {
+  late final Audioplayer _audioplayer;
   late final RewardAction _action;
 
   @override
   void initState() {
     _action = widget.action;
+    _audioplayer = widget.audioplayer;
     widget.saveHook.addHandler(_handleSave);
     super.initState();
   }
@@ -79,9 +88,16 @@ class _State extends State<PlayAudiosWidget> {
       Row(
         children: [
           ElevatedButton(onPressed: _selectFile, child: const Text('Add')),
+          const Gap(16),
+          Row(
+              children: [
+                const Text('Wait completion'),
+                Checkbox(
+                    value: _action.awaitCompletion,
+                    onChanged: _handleAwaitCompletionCheck),
+              ]),
           const Gap(8),
-          _BorderedContainer(
-              padding: const EdgeInsets.only(left: 8),
+          Row(
               children: [
                 const Text('Random'),
                 Checkbox(
@@ -89,8 +105,7 @@ class _State extends State<PlayAudiosWidget> {
               ]),
           const Gap(8),
           if (_action.randomize) ...[
-            _BorderedContainer(
-                padding: const EdgeInsets.only(left: 8),
+            Row(
                 children: [
                   const Text('Count'),
                   RippleIcon(
@@ -113,16 +128,7 @@ class _State extends State<PlayAudiosWidget> {
                       ),
                       onTap: _incrementCount),
                 ]),
-            const Gap(8),
           ],
-          _BorderedContainer(
-              padding: const EdgeInsets.only(left: 8),
-              children: [
-                const Text('Wait completion'),
-                Checkbox(
-                    value: _action.awaitCompletion,
-                    onChanged: _handleAwaitCompletionCheck),
-              ])
         ],
       )
     ]);
@@ -153,7 +159,24 @@ class _State extends State<PlayAudiosWidget> {
   Widget _createFileWidget(int index, AudioEntry file) {
     return Row(
       children: [
-        const Gap(8),
+        const Gap(4),
+        SizedBox(
+          width: 66,
+          child: SliderTheme(
+              data: SliderTheme.of(context).copyWith(
+                  inactiveTrackColor: Colors.white.withValues(alpha: 0.5),
+                  trackHeight: 1.0,
+                  thumbShape:
+                      const RoundSliderThumbShape(enabledThumbRadius: 4)),
+              child: Slider(
+                  padding: EdgeInsets.zero,
+                  max: 3.0,
+                  value: file.volume.current,
+                  onChangeStart: (v) => _onVolumeStart(file, v),
+                  onChangeEnd: (v) => _onVolumeEnd(file, v),
+                  onChanged: (v) => _onVolumeChange(file, v))),
+        ),
+        const Gap(12),
         Expanded(
             child: Text(
           file.path,
@@ -175,6 +198,31 @@ class _State extends State<PlayAudiosWidget> {
                 )))
       ],
     );
+  }
+
+  PlayToken? _playToken;
+
+  void _onVolumeEnd(AudioEntry entry, double value) {
+    _stopVolumePlaying();
+  }
+
+  void _stopVolumePlaying() {
+    final playToken = _playToken;
+    _playToken = null;
+
+    if (playToken != null) {
+      _audioplayer.cancelByToken(playToken);
+    }
+  }
+
+  void _onVolumeStart(AudioEntry entry, double value) async {
+    _stopVolumePlaying();
+
+    final file = File(entry.path);
+
+    if (file.existsSync()) {
+      _playToken = await _audioplayer.playFileInfinitely(file.path, volume: entry.volume);
+    }
   }
 
   void _selectFile() async {
@@ -204,9 +252,7 @@ class _State extends State<PlayAudiosWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _handleSave() {
-
-  }
+  void _handleSave() {}
 
   void _handleFileDeleteClick(int index) {
     setState(() {
@@ -226,23 +272,10 @@ class _State extends State<PlayAudiosWidget> {
       _action.awaitCompletion = value ?? false;
     });
   }
-}
 
-class _BorderedContainer extends StatelessWidget {
-  final List<Widget> children;
-  final EdgeInsets? padding;
-
-  const _BorderedContainer({required this.children, this.padding});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: padding ?? const EdgeInsets.symmetric(horizontal: 8),
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(4),
-          border: Border.all(
-              color: const Color(0xFFCBC4CF).withValues(alpha: 0.2), width: 1)),
-      child: Row(children: children),
-    );
+  void _onVolumeChange(AudioEntry file, double v) {
+    setState(() {
+      file.volume.set(v);
+    });
   }
 }

@@ -398,10 +398,11 @@ class LoggedState extends State<LoggedWidget> {
 
     for (int i = 0; i < audios.length; i++) {
       final file = audios[i];
+
       if (i > 0) {
         await Future.delayed(const Duration(milliseconds: 250));
       }
-      await RingtoneUtils.playFileAwaitComplete(file.path);
+      await _audioplayer.playFileWaitCompletion(file.path, volume: file.volume);
     }
   }
 
