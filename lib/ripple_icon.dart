@@ -16,6 +16,8 @@ class RippleIcon extends StatelessWidget {
   final bool? rtl;
   final Color? background;
 
+  final BorderRadius? borderRadius;
+
   const RippleIcon(
       {super.key,
       this.icon,
@@ -24,6 +26,7 @@ class RippleIcon extends StatelessWidget {
       this.padding = 8.0,
       this.color,
       this.rtl,
+      this.borderRadius,
       this.rotateIfRtl = false,
       this.iconWidget,
       this.onTap,
@@ -32,7 +35,7 @@ class RippleIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final radius = BorderRadius.circular(size / 2.0 + padding);
+    final radius = borderRadius ?? BorderRadius.circular(size / 2.0 + padding);
     final margin = this.margin;
 
     final icon = this.icon;

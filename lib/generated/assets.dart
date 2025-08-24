@@ -2,7 +2,12 @@
 class Assets {
   Assets._();
 
+  static const String assetsIcArrowDownWhite12dp = 'assets/ic_arrow_down_white_12dp.png';
+  static const String assetsIcArrowDownWhite16dp = 'assets/ic_arrow_down_white_16dp.png';
+  static const String assetsIcCheckWhite16dp = 'assets/ic_check_white_16dp.png';
+  static const String assetsIcCloseWhite16dp = 'assets/ic_close_white_16dp.png';
   static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
+  static const String assetsIcSearchWhite16dp = 'assets/ic_search_white_16dp.png';
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
   static const String assetsLogo = 'assets/logo.png';

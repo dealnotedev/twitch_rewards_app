@@ -6,18 +6,23 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/audio/ringtone.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
+import 'package:twitch_listener/dropdown/dropdown_menu.dart';
+import 'package:twitch_listener/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/input_sender.dart';
+import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_widget.dart';
+import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
@@ -60,7 +65,255 @@ class MyApp extends StatefulWidget {
   const MyApp({super.key, required this.locator});
 
   @override
-  State<StatefulWidget> createState() => _MyHomePageState();
+  State<StatefulWidget> createState() => _RebornPageState();
+}
+
+class _RebornPageState extends State<MyApp> {
+  final _dropdownmanager = DropdownManager();
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      theme: Themes.light,
+      locale: const Locale('en'),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      navigatorObservers: [
+        DropdownNavigationObserver(manager: _dropdownmanager)
+      ],
+      home: Builder(builder: (context) {
+        final theme = Theme.of(context);
+        return DropdownScope(
+            manager: _dropdownmanager,
+            child: Scaffold(
+              backgroundColor: theme.surfacePrimary,
+              body: Builder(builder: (context) {
+                return GestureDetector(
+                  onTap: () => DropdownScope.of(context).clear(),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                          child: SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Padding(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 16, vertical: 16),
+                              child: _createInputText(theme),
+                            ),
+                            const Gap(612),
+                            Padding(
+                              padding: const EdgeInsets.all(16),
+                              child: Row(
+                                spacing: 8,
+                                children: [
+                                  Expanded(
+                                    child: _createDropDown(context, theme,
+                                        key: _globalKey),
+                                  ),
+                                  Expanded(
+                                      child: _createDropDown(context, theme,
+                                          key: _globalKey2)),
+                                  Expanded(
+                                      child: _createDropDown(context, theme,
+                                          key: _globalKey3))
+                                ],
+                              ),
+                            ),
+                            const Gap(612),
+                          ],
+                        ),
+                      ))
+                    ],
+                  ),
+                );
+              }),
+            ));
+      }),
+    );
+  }
+
+  final _globalKey = GlobalKey();
+  final _globalKey2 = GlobalKey();
+  final _globalKey3 = GlobalKey();
+
+  @override
+  void initState() {
+    _focusNode.addListener(_handleFocus);
+    _controler.addListener(_handleEditing);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _focusNode.removeListener(_handleFocus);
+    _focusNode.dispose();
+    _controler.removeListener(_handleEditing);
+    _controler.dispose();
+    super.dispose();
+  }
+
+  final _controler = TextEditingController();
+  final _focusNode = FocusNode();
+
+  Widget _createDropDown(BuildContext context, ThemeData theme,
+      {required GlobalKey key}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Wait for Completion',
+          style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w500,
+              color: theme.textColorPrimary),
+        ),
+        const Gap(4),
+        Material(
+          borderRadius: BorderRadius.circular(8),
+          color: theme.inputBackground,
+          child: InkWell(
+            onTap: () {
+              _showDropdownPopup(context, key: key);
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Container(
+              key: key,
+              decoration: BoxDecoration(
+                border: Border.all(color: theme.border, width: 0.5),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Row(
+                children: [
+                  Expanded(
+                      child: Text(
+                    'Yes',
+                    style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w400,
+                        color: theme.textColorPrimary),
+                  )),
+                  SimpleIcon.simpleSquare(Assets.assetsIcArrowDownWhite12dp,
+                      size: 12, color: theme.textColorDisabled)
+                ],
+              ),
+            ),
+          ),
+        )
+      ],
+    );
+  }
+
+  void _showDropdownPopup(BuildContext context,
+      {required GlobalKey key}) async {
+    final manager = DropdownScope.of(context);
+    manager.show(context, builder: (cntx) {
+      return DropdownPopupMenu<bool>(
+        selected: true,
+        items: [
+          Item(id: true, title: context.localizations.yes),
+          Item(id: false, title: context.localizations.no)
+        ],
+        onTap: (bool id) {
+          manager.dismiss(key);
+        },
+      );
+    }, key: key);
+  }
+
+  Widget _createInputText(ThemeData theme) {
+    final style = TextStyle(fontSize: 13, color: theme.textColorPrimary);
+
+    return AnimatedContainer(
+      duration: const Duration(milliseconds: 250),
+      curve: Curves.easeOutCubic,
+      decoration: BoxDecoration(
+        border: Border.all(
+          strokeAlign: BorderSide.strokeAlignOutside,
+          color: theme.borderActive.withValues(alpha: _focused ? 0.35 : 0.0),
+          width: _focused ? 4.0 : 0.0,
+        ),
+        borderRadius: BorderRadius.circular(8),
+      ),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 4),
+        decoration: BoxDecoration(
+            color: theme.inputBackground,
+            border: Border.all(
+                strokeAlign: BorderSide.strokeAlignOutside,
+                color: _focused ? theme.borderActive : theme.border,
+                width: 0.5),
+            borderRadius: BorderRadius.circular(8)),
+        child: Row(
+          children: [
+            const Gap(8),
+            SimpleIcon.simpleSquare(Assets.assetsIcSearchWhite16dp,
+                size: 16, color: theme.textColorSecondary),
+            const Gap(8),
+            Expanded(
+                child: TextField(
+              controller: _controler,
+              focusNode: _focusNode,
+              textInputAction: TextInputAction.search,
+              style: style,
+              decoration: InputDecoration(
+                  isDense: true,
+                  border: InputBorder.none,
+                  enabledBorder: InputBorder.none,
+                  focusedBorder: InputBorder.none,
+                  disabledBorder: InputBorder.none,
+                  hintStyle: style.copyWith(color: theme.textColorSecondary),
+                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
+                  hintText: 'Search channel points by title...'),
+            )),
+            const Gap(8),
+            Visibility(
+              visible: _cleareable,
+              maintainState: true,
+              maintainSize: true,
+              maintainAnimation: true,
+              child: RippleIcon(
+                  size: 16,
+                  onTap: () {
+                    _controler.text = '';
+                    _focusNode.requestFocus();
+                  },
+                  padding: 4,
+                  borderRadius: BorderRadius.circular(8),
+                  icon: Assets.assetsIcCloseWhite16dp,
+                  color: theme.textColorPrimary),
+            ),
+            const Gap(4)
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleEditing() {
+    final cleareable = _controler.text.isNotEmpty;
+    if (_cleareable != cleareable) {
+      setState(() {
+        _cleareable = cleareable;
+      });
+    }
+  }
+
+  bool _focused = false;
+  bool _cleareable = false;
+
+  void _handleFocus() {
+    final focused = _focusNode.hasFocus;
+
+    if (_focused != focused) {
+      setState(() {
+        _focused = focused;
+      });
+    }
+  }
 }
 
 class _MyHomePageState extends State<MyApp> {
@@ -361,7 +614,8 @@ class LoggedState extends State<LoggedWidget> {
           final filePath = action.filePath;
 
           if (filePath != null && filePath.isNotEmpty) {
-            _audioplayer.playFileWaitCompletion(filePath, volume: action.volume);
+            _audioplayer.playFileWaitCompletion(filePath,
+                volume: action.volume);
           }
           break;
 

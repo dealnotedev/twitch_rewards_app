@@ -1,3 +1,6 @@
+import 'package:flutter/material.dart';
+import 'package:twitch_listener/l10n/app_localizations.dart';
+
 extension MyIterable<T> on Iterable<T> {
   T? get firstOrNull => isEmpty ? null : first;
 
@@ -5,4 +8,8 @@ extension MyIterable<T> on Iterable<T> {
     final list = where(test);
     return list.isEmpty ? null : list.first;
   }
+}
+
+extension ContextExt on BuildContext {
+  AppLocalizations get localizations => AppLocalizations.of(this)!;
 }
