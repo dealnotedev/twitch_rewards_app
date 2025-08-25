@@ -105,6 +105,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No'**
   String get no;
+
+  /// No description provided for @app_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch Listener'**
+  String get app_title;
 }
 
 class _AppLocalizationsDelegate

@@ -19,10 +19,12 @@ import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_config.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
+import 'package:twitch_listener/simple_widgets.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
@@ -88,10 +90,13 @@ class _RebornPageState extends State<MyApp> {
               return Scaffold(
                   backgroundColor: theme.surfacePrimary,
                   body: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
                     onTap: () => _dropdownmanager.clear(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        Container(child: _createWindowTitleBarBox(context)),
+                        SimpleDivider(theme: theme),
                         Expanded(
                             child: SingleChildScrollView(
                           child: Column(
@@ -205,6 +210,26 @@ class _RebornPageState extends State<MyApp> {
 
   void _showDropdownPopup(BuildContext context,
       {required GlobalKey key}) async {
+    if (key != _globalKey3) {
+      final manager = DropdownScope.of(context);
+      showDialog(
+          routeSettings: const RouteSettings(name: '/channel_points_setting'),
+          barrierDismissible: true,
+          barrierColor: Colors.black.withValues(alpha: 0.5),
+          context: context,
+          builder: (context) {
+            final theme = Theme.of(context);
+            return Dialog(
+              insetPadding: const EdgeInsets.all(48),
+              backgroundColor: theme.surfacePrimary,
+              shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16)),
+              child: RewardConfigWidget(dropdownManager: manager),
+            );
+          });
+      return;
+    }
+
     final manager = DropdownScope.of(context);
     manager.show(context, builder: (cntx) {
       return DropdownPopupMenu<bool>(
@@ -710,51 +735,61 @@ class LoggedState extends State<LoggedWidget> {
 
 enum Voice { normal, helium, brutal, robo }
 
-WindowTitleBarBox _createWindowTitleBarBox(BuildContext context) {
-  return WindowTitleBarBox(
+Widget _createWindowTitleBarBox(BuildContext context) {
+  final theme = Theme.of(context);
+  return SizedBox(
+      height: 48,
       child: Row(children: [
-    Expanded(
-        child: MoveWindow(
-            child: Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Tooltip(
-        message: 'It\'s dealnoteDev',
-        child: Image.asset(
-          Assets.assetsLogo,
-          width: 24,
-          height: 24,
-          filterQuality: FilterQuality.medium,
+        Expanded(
+            child: MoveWindow(
+                child: Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          child: Row(
+            children: [
+              Tooltip(
+                message: 'It\'s dealnoteDev',
+                child: SimpleIcon.simpleSquare(Assets.assetsLogo, size: 24),
+              ),
+              const Gap(12),
+              Expanded(
+                  child: Text(
+                context.localizations.app_title,
+                style: TextStyle(
+                    color: theme.textColorPrimary,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w500),
+              )),
+            ],
+          ),
+        ))),
+        RippleIcon(
+          borderRadius: BorderRadius.circular(8),
+          icon: Assets.assetsIcMinimizeWhite16dp,
+          size: 16,
+          color: theme.textColorPrimary,
+          onTap: () {
+            appWindow.minimize();
+          },
         ),
-      ),
-    ))),
-    const WindowButtons()
-  ]));
-}
-
-class WindowButtons extends StatelessWidget {
-  static final buttonColors = WindowButtonColors(
-      iconNormal: const Color(0xFF737A8B),
-      mouseOver: const Color(0xFFF6A00C),
-      mouseDown: const Color(0xFF805306),
-      iconMouseOver: const Color(0xFF805306),
-      iconMouseDown: const Color(0xFFFFD500));
-
-  static final closeButtonColors = WindowButtonColors(
-      mouseOver: const Color(0xFFD32F2F),
-      mouseDown: const Color(0xFFB71C1C),
-      iconNormal: const Color(0xFF737A8B),
-      iconMouseOver: Colors.white);
-
-  const WindowButtons({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        MinimizeWindowButton(colors: buttonColors),
-        MaximizeWindowButton(colors: buttonColors),
-        CloseWindowButton(colors: closeButtonColors),
-      ],
-    );
-  }
+        RippleIcon(
+          borderRadius: BorderRadius.circular(8),
+          icon: Assets.assetsIcMaximizeWhite16dp,
+          size: 16,
+          color: theme.textColorPrimary,
+          onTap: () {
+            appWindow.maximizeOrRestore();
+          },
+        ),
+        RippleIcon(
+          borderRadius: BorderRadius.circular(8),
+          icon: Assets.assetsIcCloseWhite16dp,
+          hoverColor: const Color(0xFFD4183D),
+          size: 16,
+          color: theme.textColorPrimary,
+          onTap: () {
+            appWindow.close();
+          },
+        ),
+        const Gap(8)
+      ]));
 }

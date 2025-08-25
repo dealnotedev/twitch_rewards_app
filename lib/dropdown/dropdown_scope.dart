@@ -7,8 +7,12 @@ class DropdownScope extends InheritedWidget {
 
   const DropdownScope({super.key, required this.manager, required super.child});
 
-  static DropdownManager of(BuildContext context) =>
-      context.dependOnInheritedWidgetOfExactType<DropdownScope>()!.manager;
+  static DropdownManager of(BuildContext context) {
+    final widget = context
+        .getElementForInheritedWidgetOfExactType<DropdownScope>()
+        ?.widget;
+    return ((widget as DropdownScope?)?.manager)!;
+  }
 
   @override
   bool updateShouldNotify(covariant DropdownScope oldWidget) =>
@@ -16,7 +20,6 @@ class DropdownScope extends InheritedWidget {
 }
 
 class DropdownNavigationObserver extends NavigatorObserver {
-
   final DropdownManager manager;
 
   DropdownNavigationObserver({required this.manager});
@@ -35,12 +38,12 @@ class DropdownNavigationObserver extends NavigatorObserver {
 }
 
 class DropdownManager {
-
   _Handle? _current;
 
   DropdownManager();
 
-  void show(BuildContext context, {required WidgetBuilder builder, required GlobalKey key}) {
+  void show(BuildContext context,
+      {required WidgetBuilder builder, required GlobalKey key}) {
     _current?.entry.remove();
     _current = null;
 

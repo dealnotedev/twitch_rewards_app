@@ -17,6 +17,7 @@ class RippleIcon extends StatelessWidget {
   final Color? background;
 
   final BorderRadius? borderRadius;
+  final Color? hoverColor;
 
   const RippleIcon(
       {super.key,
@@ -26,6 +27,7 @@ class RippleIcon extends StatelessWidget {
       this.padding = 8.0,
       this.color,
       this.rtl,
+      this.hoverColor,
       this.borderRadius,
       this.rotateIfRtl = false,
       this.iconWidget,
@@ -49,6 +51,7 @@ class RippleIcon extends StatelessWidget {
       child: InkWell(
         borderRadius: radius,
         onTap: onTap,
+        hoverColor: hoverColor,
         child: Container(
           alignment: Alignment.center,
           height: size + (padding * 2),
