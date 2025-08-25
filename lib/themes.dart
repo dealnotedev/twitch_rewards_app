@@ -54,4 +54,16 @@ extension ThemeExt on ThemeData {
 
   Color get borderActive =>
       dark ? const Color(0xFF555555) : const Color(0xFFA1A1A1);
+
+  Color get buttonColorPrimary =>
+      dark ? const Color(0xFFEEEEEE) : const Color(0xFF030213);
+
+  Color get buttonColorSecondary =>
+      dark ? const Color(0xFF1B1B1B) : const Color(0xFFFFFFFF);
+
+  Color get buttonColorAlternative =>
+      dark ? const Color(0xFF333333) : const Color(0xFFECEEF2);
+
+  Color get textColorPrimaryInverted =>
+      dark ? const Color(0xFF121212) : const Color(0xFFFFFFFF);
 }

@@ -6,6 +6,11 @@ class Assets {
   static const String assetsIcArrowDownWhite16dp = 'assets/ic_arrow_down_white_16dp.png';
   static const String assetsIcCheckWhite16dp = 'assets/ic_check_white_16dp.png';
   static const String assetsIcCloseWhite16dp = 'assets/ic_close_white_16dp.png';
+  static const String assetsIcConnectedWhite12dp = 'assets/ic_connected_white_12dp.png';
+  static const String assetsIcDisconnectedWhite12dp = 'assets/ic_disconnected_white_12dp.png';
+  static const String assetsIcEyeWhite12dp = 'assets/ic_eye_white_12dp.png';
+  static const String assetsIcLogo16dp = 'assets/ic_logo_16dp.png';
+  static const String assetsIcLogo20dp = 'assets/ic_logo_20dp.png';
   static const String assetsIcMaximizeWhite16dp = 'assets/ic_maximize_white_16dp.png';
   static const String assetsIcMinimizeWhite16dp = 'assets/ic_minimize_white_16dp.png';
   static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';

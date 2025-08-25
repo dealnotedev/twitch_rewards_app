@@ -111,6 +111,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twitch Listener'**
   String get app_title;
+
+  /// No description provided for @status_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get status_connected;
+
+  /// No description provided for @status_disconnected.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnected'**
+  String get status_disconnected;
+
+  /// No description provided for @status_connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get status_connecting;
+
+  /// No description provided for @button_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Connect'**
+  String get button_connect;
+
+  /// No description provided for @button_disconnect.
+  ///
+  /// In en, this message translates to:
+  /// **'Disconnect'**
+  String get button_disconnect;
+
+  /// No description provided for @button_connecting.
+  ///
+  /// In en, this message translates to:
+  /// **'Connecting...'**
+  String get button_connecting;
+
+  /// No description provided for @twitch_connection_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Twitch Connection'**
+  String get twitch_connection_title;
 }
 
 class _AppLocalizationsDelegate

@@ -7,6 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/buttons.dart';
+import 'package:twitch_listener/connection_status.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/dropdown/dropdown_menu.dart';
@@ -31,6 +33,7 @@ import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
+import 'package:twitch_listener/viewers_counter.dart';
 import 'package:win32/win32.dart' as win32;
 
 void main() async {
@@ -164,6 +167,23 @@ class _RebornPageState extends State<MyApp> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ConnectionStatusWidget(
+                theme: theme, status: ConnectionStatus.connected),
+            const Gap(4),
+            ViewersCounter(theme: theme, count: 12),
+          ],
+        ),
+        const Gap(4),
+        CustomButton(
+          text: context.localizations.button_connect,
+          style: CustomButtonStyle.primary,
+          theme: theme,
+          onTap: () {},
+        ),
+        const Gap(4),
         Text(
           'Wait for Completion',
           style: TextStyle(
@@ -748,7 +768,8 @@ Widget _createWindowTitleBarBox(BuildContext context) {
             children: [
               Tooltip(
                 message: 'It\'s dealnoteDev',
-                child: SimpleIcon.simpleSquare(Assets.assetsLogo, size: 24),
+                child:
+                    SimpleIcon.simpleSquare(Assets.assetsIcLogo20dp, size: 20),
               ),
               const Gap(12),
               Expanded(
@@ -756,7 +777,7 @@ Widget _createWindowTitleBarBox(BuildContext context) {
                 context.localizations.app_title,
                 style: TextStyle(
                     color: theme.textColorPrimary,
-                    fontSize: 14,
+                    fontSize: 16,
                     fontWeight: FontWeight.w500),
               )),
             ],

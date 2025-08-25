@@ -1,5 +1,12 @@
 {
   "yes": "Yes",
   "no": "No",
-  "app_title": "Twitch Listener"
+  "app_title": "Twitch Listener",
+  "status_connected": "Connected",
+  "status_disconnected": "Disconnected",
+  "status_connecting": "Connecting...",
+  "button_connect": "Connect",
+  "button_disconnect": "Disconnect",
+  "button_connecting": "Connecting...",
+  "twitch_connection_title": "Twitch Connection"
 }
