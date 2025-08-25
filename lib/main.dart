@@ -74,65 +74,61 @@ class _RebornPageState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      theme: Themes.light,
-      locale: const Locale('en'),
-      localizationsDelegates: AppLocalizations.localizationsDelegates,
-      navigatorObservers: [
-        DropdownNavigationObserver(manager: _dropdownmanager)
-      ],
-      home: Builder(builder: (context) {
-        final theme = Theme.of(context);
-        return DropdownScope(
+        debugShowCheckedModeBanner: false,
+        theme: Themes.light,
+        locale: const Locale('en'),
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        navigatorObservers: [
+          DropdownNavigationObserver(manager: _dropdownmanager)
+        ],
+        home: DropdownScope(
             manager: _dropdownmanager,
-            child: Scaffold(
-              backgroundColor: theme.surfacePrimary,
-              body: Builder(builder: (context) {
-                return GestureDetector(
-                  onTap: () => DropdownScope.of(context).clear(),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                          child: SingleChildScrollView(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                  horizontal: 16, vertical: 16),
-                              child: _createInputText(theme),
-                            ),
-                            const Gap(612),
-                            Padding(
-                              padding: const EdgeInsets.all(16),
-                              child: Row(
-                                spacing: 8,
-                                children: [
-                                  Expanded(
-                                    child: _createDropDown(context, theme,
-                                        key: _globalKey),
-                                  ),
-                                  Expanded(
-                                      child: _createDropDown(context, theme,
-                                          key: _globalKey2)),
-                                  Expanded(
-                                      child: _createDropDown(context, theme,
-                                          key: _globalKey3))
-                                ],
+            child: Builder(builder: (context) {
+              final theme = Theme.of(context);
+              return Scaffold(
+                  backgroundColor: theme.surfacePrimary,
+                  body: GestureDetector(
+                    onTap: () => _dropdownmanager.clear(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                            child: SingleChildScrollView(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 16, vertical: 16),
+                                child: _createInputText(theme),
                               ),
-                            ),
-                            const Gap(612),
-                          ],
-                        ),
-                      ))
-                    ],
-                  ),
-                );
-              }),
-            ));
-      }),
-    );
+                              const Gap(612),
+                              Padding(
+                                padding: const EdgeInsets.all(16),
+                                child: Row(
+                                  spacing: 8,
+                                  children: [
+                                    Expanded(
+                                      child: _createDropDown(context, theme,
+                                          key: _globalKey),
+                                    ),
+                                    Expanded(
+                                        child: _createDropDown(context, theme,
+                                            key: _globalKey2)),
+                                    Expanded(
+                                        child: _createDropDown(context, theme,
+                                            key: _globalKey3))
+                                  ],
+                                ),
+                              ),
+                              const Gap(612),
+                            ],
+                          ),
+                        ))
+                      ],
+                    ),
+                  ));
+            })));
   }
 
   final _globalKey = GlobalKey();
