@@ -88,6 +88,7 @@ class _State extends State<TwitchStateWidget> {
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
+          color: theme.surfaceSecondary,
           border: Border.all(
               color: theme.dividerColor,
               width: 0.5,
@@ -155,7 +156,7 @@ class _State extends State<TwitchStateWidget> {
                     title,
                     style: TextStyle(
                         fontWeight: FontWeight.w500,
-                        fontSize: 12,
+                        fontSize: 13,
                         color: theme.textColorPrimary),
                   ),
                   Text(
