@@ -24,11 +24,11 @@ import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_config.dart';
 import 'package:twitch_listener/reward_widget.dart';
+import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/simple_widgets.dart';
-import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
@@ -132,7 +132,7 @@ class _RebornPageState extends State<MyApp> {
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 16),
-                                child: _createInputText(context, theme),
+                                child: RewardsStateWidget(settings: _settings),
                               ),
                               const Gap(312),
                               Padding(
@@ -167,20 +167,13 @@ class _RebornPageState extends State<MyApp> {
   final _globalKey2 = GlobalKey();
   final _globalKey3 = GlobalKey();
 
+  late final Settings _settings;
+
   @override
   void initState() {
+    _settings = widget.locator.provide();
     super.initState();
   }
-
-  @override
-  void dispose() {
-    _focusNode.dispose();
-    _controler.dispose();
-    super.dispose();
-  }
-
-  final _controler = TextEditingController();
-  final _focusNode = FocusNode();
 
   Widget _createDropDown(BuildContext context, ThemeData theme,
       {required GlobalKey key}) {
@@ -283,26 +276,6 @@ class _RebornPageState extends State<MyApp> {
         },
       );
     }, key: key);
-  }
-
-  Widget _createInputText(BuildContext context, ThemeData theme) {
-    return TextFieldDecoration(
-        clearable: true,
-        prefix: SimpleIcon.simpleSquare(Assets.assetsIcSearchWhite16dp,
-            size: 16, color: theme.textColorSecondary),
-        builder: (cntx, decoration, style) {
-          return TextField(
-            controller: _controler,
-            focusNode: _focusNode,
-            textInputAction: TextInputAction.search,
-            style: style,
-            decoration: decoration,
-          );
-        },
-        hint: context.localizations.reward_search_hint,
-        controller: _controler,
-        focusNode: _focusNode,
-        theme: theme);
   }
 }
 

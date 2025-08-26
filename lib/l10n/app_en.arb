@@ -23,5 +23,34 @@
   "obs_websocket_url_hint": "ws://localhost:4455",
   "obs_websocket_password_title": "Password",
   "obs_websocket_password_hint": "Enter password",
-  "button_apply": "Apply"
+  "button_apply": "Apply",
+  "channel_points_config_title": "Channel Points Configuration",
+  "x_total": "{count} total",
+  "@x_total": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "x_active": "{count} active",
+  "@x_active": {
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "4"
+      }
+    }
+  },
+  "x_actions": "{actions,plural, =1{{actions} action} other{{actions} actions}}",
+  "@x_actions": {
+    "placeholders": {
+      "actions": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "button_add_channel_points": "Add Channel Points"
 }

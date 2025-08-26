@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/themes.dart';
 
 class CustomButton extends StatelessWidget {
@@ -8,9 +9,11 @@ class CustomButton extends StatelessWidget {
   final CustomButtonStyle style;
   final bool loading;
   final VoidCallback? onTap;
+  final String? icon;
 
   const CustomButton(
       {super.key,
+      this.icon,
       required this.text,
       required this.style,
       this.loading = false,
@@ -41,7 +44,7 @@ class CustomButton extends StatelessWidget {
     }
 
     final radius = BorderRadius.circular(6);
-
+    final icon = this.icon;
     return Material(
       color: color.withValues(alpha: onTap != null ? 1.0 : 0.5),
       borderRadius: radius,
@@ -57,15 +60,19 @@ class CustomButton extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              if(loading) ... [
+              if (loading) ...[
                 SizedBox(
                   height: 10,
                   width: 10,
                   child: CircularProgressIndicator(
-                    color: textColor.withValues(alpha: onTap != null ? 1.0 : 0.75),
+                    color:
+                        textColor.withValues(alpha: onTap != null ? 1.0 : 0.75),
                     strokeWidth: 1.5,
                   ),
                 ),
+                const Gap(8)
+              ] else if (icon != null) ...[
+                SimpleIcon.simpleSquare(icon, size: 12, color: textColor),
                 const Gap(8)
               ],
               Text(
@@ -74,7 +81,8 @@ class CustomButton extends StatelessWidget {
                     fontSize: 12,
                     height: 1,
                     fontWeight: FontWeight.w600,
-                    color: textColor.withValues(alpha: onTap != null ? 1.0 : 0.75)),
+                    color: textColor.withValues(
+                        alpha: onTap != null ? 1.0 : 0.75)),
               )
             ],
           ),

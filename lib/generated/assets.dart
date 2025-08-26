@@ -17,6 +17,8 @@ class Assets {
   static const String assetsIcObsWhite16dp = 'assets/ic_obs_white_16dp.png';
   static const String assetsIcPlusWhite16dp = 'assets/ic_plus_white_16dp.png';
   static const String assetsIcSearchWhite16dp = 'assets/ic_search_white_16dp.png';
+  static const String assetsIcSettingsWhite16dp =
+      'assets/ic_settings_white_16dp.png';
   static const String assetsIcTwitch16dp = 'assets/ic_twitch_16dp.png';
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';

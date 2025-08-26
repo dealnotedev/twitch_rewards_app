@@ -83,4 +83,31 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get button_apply => 'Apply';
+
+  @override
+  String get channel_points_config_title => 'Channel Points Configuration';
+
+  @override
+  String x_total(int count) {
+    return '$count total';
+  }
+
+  @override
+  String x_active(int count) {
+    return '$count active';
+  }
+
+  @override
+  String x_actions(int actions) {
+    String _temp0 = intl.Intl.pluralLogic(
+      actions,
+      locale: localeName,
+      other: '$actions actions',
+      one: '$actions action',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String get button_add_channel_points => 'Add Channel Points';
 }

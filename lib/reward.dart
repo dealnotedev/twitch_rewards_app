@@ -6,19 +6,29 @@ class Reward {
 
   final String id;
   final List<RewardAction> handlers;
+  bool disabled;
 
   bool expanded;
 
-  Reward({required this.name, required this.handlers, this.expanded = false})
+  Reward(
+      {required this.name,
+      required this.handlers,
+      this.expanded = false,
+      this.disabled = false})
       : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
-    return {'name': name, 'handlers': handlers.map((e) => e.toJson()).toList()};
+    return {
+      'name': name,
+      'disabled': disabled,
+      'handlers': handlers.map((e) => e.toJson()).toList()
+    };
   }
 
   static Reward fromJson(dynamic json) {
     return Reward(
         name: json['name'] as String,
+        disabled: json['disabled'] as bool? ?? false,
         handlers: (json['handlers'] as List<dynamic>)
             .map(RewardAction.fromJson)
             .toList());
@@ -42,6 +52,8 @@ class RewardAction {
   final String type;
 
   final String id;
+
+  bool disabled;
 
   String? inputName;
 
@@ -79,6 +91,7 @@ class RewardAction {
   RewardAction(
       {required this.type,
       this.enable = false,
+      this.disabled = false,
       this.inputName,
       this.filePath,
       this.sourceName,
@@ -124,6 +137,7 @@ class RewardAction {
       'volume': volume.current,
       'randomize': randomize,
       'awaitCompletion': awaitCompletion,
+      'disabled': disabled,
       'inputs': inputs.map((e) => e.toJson()).toList(),
       'audios': audios.map((e) => e.toJson()).toList()
     };
@@ -134,6 +148,7 @@ class RewardAction {
     final audiosJson = json['audios'] as List<dynamic>?;
     final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
+        disabled: json['disabled'] as bool? ?? false,
         randomize: json['randomize'] as bool? ?? false,
         count: json['count'] as int?,
         type: json['type'] as String,

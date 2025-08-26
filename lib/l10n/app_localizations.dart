@@ -243,6 +243,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Apply'**
   String get button_apply;
+
+  /// No description provided for @channel_points_config_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Channel Points Configuration'**
+  String get channel_points_config_title;
+
+  /// No description provided for @x_total.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} total'**
+  String x_total(int count);
+
+  /// No description provided for @x_active.
+  ///
+  /// In en, this message translates to:
+  /// **'{count} active'**
+  String x_active(int count);
+
+  /// No description provided for @x_actions.
+  ///
+  /// In en, this message translates to:
+  /// **'{actions,plural, =1{{actions} action} other{{actions} actions}}'**
+  String x_actions(int actions);
+
+  /// No description provided for @button_add_channel_points.
+  ///
+  /// In en, this message translates to:
+  /// **'Add Channel Points'**
+  String get button_add_channel_points;
 }
 
 class _AppLocalizationsDelegate
