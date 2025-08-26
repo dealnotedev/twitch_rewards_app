@@ -52,5 +52,30 @@
       }
     }
   },
-  "button_add_channel_points": "Add Channel Points"
+  "x_points": "{points,plural, =1{{points} point} other{{points} points}}",
+  "@x_points": {
+    "placeholders": {
+      "points": {
+        "type": "int",
+        "example": "12"
+      }
+    }
+  },
+  "button_add_channel_points": "Add Channel Points",
+  "channel_points_active": "Active",
+  "channel_points_inactive": "Inactive",
+  "channel_points_reactions_info": "{reactions,plural, =1{{reactions} reaction} other{{reactions} reactions}} • {enabled} enabled",
+  "@channel_points_reactions_info": {
+    "placeholders": {
+      "reactions": {
+        "type": "int",
+        "example": "5"
+      },
+      "enabled": {
+        "type": "int",
+        "example": "3"
+      }
+    }
+  },
+  "button_configure": "Configure"
 }

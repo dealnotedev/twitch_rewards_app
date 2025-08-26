@@ -13,12 +13,18 @@ class Assets {
   static const String assetsIcLogo20dp = 'assets/ic_logo_20dp.png';
   static const String assetsIcMaximizeWhite16dp = 'assets/ic_maximize_white_16dp.png';
   static const String assetsIcMinimizeWhite16dp = 'assets/ic_minimize_white_16dp.png';
+  static const String assetsIcMoreWhite12dp = 'assets/ic_more_white_12dp.png';
   static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
   static const String assetsIcObsWhite16dp = 'assets/ic_obs_white_16dp.png';
+  static const String assetsIcPlayWhite12dp = 'assets/ic_play_white_12dp.png';
   static const String assetsIcPlusWhite16dp = 'assets/ic_plus_white_16dp.png';
   static const String assetsIcSearchWhite16dp = 'assets/ic_search_white_16dp.png';
+  static const String assetsIcSettingsWhite12dp =
+      'assets/ic_settings_white_12dp.png';
   static const String assetsIcSettingsWhite16dp =
       'assets/ic_settings_white_16dp.png';
+  static const String assetsIcThunderWhite16dp =
+      'assets/ic_thunder_white_16dp.png';
   static const String assetsIcTwitch16dp = 'assets/ic_twitch_16dp.png';
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';

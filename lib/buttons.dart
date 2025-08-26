@@ -70,9 +70,10 @@ class CustomButton extends StatelessWidget {
                     strokeWidth: 1.5,
                   ),
                 ),
-                const Gap(8)
               ] else if (icon != null) ...[
                 SimpleIcon.simpleSquare(icon, size: 12, color: textColor),
+              ],
+              if ((loading || icon != null) && text.isNotEmpty) ...[
                 const Gap(8)
               ],
               Text(
