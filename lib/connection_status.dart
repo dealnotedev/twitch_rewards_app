@@ -18,8 +18,7 @@ class ConnectionStatusWidget extends StatelessWidget {
     final Text text;
     final Color color;
 
-    const style =
-        TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1);
+    const style = TextStyle(fontSize: 12, fontWeight: FontWeight.w600);
 
     switch (status) {
       case ConnectionStatus.connected:
@@ -33,8 +32,8 @@ class ConnectionStatusWidget extends StatelessWidget {
       case ConnectionStatus.connecting:
         indicator = Container(
           padding: const EdgeInsets.all(2),
-          height: 12,
-          width: 12,
+          height: 16,
+          width: 16,
           child: CircularProgressIndicator(
             strokeWidth: 1,
             color: theme.textColorPrimary,
@@ -57,7 +56,7 @@ class ConnectionStatusWidget extends StatelessWidget {
     }
 
     return Container(
-      padding: const EdgeInsets.only(left: 6, right: 8, top: 3, bottom: 3),
+      padding: const EdgeInsets.only(left: 6, right: 8, top: 2, bottom: 2),
       decoration:
           BoxDecoration(color: color, borderRadius: BorderRadius.circular(6)),
       child: Row(

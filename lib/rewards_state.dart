@@ -2,7 +2,6 @@ import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/dropdown/dropdown_menu.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
@@ -140,7 +139,8 @@ class _State extends State<RewardsStateWidget> {
               ...all.map((r) => _RewardWidget(
                   key: ValueKey(r),
                   onConfigure: () => _openConfigureDialog(context, r),
-                  reward: r, theme: theme))
+                  reward: r,
+                  theme: theme))
             ]));
   }
 
@@ -156,19 +156,16 @@ class _State extends State<RewardsStateWidget> {
           return Dialog(
             insetPadding: const EdgeInsets.all(48),
             backgroundColor: theme.surfacePrimary,
-            shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(16)),
-            child: RewardConfiguratorWidget(dropdownManager: manager, reward: reward),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+            child: RewardConfiguratorWidget(
+                dropdownManager: manager, reward: reward),
           );
         });
-    setState(() {
-
-    });
+    setState(() {});
   }
 
-  void _handleAddRewardClick(BuildContext context) {
-
-  }
+  void _handleAddRewardClick(BuildContext context) {}
 }
 
 class _RewardWidget extends StatefulWidget {
@@ -177,7 +174,12 @@ class _RewardWidget extends StatefulWidget {
   final VoidCallback? onConfigure;
   final VoidCallback? onPlay;
 
-  const _RewardWidget({super.key, required this.reward, required this.theme, this.onConfigure, this.onPlay});
+  const _RewardWidget(
+      {super.key,
+      required this.reward,
+      required this.theme,
+      this.onConfigure,
+      this.onPlay});
 
   @override
   State<StatefulWidget> createState() => _RewardState();
@@ -214,7 +216,7 @@ class _RewardState extends State<_RewardWidget> {
                     child: Text(
                       reward.name,
                       style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: theme.textColorPrimary),
                     ),
@@ -239,13 +241,13 @@ class _RewardState extends State<_RewardWidget> {
               Text(
                 context.localizations
                     .channel_points_reactions_info(reactions, reactionsEnabled),
-                style: TextStyle(fontSize: 10, color: theme.textColorSecondary),
+                style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
               )
             ],
           )),
           const Gap(12),
           CustomButton(
-            icon: Assets.assetsIcSettingsWhite12dp,
+            icon: Assets.assetsIcSettingsWhite16dp,
             text: context.localizations.button_configure,
             style: CustomButtonStyle.secondary,
             theme: theme,
@@ -253,7 +255,7 @@ class _RewardState extends State<_RewardWidget> {
           ),
           const Gap(8),
           CustomButton(
-            icon: Assets.assetsIcPlayWhite12dp,
+            icon: Assets.assetsIcPlayWhite16dp,
             text: '',
             style: CustomButtonStyle.secondary,
             theme: theme,
@@ -261,8 +263,8 @@ class _RewardState extends State<_RewardWidget> {
           ),
           const Gap(8),
           RippleIcon(
-            size: 12,
-            icon: Assets.assetsIcMoreWhite12dp,
+            size: 16,
+            icon: Assets.assetsIcMoreWhite16dp,
             color: theme.textColorPrimary,
             padding: 4,
             onTap: () {},

@@ -23,13 +23,13 @@ class ViewersCounter extends StatelessWidget {
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          SimpleIcon.simpleSquare(Assets.assetsIcEyeWhite12dp,
-              color: theme.textColorPrimary, size: 12),
+          SimpleIcon.simpleSquare(Assets.assetsIcEyeWhite16dp,
+              color: theme.textColorPrimary, size: 16),
           const Gap(4),
           Text(
             count.toString(),
             style: TextStyle(
-                fontSize: 10,
+                fontSize: 12,
                 fontWeight: FontWeight.w600,
                 height: 1,
                 color: theme.textColorPrimary),

@@ -150,7 +150,7 @@ class _State extends State<ObsStateWidget> {
                             Text(
                               context.localizations.obs_websocket_url_title,
                               style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: theme.textColorPrimary),
                             ),
@@ -184,7 +184,7 @@ class _State extends State<ObsStateWidget> {
                               context
                                   .localizations.obs_websocket_password_title,
                               style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w500,
                                   color: theme.textColorPrimary),
                             ),

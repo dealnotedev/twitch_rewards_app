@@ -10,17 +10,16 @@ class SimpleIndicator extends StatelessWidget {
 
   const SimpleIndicator(
       {super.key,
-        this.fontSize = 10,
+      this.fontSize = 12,
       required this.text,
       required this.theme,
       required this.style});
 
   @override
   Widget build(BuildContext context) {
-    const indicatorPadding =
-        EdgeInsets.only(left: 6, right: 8, top: 3, bottom: 3);
+    const indicatorPadding = EdgeInsets.symmetric(horizontal: 8, vertical: 2);
     final indicatorStyle =
-        TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600, height: 1);
+        TextStyle(fontSize: fontSize, fontWeight: FontWeight.w600);
 
     final Color textColor;
     final Color color;

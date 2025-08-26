@@ -71,7 +71,7 @@ class CustomButton extends StatelessWidget {
                   ),
                 ),
               ] else if (icon != null) ...[
-                SimpleIcon.simpleSquare(icon, size: 12, color: textColor),
+                SimpleIcon.simpleSquare(icon, size: 16, color: textColor),
               ],
               if ((loading || icon != null) && text.isNotEmpty) ...[
                 const Gap(8)
@@ -80,7 +80,6 @@ class CustomButton extends StatelessWidget {
                 text,
                 style: TextStyle(
                     fontSize: 12,
-                    height: 1,
                     fontWeight: FontWeight.w600,
                     color: textColor.withValues(
                         alpha: onTap != null ? 1.0 : 0.75)),

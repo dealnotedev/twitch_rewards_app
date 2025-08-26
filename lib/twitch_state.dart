@@ -162,7 +162,7 @@ class _State extends State<TwitchStateWidget> {
                   Text(
                     subtitle,
                     style: TextStyle(
-                        fontSize: 10, color: theme.textColorSecondary),
+                        fontSize: 12, color: theme.textColorSecondary),
                   )
                 ],
               )),
