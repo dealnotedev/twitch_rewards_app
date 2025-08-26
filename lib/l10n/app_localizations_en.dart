@@ -170,4 +170,13 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get reaction_chain_empty_text =>
       'No reactions configured. Add a reaction to get started.';
+
+  @override
+  String get reaction_enable_input => 'Enable input';
+
+  @override
+  String get reaction_delay => 'Delay';
+
+  @override
+  String get reaction_play_audio => 'Play audio (legacy)';
 }

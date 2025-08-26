@@ -7,8 +7,9 @@ import 'package:twitch_listener/themes.dart';
 class Item<T> {
   final T id;
   final String title;
+  final String? icon;
 
-  Item({required this.id, required this.title});
+  Item({required this.id, required this.title, this.icon});
 }
 
 class DropdownPopupMenu<T> extends StatelessWidget {
@@ -44,24 +45,33 @@ class DropdownPopupMenu<T> extends StatelessWidget {
 
   Widget _createItemWidget(ThemeData theme, Item<T> e) {
     final checked = e.id == selected;
+    final icon = e.icon;
     return InkWell(
       onTap: () {
         onTap.call(e.id);
       },
       borderRadius: BorderRadius.circular(8),
-      child: Padding(padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-      child: Row(
-        children: [
-          Expanded(child: Text(e.title, style: TextStyle(fontSize: 12, color: theme.textColorPrimary),)),
-          const Gap(8),
-          Visibility(
-            visible: checked,
-              maintainAnimation: true,
-              maintainSize: true,
-              maintainState: true,
-              child: SimpleIcon.simpleSquare(Assets.assetsIcCheckWhite16dp, size: 16, color: theme.textColorSecondary))
-        ],
-      ),),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+        child: Row(
+          children: [
+            if (icon != null) ...[
+              SimpleIcon.simpleSquare(icon, size: 16, color: theme.textColorPrimary),
+              const Gap(8)
+            ],
+            Expanded(
+                child: Text(
+              e.title,
+              style: TextStyle(fontSize: 12, color: theme.textColorPrimary),
+            )),
+            if (checked) ...[
+              const Gap(8),
+              SimpleIcon.simpleSquare(Assets.assetsIcCheckWhite16dp,
+                  size: 16, color: theme.textColorSecondary),
+            ]
+          ],
+        ),
+      ),
     );
   }
 }

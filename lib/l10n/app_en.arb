@@ -94,5 +94,8 @@
   "reward_status_inactive": "Inactive",
   "reward_name_hint": "Enter Twitch reward name",
   "reaction_chain_title": "Reaction Chain",
-  "reaction_chain_empty_text": "No reactions configured. Add a reaction to get started."
+  "reaction_chain_empty_text": "No reactions configured. Add a reaction to get started.",
+  "reaction_enable_input": "Enable input",
+  "reaction_delay": "Delay",
+  "reaction_play_audio": "Play audio (legacy)"
 }

@@ -357,6 +357,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'No reactions configured. Add a reaction to get started.'**
   String get reaction_chain_empty_text;
+
+  /// No description provided for @reaction_enable_input.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable input'**
+  String get reaction_enable_input;
+
+  /// No description provided for @reaction_delay.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay'**
+  String get reaction_delay;
+
+  /// No description provided for @reaction_play_audio.
+  ///
+  /// In en, this message translates to:
+  /// **'Play audio (legacy)'**
+  String get reaction_play_audio;
 }
 
 class _AppLocalizationsDelegate

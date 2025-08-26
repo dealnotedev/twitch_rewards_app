@@ -210,13 +210,14 @@ class _State extends State<RewardConfiguratorWidget> {
 
   void _showAddDropdown(BuildContext context) {
     _dropdownManager.show(context, builder: (cntx) {
-      return DropdownPopupMenu<bool>(
+      return DropdownPopupMenu<String>(
         selected: null,
         items: [
-          Item(id: true, title: context.localizations.yes),
-          Item(id: false, title: context.localizations.no)
+          Item(id: RewardAction.typeEnableInput, title: context.localizations.reaction_enable_input, icon: Assets.assetsIcMicWhite16dp),
+          Item(id: RewardAction.typeDelay, title: context.localizations.reaction_delay, icon: Assets.assetsIcClockWhite16dp),
+          Item(id: RewardAction.typePlayAudio, title: context.localizations.reaction_play_audio, icon: Assets.assetsIcAudioWhite16dp)
         ],
-        onTap: (bool id) {
+        onTap: (String type) {
           _dropdownManager.dismiss(_addKey);
         },
       );

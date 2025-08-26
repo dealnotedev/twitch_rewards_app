@@ -4,7 +4,9 @@ class Assets {
 
   static const String assetsIcArrowDownWhite12dp = 'assets/ic_arrow_down_white_12dp.png';
   static const String assetsIcArrowDownWhite16dp = 'assets/ic_arrow_down_white_16dp.png';
+  static const String assetsIcAudioWhite16dp = 'assets/ic_audio_white_16dp.png';
   static const String assetsIcCheckWhite16dp = 'assets/ic_check_white_16dp.png';
+  static const String assetsIcClockWhite16dp = 'assets/ic_clock_white_16dp.png';
   static const String assetsIcCloseWhite16dp = 'assets/ic_close_white_16dp.png';
   static const String assetsIcConfigWhite16dp = 'assets/ic_config_white_16dp.png';
   static const String assetsIcConnectedWhite12dp = 'assets/ic_connected_white_12dp.png';
@@ -16,6 +18,7 @@ class Assets {
   static const String assetsIcLogo16dp = 'assets/ic_logo_16dp.png';
   static const String assetsIcLogo20dp = 'assets/ic_logo_20dp.png';
   static const String assetsIcMaximizeWhite16dp = 'assets/ic_maximize_white_16dp.png';
+  static const String assetsIcMicWhite16dp = 'assets/ic_mic_white_16dp.png';
   static const String assetsIcMinimizeWhite16dp = 'assets/ic_minimize_white_16dp.png';
   static const String assetsIcMoreWhite12dp = 'assets/ic_more_white_12dp.png';
   static const String assetsIcMoreWhite16dp = 'assets/ic_more_white_16dp.png';
