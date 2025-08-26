@@ -189,6 +189,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Click to connect'**
   String get twitch_login_click_to_connect;
+
+  /// No description provided for @button_logout.
+  ///
+  /// In en, this message translates to:
+  /// **'Logout'**
+  String get button_logout;
+
+  /// No description provided for @button_login.
+  ///
+  /// In en, this message translates to:
+  /// **'Login'**
+  String get button_login;
 }
 
 class _AppLocalizationsDelegate

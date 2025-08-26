@@ -55,4 +55,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twitch_login_click_to_connect => 'Click to connect';
+
+  @override
+  String get button_logout => 'Logout';
+
+  @override
+  String get button_login => 'Login';
 }

@@ -14,5 +14,7 @@
   "please_wait": "Please wait",
   "twitch_connection_connected": "Connected",
   "twitch_login_authorized": "Authorized",
-  "twitch_login_click_to_connect": "Click to connect"
+  "twitch_login_click_to_connect": "Click to connect",
+  "button_logout": "Logout",
+  "button_login": "Login"
 }

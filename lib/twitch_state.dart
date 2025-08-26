@@ -13,8 +13,10 @@ import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
+import 'package:twitch_listener/twitch/twitch_authenticator.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/viewers_counter.dart';
 
 class TwitchStateWidget extends StatefulWidget {
   final WebSocketManager webSocketManager;
@@ -82,6 +84,7 @@ class _State extends State<TwitchStateWidget> {
       subtitle = context.localizations.twitch_login_click_to_connect;
     }
 
+    final viewers = _stream?.viewerCount;
     return Container(
       width: double.infinity,
       decoration: BoxDecoration(
@@ -163,16 +166,35 @@ class _State extends State<TwitchStateWidget> {
                 ],
               )),
               const Gap(16),
-              ConnectionStatusWidget(theme: theme, status: _connectionStatus)
+              ConnectionStatusWidget(theme: theme, status: _connectionStatus),
+              if (viewers != null) ...[
+                const Gap(8),
+                ViewersCounter(theme: theme, count: viewers)
+              ]
             ],
           ),
           const Gap(8),
-          Align(
-            alignment: AlignmentDirectional.centerEnd,
-            child: CustomButton(text: 'Logout', style: CustomButtonStyle.secondary, theme: theme, onTap: () {
-
-            },),
-          )
+          if (_twitchCreds != null) ...[
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: CustomButton(
+                text: context.localizations.button_logout,
+                style: CustomButtonStyle.secondary,
+                theme: theme,
+                onTap: _twitchLogout,
+              ),
+            )
+          ] else ...[
+            Align(
+              alignment: AlignmentDirectional.centerEnd,
+              child: CustomButton(
+                text: context.localizations.button_connect,
+                style: CustomButtonStyle.primary,
+                theme: theme,
+                onTap: _login2Twitch,
+              ),
+            )
+          ]
         ],
       ),
     );
@@ -225,6 +247,8 @@ class _State extends State<TwitchStateWidget> {
 
   void _handleTwitchChanges(TwitchCreds? event) {
     setState(() {
+      _user = null;
+      _stream = null;
       _twitchCreds = event;
     });
 
@@ -240,5 +264,19 @@ class _State extends State<TwitchStateWidget> {
     setState(() {
       _stream = steam;
     });
+  }
+
+  final _authenticator = TwitchAuthenticator(
+      clientId: twitchClientId,
+      clientSecret: twitchClientSecret,
+      oauthRedirectUrl: twitchOauthRedirectUrl);
+
+  void _twitchLogout() {
+    _settings.saveTwitchAuth(null);
+  }
+
+  Future<void> _login2Twitch() async {
+    final creds = await _authenticator.login();
+    await widget.settings.saveTwitchAuth(creds);
   }
 }
