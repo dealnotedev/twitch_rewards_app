@@ -16,5 +16,6 @@
   "twitch_login_authorized": "Authorized",
   "twitch_login_click_to_connect": "Click to connect",
   "button_logout": "Logout",
-  "button_login": "Login"
+  "button_login": "Login",
+  "reward_search_hint": "Search channel points by title..."
 }

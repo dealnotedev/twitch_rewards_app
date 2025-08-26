@@ -201,6 +201,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Login'**
   String get button_login;
+
+  /// No description provided for @reward_search_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Search channel points by title...'**
+  String get reward_search_hint;
 }
 
 class _AppLocalizationsDelegate

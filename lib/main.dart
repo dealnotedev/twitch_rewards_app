@@ -27,6 +27,7 @@ import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/simple_widgets.dart';
+import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/twitch_login_widget.dart';
@@ -110,17 +111,20 @@ class _RebornPageState extends State<MyApp> {
                               Row(
                                 children: [
                                   const Gap(16),
-                                  Expanded(child: TwitchStateWidget(
-                                      webSocketManager: widget.locator.provide(),
-                                      settings: widget.locator.provide()),),
+                                  Expanded(
+                                    child: TwitchStateWidget(
+                                        webSocketManager:
+                                            widget.locator.provide(),
+                                        settings: widget.locator.provide()),
+                                  ),
                                   const Gap(16),
                                 ],
                               ),
                               const Gap(16),
                               Padding(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16),
-                                child: _createInputText(theme),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                child: _createInputText(context, theme),
                               ),
                               const Gap(312),
                               Padding(
@@ -157,16 +161,12 @@ class _RebornPageState extends State<MyApp> {
 
   @override
   void initState() {
-    _focusNode.addListener(_handleFocus);
-    _controler.addListener(_handleEditing);
     super.initState();
   }
 
   @override
   void dispose() {
-    _focusNode.removeListener(_handleFocus);
     _focusNode.dispose();
-    _controler.removeListener(_handleEditing);
     _controler.dispose();
     super.dispose();
   }
@@ -277,95 +277,24 @@ class _RebornPageState extends State<MyApp> {
     }, key: key);
   }
 
-  Widget _createInputText(ThemeData theme) {
-    final style = TextStyle(fontSize: 13, color: theme.textColorPrimary);
-
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 250),
-      curve: Curves.easeOutCubic,
-      decoration: BoxDecoration(
-        border: Border.all(
-          strokeAlign: BorderSide.strokeAlignOutside,
-          color: theme.borderActive.withValues(alpha: _focused ? 0.35 : 0.0),
-          width: _focused ? 4.0 : 0.0,
-        ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
-        decoration: BoxDecoration(
-            color: theme.inputBackground,
-            border: Border.all(
-                strokeAlign: BorderSide.strokeAlignOutside,
-                color: _focused ? theme.borderActive : theme.border,
-                width: 0.5),
-            borderRadius: BorderRadius.circular(8)),
-        child: Row(
-          children: [
-            const Gap(8),
-            SimpleIcon.simpleSquare(Assets.assetsIcSearchWhite16dp,
-                size: 16, color: theme.textColorSecondary),
-            const Gap(8),
-            Expanded(
-                child: TextField(
-              controller: _controler,
-              focusNode: _focusNode,
-              textInputAction: TextInputAction.search,
-              style: style,
-              decoration: InputDecoration(
-                  isDense: true,
-                  border: InputBorder.none,
-                  enabledBorder: InputBorder.none,
-                  focusedBorder: InputBorder.none,
-                  disabledBorder: InputBorder.none,
-                  hintStyle: style.copyWith(color: theme.textColorSecondary),
-                  contentPadding: const EdgeInsets.symmetric(vertical: 4),
-                  hintText: 'Search channel points by title...'),
-            )),
-            const Gap(8),
-            Visibility(
-              visible: _cleareable,
-              maintainState: true,
-              maintainSize: true,
-              maintainAnimation: true,
-              child: RippleIcon(
-                  size: 16,
-                  onTap: () {
-                    _controler.text = '';
-                    _focusNode.requestFocus();
-                  },
-                  padding: 4,
-                  borderRadius: BorderRadius.circular(8),
-                  icon: Assets.assetsIcCloseWhite16dp,
-                  color: theme.textColorPrimary),
-            ),
-            const Gap(4)
-          ],
-        ),
-      ),
-    );
-  }
-
-  void _handleEditing() {
-    final cleareable = _controler.text.isNotEmpty;
-    if (_cleareable != cleareable) {
-      setState(() {
-        _cleareable = cleareable;
-      });
-    }
-  }
-
-  bool _focused = false;
-  bool _cleareable = false;
-
-  void _handleFocus() {
-    final focused = _focusNode.hasFocus;
-
-    if (_focused != focused) {
-      setState(() {
-        _focused = focused;
-      });
-    }
+  Widget _createInputText(BuildContext context, ThemeData theme) {
+    return TextFieldDecoration(
+        clearable: true,
+        prefix: SimpleIcon.simpleSquare(Assets.assetsIcSearchWhite16dp,
+            size: 16, color: theme.textColorSecondary),
+        builder: (cntx, decoration, style) {
+          return TextField(
+            controller: _controler,
+            focusNode: _focusNode,
+            textInputAction: TextInputAction.search,
+            style: style,
+            decoration: decoration,
+          );
+        },
+        hint: context.localizations.reward_search_hint,
+        controller: _controler,
+        focusNode: _focusNode,
+        theme: theme);
   }
 }
 
