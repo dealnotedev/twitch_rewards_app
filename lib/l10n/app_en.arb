@@ -22,5 +22,6 @@
   "obs_websocket_url_title": "WebSocket URL",
   "obs_websocket_url_hint": "ws://localhost:4455",
   "obs_websocket_password_title": "Password",
-  "obs_websocket_password_hint": "Enter password"
+  "obs_websocket_password_hint": "Enter password",
+  "button_apply": "Apply"
 }

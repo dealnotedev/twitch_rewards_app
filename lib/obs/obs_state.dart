@@ -74,7 +74,7 @@ class _State extends State<ObsStateWidget> {
     switch (state) {
       case ObsState.failed:
         return CustomButton(
-          text: context.localizations.button_connect,
+          text: context.localizations.button_apply,
           style: CustomButtonStyle.primary,
           theme: theme,
           onTap: () {},

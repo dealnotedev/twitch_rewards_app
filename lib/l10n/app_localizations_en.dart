@@ -80,4 +80,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get obs_websocket_password_hint => 'Enter password';
+
+  @override
+  String get button_apply => 'Apply';
 }

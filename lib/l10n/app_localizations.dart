@@ -237,6 +237,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter password'**
   String get obs_websocket_password_hint;
+
+  /// No description provided for @button_apply.
+  ///
+  /// In en, this message translates to:
+  /// **'Apply'**
+  String get button_apply;
 }
 
 class _AppLocalizationsDelegate
