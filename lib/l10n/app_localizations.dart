@@ -307,8 +307,14 @@ abstract class AppLocalizations {
   /// No description provided for @reward_configure_title.
   ///
   /// In en, this message translates to:
+  /// **'Reward Configurator'**
+  String get reward_configure_title;
+
+  /// No description provided for @reward_configure_title_with_name.
+  ///
+  /// In en, this message translates to:
   /// **'Configure: {reward}'**
-  String reward_configure_title(String reward);
+  String reward_configure_title_with_name(String reward);
 
   /// No description provided for @reward_name_title.
   ///

@@ -78,8 +78,9 @@
     }
   },
   "button_configure": "Configure",
-  "reward_configure_title": "Configure: {reward}",
-  "@reward_configure_title": {
+  "reward_configure_title": "Reward Configurator",
+  "reward_configure_title_with_name": "Configure: {reward}",
+  "@reward_configure_title_with_name": {
     "placeholders": {
       "reward": {
         "type": "String",

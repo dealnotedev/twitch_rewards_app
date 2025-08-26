@@ -142,7 +142,10 @@ class AppLocalizationsEn extends AppLocalizations {
   String get button_configure => 'Configure';
 
   @override
-  String reward_configure_title(String reward) {
+  String get reward_configure_title => 'Reward Configurator';
+
+  @override
+  String reward_configure_title_with_name(String reward) {
     return 'Configure: $reward';
   }
 

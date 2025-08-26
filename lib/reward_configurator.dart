@@ -60,149 +60,162 @@ class _State extends State<RewardConfiguratorWidget> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Gap(8),
-            Row(
-              children: [
-                const Gap(16),
-                SimpleIcon.simpleSquare(Assets.assetsIcConfigWhite16dp,
-                    size: 16, color: theme.textColorPrimary),
-                const Gap(8),
-                Expanded(
-                    child: Row(
-                  children: [
-                    Flexible(
-                        child: Text(
-                      context.localizations
-                          .reward_configure_title(_nameController.text),
+            _createToolbar(context, theme),
+            const Gap(8),
+            SimpleDivider(theme: theme),
+            Flexible(
+                child: SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Gap(16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              context.localizations.reward_name_title,
+                              style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.textColorPrimary),
+                            ),
+                            const Gap(6),
+                            TextFieldDecoration(
+                                clearable: false,
+                                builder: (cntx, decoration, style) {
+                                  return TextField(
+                                    decoration: decoration,
+                                    style: style,
+                                    focusNode: _nameFocusNode,
+                                    controller: _nameController,
+                                  );
+                                },
+                                hint: context.localizations.reward_name_hint,
+                                controller: _nameController,
+                                focusNode: _nameFocusNode,
+                                theme: theme)
+                          ],
+                        ),
+                      ),
+                      const Gap(16),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                context
+                                    .localizations.reward_status_switch_title,
+                                style: TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w600,
+                                    color: theme.textColorPrimary),
+                              ),
+                              const Gap(6),
+                              Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  CustomSwitch(
+                                    value: !_reward.disabled,
+                                    onToggle: _handleStatusChange,
+                                    theme: theme,
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                          const Gap(16),
+                          CustomButton(
+                            key: _addKey,
+                            icon: Assets.assetsIcPlusWhite16dp,
+                            text: context.localizations.button_add_reaction,
+                            style: CustomButtonStyle.secondary,
+                            theme: theme,
+                            onTap: () {
+                              _showAddDropdown(context);
+                            },
+                          ),
+                        ],
+                      ),
+                      const Gap(16),
+                    ],
+                  ),
+                  const Gap(16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: Text(
+                      context.localizations.reaction_chain_title,
                       style: TextStyle(
                           fontSize: 14,
                           fontWeight: FontWeight.w600,
                           color: theme.textColorPrimary),
-                    )),
-                    const Gap(8),
-                    SimpleIndicator(
-                        fontSize: 12,
-                        text: _reward.disabled
-                            ? context.localizations.channel_points_inactive
-                            : context.localizations.channel_points_active,
-                        theme: theme,
-                        style: _reward.disabled
-                            ? IndicatorStyle.outlined
-                            : IndicatorStyle.bold),
-                    const Gap(8),
-                    SimpleIndicator(
-                        fontSize: 12,
-                        text: context.localizations.x_points(9999),
-                        theme: theme,
-                        style: IndicatorStyle.neutral),
-                  ],
-                )),
-                RippleIcon(
-                  borderRadius: BorderRadius.circular(8),
-                  icon: Assets.assetsIcCloseWhite16dp,
-                  hoverColor: const Color(0xFFD4183D),
-                  size: 16,
-                  color: theme.textColorPrimary,
-                  onTap: () {
-                    Navigator.of(context).pop();
-                  },
-                ),
-                const Gap(8),
-              ],
-            ),
-            const Gap(8),
-            SimpleDivider(theme: theme),
-            const Gap(16),
-            Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Gap(16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        context.localizations.reward_name_title,
-                        style: TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w600,
-                            color: theme.textColorPrimary),
-                      ),
-                      const Gap(6),
-                      TextFieldDecoration(
-                          clearable: false,
-                          builder: (cntx, decoration, style) {
-                            return TextField(
-                              decoration: decoration,
-                              style: style,
-                              focusNode: _nameFocusNode,
-                              controller: _nameController,
-                            );
-                          },
-                          hint: context.localizations.reward_name_hint,
-                          controller: _nameController,
-                          focusNode: _nameFocusNode,
-                          theme: theme)
-                    ],
+                    ),
                   ),
-                ),
-                const Gap(16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          context.localizations.reward_status_switch_title,
-                          style: TextStyle(
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                              color: theme.textColorPrimary),
-                        ),
-                        const Gap(6),
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            CustomSwitch(
-                              value: !_reward.disabled,
-                              onToggle: _handleStatusChange,
-                              theme: theme,
-                            ),
-                          ],
-                        )
-                      ],
-                    ),
-                    const Gap(16),
-                    CustomButton(
-                      key: _addKey,
-                      icon: Assets.assetsIcPlusWhite16dp,
-                      text: context.localizations.button_add_reaction,
-                      style: CustomButtonStyle.secondary,
-                      theme: theme,
-                      onTap: () {
-                        _showAddDropdown(context);
-                      },
-                    ),
-                  ],
-                ),
-                const Gap(16),
-              ],
-            ),
-            const Gap(16),
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Text(
-                context.localizations.reaction_chain_title,
-                style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: theme.textColorPrimary),
+                  const Gap(16)
+                ],
               ),
-            ),
-            const Gap(16)
+            ))
           ],
         ),
       ),
+    );
+  }
+
+  Widget _createToolbar(BuildContext context, ThemeData theme) {
+    return Row(
+      children: [
+        const Gap(16),
+        SimpleIcon.simpleSquare(Assets.assetsIcConfigWhite16dp,
+            size: 16, color: theme.textColorPrimary),
+        const Gap(8),
+        Expanded(
+            child: Row(
+          children: [
+            Flexible(
+                child: Text(
+              context.localizations.reward_configure_title,
+              style: TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w600,
+                  color: theme.textColorPrimary),
+            )),
+            const Gap(8),
+            SimpleIndicator(
+                fontSize: 12,
+                text: _reward.disabled
+                    ? context.localizations.channel_points_inactive
+                    : context.localizations.channel_points_active,
+                theme: theme,
+                style: _reward.disabled
+                    ? IndicatorStyle.outlined
+                    : IndicatorStyle.bold),
+            const Gap(8),
+            SimpleIndicator(
+                fontSize: 12,
+                text: context.localizations.x_points(9999),
+                theme: theme,
+                style: IndicatorStyle.neutral),
+          ],
+        )),
+        RippleIcon(
+          borderRadius: BorderRadius.circular(8),
+          icon: Assets.assetsIcCloseWhite16dp,
+          hoverColor: const Color(0xFFD4183D),
+          size: 16,
+          color: theme.textColorPrimary,
+          onTap: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        const Gap(8),
+      ],
     );
   }
 
@@ -213,9 +226,18 @@ class _State extends State<RewardConfiguratorWidget> {
       return DropdownPopupMenu<String>(
         selected: null,
         items: [
-          Item(id: RewardAction.typeEnableInput, title: context.localizations.reaction_enable_input, icon: Assets.assetsIcMicWhite16dp),
-          Item(id: RewardAction.typeDelay, title: context.localizations.reaction_delay, icon: Assets.assetsIcClockWhite16dp),
-          Item(id: RewardAction.typePlayAudio, title: context.localizations.reaction_play_audio, icon: Assets.assetsIcAudioWhite16dp)
+          Item(
+              id: RewardAction.typeEnableInput,
+              title: context.localizations.reaction_enable_input,
+              icon: Assets.assetsIcMicWhite16dp),
+          Item(
+              id: RewardAction.typeDelay,
+              title: context.localizations.reaction_delay,
+              icon: Assets.assetsIcClockWhite16dp),
+          Item(
+              id: RewardAction.typePlayAudio,
+              title: context.localizations.reaction_play_audio,
+              icon: Assets.assetsIcAudioWhite16dp)
         ],
         onTap: (String type) {
           _dropdownManager.dismiss(_addKey);
