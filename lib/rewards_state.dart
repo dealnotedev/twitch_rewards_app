@@ -157,7 +157,7 @@ class _State extends State<RewardsStateWidget> {
             insetPadding: const EdgeInsets.all(48),
             backgroundColor: theme.surfacePrimary,
             shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: RewardConfiguratorWidget(
                 dropdownManager: manager, reward: reward),
           );
