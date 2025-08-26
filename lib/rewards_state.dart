@@ -7,6 +7,7 @@ import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_configurator.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -106,11 +107,11 @@ class _State extends State<RewardsStateWidget> {
                   CustomButton(
                     key: _addKey,
                     icon: Assets.assetsIcPlusWhite16dp,
-                    text: context.localizations.button_add_channel_points,
+                    text: context.localizations.button_add_reward,
                     style: CustomButtonStyle.primary,
                     theme: theme,
                     onTap: () {
-                      _showAddDropdown(context);
+                      _handleAddRewardClick(context);
                     },
                   )
                 ],
@@ -136,32 +137,47 @@ class _State extends State<RewardsStateWidget> {
                   focusNode: _focusNode,
                   theme: theme),
               const Gap(12),
-              ...all.map((r) => _RewardWidget(reward: r, theme: theme))
+              ...all.map((r) => _RewardWidget(
+                  key: ValueKey(r),
+                  onConfigure: () => _openConfigureDialog(context, r),
+                  reward: r, theme: theme))
             ]));
   }
 
-  void _showAddDropdown(BuildContext context) {
+  void _openConfigureDialog(BuildContext context, Reward reward) async {
     final manager = DropdownScope.of(context);
-    manager.show(context, builder: (cntx) {
-      return DropdownPopupMenu<bool>(
-        selected: null,
-        items: [
-          Item(id: true, title: context.localizations.yes),
-          Item(id: false, title: context.localizations.no)
-        ],
-        onTap: (bool id) {
-          manager.dismiss(_addKey);
-        },
-      );
-    }, key: _addKey);
+    await showDialog(
+        routeSettings: const RouteSettings(name: '/reward_configurator'),
+        barrierDismissible: true,
+        barrierColor: Colors.black.withValues(alpha: 0.5),
+        context: context,
+        builder: (context) {
+          final theme = Theme.of(context);
+          return Dialog(
+            insetPadding: const EdgeInsets.all(48),
+            backgroundColor: theme.surfacePrimary,
+            shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16)),
+            child: RewardConfiguratorWidget(dropdownManager: manager, reward: reward),
+          );
+        });
+    setState(() {
+
+    });
+  }
+
+  void _handleAddRewardClick(BuildContext context) {
+
   }
 }
 
 class _RewardWidget extends StatefulWidget {
   final ThemeData theme;
   final Reward reward;
+  final VoidCallback? onConfigure;
+  final VoidCallback? onPlay;
 
-  const _RewardWidget({super.key, required this.reward, required this.theme});
+  const _RewardWidget({super.key, required this.reward, required this.theme, this.onConfigure, this.onPlay});
 
   @override
   State<StatefulWidget> createState() => _RewardState();
@@ -194,12 +210,14 @@ class _RewardState extends State<_RewardWidget> {
             children: [
               Row(
                 children: [
-                  Text(
-                    reward.name,
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                        color: theme.textColorPrimary),
+                  Flexible(
+                    child: Text(
+                      reward.name,
+                      style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: theme.textColorPrimary),
+                    ),
                   ),
                   const Gap(8),
                   SimpleIndicator(
@@ -231,7 +249,7 @@ class _RewardState extends State<_RewardWidget> {
             text: context.localizations.button_configure,
             style: CustomButtonStyle.secondary,
             theme: theme,
-            onTap: () {},
+            onTap: widget.onConfigure,
           ),
           const Gap(8),
           CustomButton(
@@ -239,7 +257,7 @@ class _RewardState extends State<_RewardWidget> {
             text: '',
             style: CustomButtonStyle.secondary,
             theme: theme,
-            onTap: () {},
+            onTap: widget.onPlay,
           ),
           const Gap(8),
           RippleIcon(

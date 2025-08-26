@@ -274,11 +274,11 @@ abstract class AppLocalizations {
   /// **'{points,plural, =1{{points} point} other{{points} points}}'**
   String x_points(int points);
 
-  /// No description provided for @button_add_channel_points.
+  /// No description provided for @button_add_reward.
   ///
   /// In en, this message translates to:
-  /// **'Add Channel Points'**
-  String get button_add_channel_points;
+  /// **'Add New Reward'**
+  String get button_add_reward;
 
   /// No description provided for @channel_points_active.
   ///
@@ -303,6 +303,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Configure'**
   String get button_configure;
+
+  /// No description provided for @reward_configure_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Configure: {reward}'**
+  String reward_configure_title(String reward);
+
+  /// No description provided for @reward_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reward Name'**
+  String get reward_name_title;
+
+  /// No description provided for @button_add_reaction.
+  ///
+  /// In en, this message translates to:
+  /// **'Add New Reaction'**
+  String get button_add_reaction;
+
+  /// No description provided for @reward_status_switch_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Status'**
+  String get reward_status_switch_title;
+
+  /// No description provided for @reward_status_active.
+  ///
+  /// In en, this message translates to:
+  /// **'Active'**
+  String get reward_status_active;
+
+  /// No description provided for @reward_status_inactive.
+  ///
+  /// In en, this message translates to:
+  /// **'Inactive'**
+  String get reward_status_inactive;
+
+  /// No description provided for @reward_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter Twitch reward name'**
+  String get reward_name_hint;
+
+  /// No description provided for @reaction_chain_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Reaction Chain'**
+  String get reaction_chain_title;
+
+  /// No description provided for @reaction_chain_empty_text.
+  ///
+  /// In en, this message translates to:
+  /// **'No reactions configured. Add a reaction to get started.'**
+  String get reaction_chain_empty_text;
 }
 
 class _AppLocalizationsDelegate

@@ -1,6 +1,5 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
-
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -120,7 +119,7 @@ class AppLocalizationsEn extends AppLocalizations {
   }
 
   @override
-  String get button_add_channel_points => 'Add Channel Points';
+  String get button_add_reward => 'Add New Reward';
 
   @override
   String get channel_points_active => 'Active';
@@ -141,4 +140,34 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get button_configure => 'Configure';
+
+  @override
+  String reward_configure_title(String reward) {
+    return 'Configure: $reward';
+  }
+
+  @override
+  String get reward_name_title => 'Reward Name';
+
+  @override
+  String get button_add_reaction => 'Add New Reaction';
+
+  @override
+  String get reward_status_switch_title => 'Status';
+
+  @override
+  String get reward_status_active => 'Active';
+
+  @override
+  String get reward_status_inactive => 'Inactive';
+
+  @override
+  String get reward_name_hint => 'Enter Twitch reward name';
+
+  @override
+  String get reaction_chain_title => 'Reaction Chain';
+
+  @override
+  String get reaction_chain_empty_text =>
+      'No reactions configured. Add a reaction to get started.';
 }

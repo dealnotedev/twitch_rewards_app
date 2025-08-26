@@ -6,6 +6,7 @@ class Assets {
   static const String assetsIcArrowDownWhite16dp = 'assets/ic_arrow_down_white_16dp.png';
   static const String assetsIcCheckWhite16dp = 'assets/ic_check_white_16dp.png';
   static const String assetsIcCloseWhite16dp = 'assets/ic_close_white_16dp.png';
+  static const String assetsIcConfigWhite16dp = 'assets/ic_config_white_16dp.png';
   static const String assetsIcConnectedWhite12dp = 'assets/ic_connected_white_12dp.png';
   static const String assetsIcDisconnectedWhite12dp = 'assets/ic_disconnected_white_12dp.png';
   static const String assetsIcEyeWhite12dp = 'assets/ic_eye_white_12dp.png';
@@ -19,12 +20,9 @@ class Assets {
   static const String assetsIcPlayWhite12dp = 'assets/ic_play_white_12dp.png';
   static const String assetsIcPlusWhite16dp = 'assets/ic_plus_white_16dp.png';
   static const String assetsIcSearchWhite16dp = 'assets/ic_search_white_16dp.png';
-  static const String assetsIcSettingsWhite12dp =
-      'assets/ic_settings_white_12dp.png';
-  static const String assetsIcSettingsWhite16dp =
-      'assets/ic_settings_white_16dp.png';
-  static const String assetsIcThunderWhite16dp =
-      'assets/ic_thunder_white_16dp.png';
+  static const String assetsIcSettingsWhite12dp = 'assets/ic_settings_white_12dp.png';
+  static const String assetsIcSettingsWhite16dp = 'assets/ic_settings_white_16dp.png';
+  static const String assetsIcThunderWhite16dp = 'assets/ic_thunder_white_16dp.png';
   static const String assetsIcTwitch16dp = 'assets/ic_twitch_16dp.png';
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp = 'assets/ic_twitch_white_24dp.png';
