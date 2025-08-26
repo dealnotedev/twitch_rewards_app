@@ -162,7 +162,7 @@ class _State extends State<RewardsStateWidget> {
     final manager = DropdownScope.of(context);
     manager.show(context, builder: (cntx) {
       return DropdownPopupMenu<bool>(
-        selected: true,
+        selected: null,
         items: [
           Item(id: true, title: context.localizations.yes),
           Item(id: false, title: context.localizations.no)
