@@ -707,7 +707,7 @@ enum Voice { normal, helium, brutal, robo }
 Widget _createWindowTitleBarBox(BuildContext context) {
   final theme = Theme.of(context);
   return SizedBox(
-      height: 48,
+      height: 40,
       child: Row(children: [
         Expanded(
             child: MoveWindow(
@@ -726,7 +726,7 @@ Widget _createWindowTitleBarBox(BuildContext context) {
                 context.localizations.app_title,
                 style: TextStyle(
                     color: theme.textColorPrimary,
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.w500),
               )),
             ],
