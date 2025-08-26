@@ -65,4 +65,19 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reward_search_hint => 'Search channel points by title...';
+
+  @override
+  String get obs_connect_title => 'OBS WebSocket';
+
+  @override
+  String get obs_websocket_url_title => 'WebSocket URL';
+
+  @override
+  String get obs_websocket_url_hint => 'ws://localhost:4455';
+
+  @override
+  String get obs_websocket_password_title => 'Password';
+
+  @override
+  String get obs_websocket_password_hint => 'Enter password';
 }

@@ -17,5 +17,10 @@
   "twitch_login_click_to_connect": "Click to connect",
   "button_logout": "Logout",
   "button_login": "Login",
-  "reward_search_hint": "Search channel points by title..."
+  "reward_search_hint": "Search channel points by title...",
+  "obs_connect_title": "OBS WebSocket",
+  "obs_websocket_url_title": "WebSocket URL",
+  "obs_websocket_url_hint": "ws://localhost:4455",
+  "obs_websocket_password_title": "Password",
+  "obs_websocket_password_hint": "Enter password"
 }

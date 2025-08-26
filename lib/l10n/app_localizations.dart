@@ -207,6 +207,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Search channel points by title...'**
   String get reward_search_hint;
+
+  /// No description provided for @obs_connect_title.
+  ///
+  /// In en, this message translates to:
+  /// **'OBS WebSocket'**
+  String get obs_connect_title;
+
+  /// No description provided for @obs_websocket_url_title.
+  ///
+  /// In en, this message translates to:
+  /// **'WebSocket URL'**
+  String get obs_websocket_url_title;
+
+  /// No description provided for @obs_websocket_url_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'ws://localhost:4455'**
+  String get obs_websocket_url_hint;
+
+  /// No description provided for @obs_websocket_password_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Password'**
+  String get obs_websocket_password_title;
+
+  /// No description provided for @obs_websocket_password_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter password'**
+  String get obs_websocket_password_hint;
 }
 
 class _AppLocalizationsDelegate

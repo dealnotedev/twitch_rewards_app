@@ -14,6 +14,8 @@ class TextFieldDecoration extends StatefulWidget {
   final Widget? prefix;
   final bool clearable;
 
+  final TextStyle? textStyle;
+
   const TextFieldDecoration(
       {super.key,
       this.prefix,
@@ -22,7 +24,8 @@ class TextFieldDecoration extends StatefulWidget {
       required this.controller,
       required this.focusNode,
       required this.theme,
-      this.clearable = true});
+      this.clearable = true,
+      this.textStyle});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -65,7 +68,8 @@ class _State extends State<TextFieldDecoration> {
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
-    final style = TextStyle(fontSize: 13, color: theme.textColorPrimary);
+    final style = widget.textStyle ??
+        TextStyle(fontSize: 13, color: theme.textColorPrimary);
     final prefix = widget.prefix;
     return AnimatedContainer(
       duration: const Duration(milliseconds: 250),

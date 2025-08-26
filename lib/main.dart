@@ -18,6 +18,7 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/input_sender.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
@@ -109,12 +110,19 @@ class _RebornPageState extends State<MyApp> {
                             children: [
                               const Gap(16),
                               Row(
+                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   const Gap(16),
                                   Expanded(
                                     child: TwitchStateWidget(
                                         webSocketManager:
                                             widget.locator.provide(),
+                                        settings: widget.locator.provide()),
+                                  ),
+                                  const Gap(16),
+                                  Expanded(
+                                    child: ObsStateWidget(
+                                        connect: widget.locator.provide(),
                                         settings: widget.locator.provide()),
                                   ),
                                   const Gap(16),
