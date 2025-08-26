@@ -14,7 +14,7 @@ class DefaultInputDecoration extends InputDecoration {
 }
 
 class Themes {
-  static ThemeData light = ThemeData.light(useMaterial3: true).copyWith(
+  static ThemeData light = ThemeData.light(useMaterial3: false).copyWith(
       dividerColor: const Color(0xFFE5E5E5),
       colorScheme: ColorScheme.fromSwatch(
               primarySwatch: Colors.deepPurple,
@@ -22,7 +22,7 @@ class Themes {
               backgroundColor: Colors.white)
           .copyWith(surface: Colors.white));
 
-  static ThemeData dark = ThemeData.dark(useMaterial3: true).copyWith(
+  static ThemeData dark = ThemeData.dark(useMaterial3: false).copyWith(
       dividerColor: const Color(0xFF3A3A3A),
       colorScheme: ColorScheme.fromSwatch(
               primarySwatch: Colors.deepPurple,
