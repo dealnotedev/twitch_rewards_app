@@ -8,5 +8,11 @@
   "button_connect": "Connect",
   "button_disconnect": "Disconnect",
   "button_connecting": "Connecting...",
-  "twitch_connection_title": "Twitch Connection"
+  "twitch_connection_title": "Twitch Connection",
+  "twitch_connection_loading": "Loading...",
+  "twitch_connection_not_connected": "Not connected",
+  "please_wait": "Please wait",
+  "twitch_connection_connected": "Connected",
+  "twitch_login_authorized": "Authorized",
+  "twitch_login_click_to_connect": "Click to connect"
 }

@@ -37,4 +37,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get twitch_connection_title => 'Twitch Connection';
+
+  @override
+  String get twitch_connection_loading => 'Loading...';
+
+  @override
+  String get twitch_connection_not_connected => 'Not connected';
+
+  @override
+  String get please_wait => 'Please wait';
+
+  @override
+  String get twitch_connection_connected => 'Connected';
+
+  @override
+  String get twitch_login_authorized => 'Authorized';
+
+  @override
+  String get twitch_login_click_to_connect => 'Click to connect';
 }

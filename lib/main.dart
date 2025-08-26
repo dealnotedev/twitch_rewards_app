@@ -33,6 +33,7 @@ import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
+import 'package:twitch_listener/twitch_state.dart';
 import 'package:twitch_listener/viewers_counter.dart';
 import 'package:win32/win32.dart' as win32;
 
@@ -105,12 +106,23 @@ class _RebornPageState extends State<MyApp> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
+                              const Gap(16),
+                              Row(
+                                children: [
+                                  const Gap(16),
+                                  Expanded(child: TwitchStateWidget(
+                                      webSocketManager: widget.locator.provide(),
+                                      settings: widget.locator.provide()),),
+                                  const Gap(16),
+                                ],
+                              ),
+                              const Gap(16),
                               Padding(
                                 padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
+                                    horizontal: 16),
                                 child: _createInputText(theme),
                               ),
-                              const Gap(612),
+                              const Gap(312),
                               Padding(
                                 padding: const EdgeInsets.all(16),
                                 child: Row(

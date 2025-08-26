@@ -153,6 +153,42 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Twitch Connection'**
   String get twitch_connection_title;
+
+  /// No description provided for @twitch_connection_loading.
+  ///
+  /// In en, this message translates to:
+  /// **'Loading...'**
+  String get twitch_connection_loading;
+
+  /// No description provided for @twitch_connection_not_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Not connected'**
+  String get twitch_connection_not_connected;
+
+  /// No description provided for @please_wait.
+  ///
+  /// In en, this message translates to:
+  /// **'Please wait'**
+  String get please_wait;
+
+  /// No description provided for @twitch_connection_connected.
+  ///
+  /// In en, this message translates to:
+  /// **'Connected'**
+  String get twitch_connection_connected;
+
+  /// No description provided for @twitch_login_authorized.
+  ///
+  /// In en, this message translates to:
+  /// **'Authorized'**
+  String get twitch_login_authorized;
+
+  /// No description provided for @twitch_login_click_to_connect.
+  ///
+  /// In en, this message translates to:
+  /// **'Click to connect'**
+  String get twitch_login_click_to_connect;
 }
 
 class _AppLocalizationsDelegate
