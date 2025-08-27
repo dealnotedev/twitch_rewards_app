@@ -160,12 +160,32 @@ class _State extends State<RewardConfiguratorWidget> {
                           color: theme.textColorPrimary),
                     ),
                   ),
-                  const Gap(16)
+                  const Gap(16),
+                  if (_reward.handlers.isEmpty) ...[
+                    _createEmptyWidget(context, theme),
+                    const Gap(16),
+                  ]
                 ],
               ),
             ))
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _createEmptyWidget(BuildContext context, ThemeData theme) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16),
+      width: double.infinity,
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.dividerColor, width: 0.5)),
+      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
+      child: Text(
+        context.localizations.reaction_chain_empty_text,
+        textAlign: TextAlign.center,
+        style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
       ),
     );
   }
