@@ -387,6 +387,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Unnamed'**
   String get reward_no_name;
+
+  /// No description provided for @rewards_search_empty_text.
+  ///
+  /// In en, this message translates to:
+  /// **'No channel points found matching \"{query}\".'**
+  String rewards_search_empty_text(String query);
+
+  /// No description provided for @button_clear_search.
+  ///
+  /// In en, this message translates to:
+  /// **'Clear Search'**
+  String get button_clear_search;
 }
 
 class _AppLocalizationsDelegate

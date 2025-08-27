@@ -24,7 +24,7 @@ class RewardsStateWidget extends StatefulWidget {
 }
 
 class _State extends State<RewardsStateWidget> {
-  final _controler = TextEditingController();
+  final _searchControler = TextEditingController();
   final _focusNode = FocusNode();
 
   late final Settings _settings;
@@ -32,13 +32,15 @@ class _State extends State<RewardsStateWidget> {
   @override
   void initState() {
     _settings = widget.settings;
+    _searchControler.addListener(_handleSearchQuery);
     super.initState();
   }
 
   @override
   void dispose() {
     _focusNode.dispose();
-    _controler.dispose();
+    _searchControler.removeListener(_handleSearchQuery);
+    _searchControler.dispose();
     super.dispose();
   }
 
@@ -48,10 +50,12 @@ class _State extends State<RewardsStateWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final all = _settings.rewards.rewards;
+    final q = _searchControler.text.trim().toLowerCase();
+    final displayed = all.where((r) => q.isEmpty || r.name.toLowerCase().contains(q));
 
-    final total = all.length;
-    final active = all.where((r) => !r.disabled).length;
-    final actions = all.map((r) => r.handlers.length).sum;
+    final total = displayed.length;
+    final active = displayed.where((r) => !r.disabled).length;
+    final actions = displayed.map((r) => r.handlers.length).sum;
 
     return Container(
         width: double.infinity,
@@ -119,7 +123,7 @@ class _State extends State<RewardsStateWidget> {
                       color: theme.textColorSecondary),
                   builder: (cntx, decoration, style) {
                     return TextField(
-                      controller: _controler,
+                      controller: _searchControler,
                       focusNode: _focusNode,
                       textInputAction: TextInputAction.search,
                       style: style,
@@ -127,15 +131,37 @@ class _State extends State<RewardsStateWidget> {
                     );
                   },
                   hint: context.localizations.reward_search_hint,
-                  controller: _controler,
+                  controller: _searchControler,
                   focusNode: _focusNode,
                   theme: theme),
               const Gap(12),
-              ...all.map((r) => _RewardWidget(
+              ...displayed.map((r) => _RewardWidget(
                   key: ValueKey(r),
                   onConfigure: () => _openConfigureDialog(context, r),
                   reward: r,
-                  theme: theme))
+                  theme: theme)),
+              if(displayed.isEmpty && all.isNotEmpty) ... [
+                const Gap(16),
+                Align(
+                  alignment: Alignment.center,
+                  child: Text(
+                    context.localizations.rewards_search_empty_text(q),
+                    textAlign: TextAlign.center,
+                    style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
+                  ),
+                ),
+                const Gap(8),
+                Align(
+                  alignment: Alignment.center,
+                  child: CustomButton(
+                      prefixIcon: Assets.assetsIcCloseWhite16dp,
+                      onTap: () {
+                        _searchControler.text = '';
+                      },
+                      text: context.localizations.button_clear_search,
+                      style: CustomButtonStyle.secondary, theme: theme),
+                )
+              ]
             ]));
   }
 
@@ -168,6 +194,12 @@ class _State extends State<RewardsStateWidget> {
     });
 
     _openConfigureDialog(context, reward);
+  }
+
+  void _handleSearchQuery() {
+    setState(() {
+
+    });
   }
 }
 

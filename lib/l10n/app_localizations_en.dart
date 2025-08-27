@@ -185,4 +185,12 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reward_no_name => 'Unnamed';
+
+  @override
+  String rewards_search_empty_text(String query) {
+    return 'No channel points found matching \"$query\".';
+  }
+
+  @override
+  String get button_clear_search => 'Clear Search';
 }

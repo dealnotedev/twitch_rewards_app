@@ -99,5 +99,15 @@
   "reaction_enable_input": "Enable input",
   "reaction_delay": "Delay",
   "reaction_play_audio": "Play audio (legacy)",
-  "reward_no_name": "Unnamed"
+  "reward_no_name": "Unnamed",
+  "rewards_search_empty_text": "No channel points found matching \"{query}\".",
+  "@rewards_search_empty_text": {
+    "placeholders": {
+      "query": {
+        "type": "String",
+        "example": "Ultim"
+      }
+    }
+  },
+  "button_clear_search": "Clear Search"
 }
