@@ -382,6 +382,60 @@ abstract class AppLocalizations {
   /// **'Play audio (legacy)'**
   String get reaction_play_audio;
 
+  /// No description provided for @reaction_play_audios.
+  ///
+  /// In en, this message translates to:
+  /// **'Play audio files'**
+  String get reaction_play_audios;
+
+  /// No description provided for @reaction_enable_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable filter'**
+  String get reaction_enable_filter;
+
+  /// No description provided for @reaction_invert_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Invert filter'**
+  String get reaction_invert_filter;
+
+  /// No description provided for @reaction_flip_source.
+  ///
+  /// In en, this message translates to:
+  /// **'Flip source'**
+  String get reaction_flip_source;
+
+  /// No description provided for @reaction_enable_source.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable source'**
+  String get reaction_enable_source;
+
+  /// No description provided for @reaction_toggle_source.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle source'**
+  String get reaction_toggle_source;
+
+  /// No description provided for @reaction_set_scene.
+  ///
+  /// In en, this message translates to:
+  /// **'Set scene'**
+  String get reaction_set_scene;
+
+  /// No description provided for @reaction_crash_process.
+  ///
+  /// In en, this message translates to:
+  /// **'Crash process'**
+  String get reaction_crash_process;
+
+  /// No description provided for @reaction_send_input.
+  ///
+  /// In en, this message translates to:
+  /// **'Send input'**
+  String get reaction_send_input;
+
   /// No description provided for @reward_no_name.
   ///
   /// In en, this message translates to:

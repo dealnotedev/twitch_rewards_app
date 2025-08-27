@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -182,6 +183,33 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_play_audio => 'Play audio (legacy)';
+
+  @override
+  String get reaction_play_audios => 'Play audio files';
+
+  @override
+  String get reaction_enable_filter => 'Enable filter';
+
+  @override
+  String get reaction_invert_filter => 'Invert filter';
+
+  @override
+  String get reaction_flip_source => 'Flip source';
+
+  @override
+  String get reaction_enable_source => 'Enable source';
+
+  @override
+  String get reaction_toggle_source => 'Toggle source';
+
+  @override
+  String get reaction_set_scene => 'Set scene';
+
+  @override
+  String get reaction_crash_process => 'Crash process';
+
+  @override
+  String get reaction_send_input => 'Send input';
 
   @override
   String get reward_no_name => 'Unnamed';

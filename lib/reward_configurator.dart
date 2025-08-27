@@ -7,6 +7,7 @@ import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_ext.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/simple_indicator.dart';
@@ -248,20 +249,10 @@ class _State extends State<RewardConfiguratorWidget> {
     _dropdownManager.show(context, builder: (cntx) {
       return DropdownPopupMenu<String>(
         selected: null,
-        items: [
-          Item(
-              id: RewardAction.typeEnableInput,
-              title: context.localizations.reaction_enable_input,
-              icon: Assets.assetsIcMicWhite16dp),
-          Item(
-              id: RewardAction.typeDelay,
-              title: context.localizations.reaction_delay,
-              icon: Assets.assetsIcClockWhite16dp),
-          Item(
-              id: RewardAction.typePlayAudio,
-              title: context.localizations.reaction_play_audio,
-              icon: Assets.assetsIcAudioWhite16dp)
-        ],
+        items: RewardAction.allTypes
+            .map((t) => RewardActionAtts.forType(context, t))
+            .map((a) => Item(id: a.type, title: a.title, icon: a.icon))
+            .toList(),
         onTap: (String type) {
           _dropdownManager.dismiss(_addKey);
         },

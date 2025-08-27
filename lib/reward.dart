@@ -49,6 +49,21 @@ class RewardAction {
   static const typeToggleSource = 'toggle_source';
   static const typeSendInput = 'send_input';
 
+  static const allTypes = [
+    typeEnableInput,
+    typeDelay,
+    typePlayAudio,
+    typePlayAudios,
+    typeEnableFilter,
+    typeInvertFilter,
+    typeFlipSource,
+    typeEnableSource,
+    typeToggleSource,
+    typeSetScene,
+    typeCrashProcess,
+    typeSendInput
+  ];
+
   final String type;
 
   final String id;
