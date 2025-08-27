@@ -100,7 +100,7 @@ class _State extends State<RewardsStateWidget> {
                   const Expanded(child: SizedBox.shrink()),
                   CustomButton(
                     key: _addKey,
-                    icon: Assets.assetsIcPlusWhite16dp,
+                    prefixIcon: Assets.assetsIcPlusWhite16dp,
                     text: context.localizations.button_add_reward,
                     style: CustomButtonStyle.primary,
                     theme: theme,
@@ -255,7 +255,7 @@ class _RewardState extends State<_RewardWidget> {
           )),
           const Gap(12),
           CustomButton(
-            icon: Assets.assetsIcSettingsWhite16dp,
+            prefixIcon: Assets.assetsIcSettingsWhite16dp,
             text: context.localizations.button_configure,
             style: CustomButtonStyle.secondary,
             theme: theme,
@@ -263,7 +263,7 @@ class _RewardState extends State<_RewardWidget> {
           ),
           const Gap(8),
           CustomButton(
-            icon: Assets.assetsIcPlayWhite16dp,
+            prefixIcon: Assets.assetsIcPlayWhite16dp,
             text: '',
             style: CustomButtonStyle.secondary,
             theme: theme,

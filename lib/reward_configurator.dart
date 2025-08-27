@@ -136,9 +136,10 @@ class _State extends State<RewardConfiguratorWidget> {
                           const Gap(16),
                           CustomButton(
                             key: _addKey,
-                            icon: Assets.assetsIcPlusWhite16dp,
+                            prefixIcon: Assets.assetsIcPlusWhite16dp,
+                            suffixIcon: Assets.assetsIcArrowDownWhite16dp,
                             text: context.localizations.button_add_reaction,
-                            style: CustomButtonStyle.secondary,
+                            style: CustomButtonStyle.primary,
                             theme: theme,
                             onTap: () {
                               _showAddDropdown(context);

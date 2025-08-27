@@ -9,11 +9,13 @@ class CustomButton extends StatelessWidget {
   final CustomButtonStyle style;
   final bool loading;
   final VoidCallback? onTap;
-  final String? icon;
+  final String? prefixIcon;
+  final String? suffixIcon;
 
   const CustomButton(
       {super.key,
-      this.icon,
+      this.prefixIcon,
+        this.suffixIcon,
       required this.text,
       required this.style,
       this.loading = false,
@@ -44,7 +46,8 @@ class CustomButton extends StatelessWidget {
     }
 
     final radius = BorderRadius.circular(6);
-    final icon = this.icon;
+    final prefixIcon = this.prefixIcon;
+    final suffixIcon = this.suffixIcon;
     return Material(
       color: color.withValues(alpha: onTap != null ? 1.0 : 0.5),
       borderRadius: radius,
@@ -70,10 +73,10 @@ class CustomButton extends StatelessWidget {
                     strokeWidth: 1.5,
                   ),
                 ),
-              ] else if (icon != null) ...[
-                SimpleIcon.simpleSquare(icon, size: 16, color: textColor),
+              ] else if (prefixIcon != null) ...[
+                SimpleIcon.simpleSquare(prefixIcon, size: 16, color: textColor),
               ],
-              if ((loading || icon != null) && text.isNotEmpty) ...[
+              if ((loading || prefixIcon != null) && text.isNotEmpty) ...[
                 const Gap(8)
               ],
               Text(
@@ -83,7 +86,11 @@ class CustomButton extends StatelessWidget {
                     fontWeight: FontWeight.w600,
                     color: textColor.withValues(
                         alpha: onTap != null ? 1.0 : 0.75)),
-              )
+              ),
+              if(suffixIcon != null) ... [
+                const Gap(8),
+                SimpleIcon.simpleSquare(suffixIcon, size: 16, color: textColor),
+              ]
             ],
           ),
         ),
