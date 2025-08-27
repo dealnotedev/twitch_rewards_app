@@ -57,21 +57,28 @@ class DropdownManager {
           size: box.size,
           position: position,
           builder: (cntx, size, position) {
+            final h = MediaQuery.sizeOf(context).height;
             return Stack(
               children: [
                 Positioned(
-                    top: position.dy,
-                    left: position.dx,
-                    width: size.width,
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Gap(size.height),
-                        const Gap(4),
-                        builder.call(cntx)
-                      ],
-                    ))
+                  top: position.dy,
+                  left: position.dx,
+                  width: size.width,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Gap(size.height),
+                      const Gap(4),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                            minHeight: 0,
+                            maxHeight: h - position.dy - size.height - 4),
+                        child: builder.call(cntx),
+                      )
+                    ],
+                  ),
+                )
               ],
             );
           },

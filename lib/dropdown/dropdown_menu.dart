@@ -30,16 +30,20 @@ class DropdownPopupMenu<T> extends StatelessWidget {
       borderRadius: BorderRadius.circular(8),
       elevation: 1,
       shadowColor: theme.dividerColor.withValues(alpha: 0.5),
-      child: Container(
-        padding: const EdgeInsets.all(4),
-        decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(color: theme.dividerColor, width: 0.5)),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: items.map((i) => _createItemWidget(theme, i)).toList(),
-        ),
-      ),
+      child: DecoratedBox(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.dividerColor, width: 0.5)),
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(4),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children:
+                    items.map((i) => _createItemWidget(theme, i)).toList(),
+              ),
+            ),
+          )),
     );
   }
 
@@ -56,7 +60,8 @@ class DropdownPopupMenu<T> extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              SimpleIcon.simpleSquare(icon, size: 16, color: theme.textColorPrimary),
+              SimpleIcon.simpleSquare(icon,
+                  size: 16, color: theme.textColorPrimary),
               const Gap(8)
             ],
             Expanded(
