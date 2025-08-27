@@ -37,6 +37,7 @@ class _State extends State<RewardConfiguratorWidget> {
     _dropdownManager = widget.dropdownManager;
     _reward = widget.reward;
     _nameController = TextEditingController(text: _reward.name);
+    _nameController.addListener(_handleNameEdit);
     super.initState();
   }
 
@@ -44,6 +45,7 @@ class _State extends State<RewardConfiguratorWidget> {
   void dispose() {
     _nameFocusNode.dispose();
     _nameController.dispose();
+    _nameController.removeListener(_handleNameEdit);
     super.dispose();
   }
 
@@ -250,5 +252,9 @@ class _State extends State<RewardConfiguratorWidget> {
     setState(() {
       _reward.disabled = !value;
     });
+  }
+
+  void _handleNameEdit() {
+    _reward.name = _nameController.text;
   }
 }
