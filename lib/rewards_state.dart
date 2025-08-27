@@ -164,7 +164,7 @@ class _State extends State<RewardsStateWidget> {
     final reward = Reward(name: '', handlers: []);
 
     setState(() {
-      _settings.rewards.rewards.add(reward);
+      _settings.rewards.rewards.insert(0, reward);
     });
 
     _openConfigureDialog(context, reward);
