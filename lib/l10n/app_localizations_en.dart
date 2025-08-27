@@ -182,4 +182,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_play_audio => 'Play audio (legacy)';
+
+  @override
+  String get reward_no_name => 'Unnamed';
 }

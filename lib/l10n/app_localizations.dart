@@ -381,6 +381,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Play audio (legacy)'**
   String get reaction_play_audio;
+
+  /// No description provided for @reward_no_name.
+  ///
+  /// In en, this message translates to:
+  /// **'Unnamed'**
+  String get reward_no_name;
 }
 
 class _AppLocalizationsDelegate

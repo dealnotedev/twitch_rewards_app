@@ -53,11 +53,6 @@ class _State extends State<RewardsStateWidget> {
     final active = all.where((r) => !r.disabled).length;
     final actions = all.map((r) => r.handlers.length).sum;
 
-    const indicatorPadding =
-        EdgeInsets.only(left: 6, right: 8, top: 3, bottom: 3);
-    const indicatorStyle =
-        TextStyle(fontSize: 10, fontWeight: FontWeight.w600, height: 1);
-
     return Container(
         width: double.infinity,
         decoration: BoxDecoration(
@@ -165,7 +160,15 @@ class _State extends State<RewardsStateWidget> {
     setState(() {});
   }
 
-  void _handleAddRewardClick(BuildContext context) {}
+  void _handleAddRewardClick(BuildContext context) {
+    final reward = Reward(name: '', handlers: []);
+
+    setState(() {
+      _settings.rewards.rewards.add(reward);
+    });
+
+    _openConfigureDialog(context, reward);
+  }
 }
 
 class _RewardWidget extends StatefulWidget {
@@ -193,6 +196,7 @@ class _RewardState extends State<_RewardWidget> {
 
     final reactions = reward.handlers.length;
     final reactionsEnabled = reward.handlers.map((h) => !h.disabled).length;
+    final unnamed = reward.name.trim().isEmpty;
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
@@ -214,10 +218,14 @@ class _RewardState extends State<_RewardWidget> {
                 children: [
                   Flexible(
                     child: Text(
-                      reward.name,
+                      unnamed
+                          ? context.localizations.reward_no_name
+                          : reward.name.trim(),
                       style: TextStyle(
                           fontSize: 14,
-                          fontWeight: FontWeight.w600,
+                          fontStyle: unnamed ? FontStyle.italic : null,
+                          fontWeight:
+                              unnamed ? FontWeight.w400 : FontWeight.w600,
                           color: theme.textColorPrimary),
                     ),
                   ),
