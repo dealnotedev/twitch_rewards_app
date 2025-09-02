@@ -162,10 +162,18 @@ class _State extends State<RewardConfiguratorWidget> {
                           color: theme.textColorPrimary),
                     ),
                   ),
-                  const Gap(16),
                   if (_reward.handlers.isEmpty) ...[
+                    const Gap(8),
                     _createEmptyWidget(context, theme),
                     const Gap(16),
+                  ] else ...[
+                    const Gap(4),
+                    ..._reward.handlers.map((a) => _ActionWidget(
+                        onDelete: () => _handleActionDelete(a),
+                        key: ValueKey(a.id),
+                        action: a,
+                        theme: theme)),
+                    const Gap(12),
                   ]
                 ],
               ),
@@ -255,6 +263,7 @@ class _State extends State<RewardConfiguratorWidget> {
             .toList(),
         onTap: (String type) {
           _dropdownManager.dismiss(_addKey);
+          _handleAddActionClick(type);
         },
       );
     }, key: _addKey);
@@ -268,5 +277,97 @@ class _State extends State<RewardConfiguratorWidget> {
 
   void _handleNameEdit() {
     _reward.name = _nameController.text;
+  }
+
+  void _handleAddActionClick(String type) {
+    final action = RewardAction(type: type);
+    setState(() {
+      _reward.handlers.add(action);
+    });
+  }
+
+  void _handleActionDelete(RewardAction action) {
+    setState(() {
+      _reward.handlers.remove(action);
+    });
+  }
+}
+
+class _ActionWidget extends StatefulWidget {
+  final ThemeData theme;
+  final RewardAction action;
+  final VoidCallback? onDelete;
+
+  const _ActionWidget(
+      {super.key, required this.action, required this.theme, this.onDelete});
+
+  @override
+  State<StatefulWidget> createState() => _ActionState();
+}
+
+class _ActionState extends State<_ActionWidget> {
+  late final RewardAction _action;
+
+  @override
+  void initState() {
+    _action = widget.action;
+    super.initState();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = widget.theme;
+    final attrs = RewardActionAtts.forType(context, _action.type);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      width: double.infinity,
+      padding: const EdgeInsets.all(8),
+      decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: theme.dividerColor, width: 0.5)),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              RippleIcon(
+                  icon: Assets.assetsIcReorderWhite16dp,
+                  size: 16,
+                  color: theme.textColorSecondary),
+              const Gap(4),
+              SimpleIcon.simpleSquare(attrs.icon,
+                  size: 16, color: theme.textColorPrimary),
+              const Gap(12),
+              Expanded(
+                  child: Text(
+                attrs.title,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 14, color: theme.textColorPrimary),
+              )),
+              const Gap(12),
+              CustomSwitch(
+                  onToggle: _handleToggle,
+                  value: !_action.disabled,
+                  theme: theme),
+              const Gap(8),
+              RippleIcon(
+                  borderRadius: BorderRadius.circular(8),
+                  icon: Assets.assetsIcDeleteWhite16dp,
+                  onTap: widget.onDelete,
+                  size: 16,
+                  color: theme.textColorPrimary),
+            ],
+          )
+        ],
+      ),
+    );
+  }
+
+  void _handleToggle(bool checked) {
+    setState(() {
+      _action.disabled = !checked;
+    });
   }
 }
