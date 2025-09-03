@@ -28,10 +28,10 @@ class CustomSwitch extends StatelessWidget {
     }
 
     return FlutterSwitch(
-        height: 20,
-        width: 36,
+        height: 16,
+        width: 32,
         padding: 2,
-        toggleSize: 16,
+        toggleSize: 12,
         toggleColor: thumbColor,
         activeColor: activeColor,
         inactiveColor: inactiveColor,
