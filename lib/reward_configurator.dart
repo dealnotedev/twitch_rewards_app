@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:lottie/lottie.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
@@ -111,62 +112,39 @@ class _State extends State<RewardConfiguratorWidget> {
                           ],
                         ),
                       ),
-                      const Gap(16),
-                      Row(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Column(
-                            mainAxisSize: MainAxisSize.min,
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                context
-                                    .localizations.reward_status_switch_title,
-                                style: TextStyle(
-                                    fontSize: 12,
-                                    fontWeight: FontWeight.w600,
-                                    color: theme.textColorPrimary),
-                              ),
-                              const Gap(6),
-                              Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  CustomSwitch(
-                                    value: !_reward.disabled,
-                                    onToggle: _handleStatusChange,
-                                    theme: theme,
-                                  ),
-                                ],
-                              )
-                            ],
-                          ),
-                          const Gap(16),
-                          CustomButton(
-                            key: _addKey,
-                            prefixIcon: Assets.assetsIcPlusWhite16dp,
-                            suffixIcon: Assets.assetsIcArrowDownWhite16dp,
-                            text: context.localizations.button_add_reaction,
-                            style: CustomButtonStyle.primary,
-                            theme: theme,
-                            onTap: () {
-                              _showAddDropdown(context);
-                            },
-                          ),
-                        ],
-                      ),
-                      const Gap(16),
+                      Expanded(
+                          child: Container(
+                        child: Lottie.asset(Assets.assetsRex,
+                            height: 60, width: 50, frameRate: FrameRate.max),
+                      )),
                     ],
                   ),
                   const Gap(16),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: Text(
-                      context.localizations.reaction_chain_title,
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontWeight: FontWeight.w600,
-                          color: theme.textColorPrimary),
-                    ),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      const Gap(16),
+                      Expanded(
+                          child: Text(
+                        context.localizations.reaction_chain_title,
+                        style: TextStyle(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w600,
+                            color: theme.textColorPrimary),
+                      )),
+                      CustomButton(
+                        key: _addKey,
+                        prefixIcon: Assets.assetsIcPlusWhite16dp,
+                        suffixIcon: Assets.assetsIcArrowDownWhite16dp,
+                        text: context.localizations.button_add_reaction,
+                        style: CustomButtonStyle.primary,
+                        theme: theme,
+                        onTap: () {
+                          _showAddDropdown(context);
+                        },
+                      ),
+                      const Gap(16)
+                    ],
                   ),
                   if (_reward.handlers.isEmpty) ...[
                     const Gap(8),
@@ -240,9 +218,15 @@ class _State extends State<RewardConfiguratorWidget> {
                       ]
                     ],
                   );
-                })
+                }),
           ],
         )),
+        CustomSwitch(
+          value: !_reward.disabled,
+          onToggle: _handleStatusChange,
+          theme: theme,
+        ),
+        const Gap(8),
         RippleIcon(
           borderRadius: BorderRadius.circular(8),
           icon: Assets.assetsIcCloseWhite16dp,
@@ -254,6 +238,33 @@ class _State extends State<RewardConfiguratorWidget> {
           },
         ),
         const Gap(8),
+      ],
+    );
+  }
+
+  Widget _createStatusWidget(BuildContext context, ThemeData theme) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          context.localizations.reward_status_switch_title,
+          style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              color: theme.textColorPrimary),
+        ),
+        const Gap(6),
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            CustomSwitch(
+              value: !_reward.disabled,
+              onToggle: _handleStatusChange,
+              theme: theme,
+            ),
+          ],
+        )
       ],
     );
   }
