@@ -11,6 +11,7 @@ import 'package:twitch_listener/empty_widget.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/reward_ext.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -23,13 +24,15 @@ import 'package:twitch_listener/twitch_shared.dart';
 class RewardConfiguratorWidget extends StatefulWidget {
   final TwitchShared twitchShared;
   final Audioplayer audioplayer;
+  final RewardExecutor executor;
   final Reward reward;
 
   const RewardConfiguratorWidget(
       {super.key,
       required this.reward,
       required this.audioplayer,
-      required this.twitchShared});
+      required this.twitchShared,
+      required this.executor});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -132,6 +135,16 @@ class _State extends State<RewardConfiguratorWidget> {
                             fontWeight: FontWeight.w600,
                             color: theme.textColorPrimary),
                       )),
+                      CustomButton(
+                        prefixIcon: Assets.assetsIcPlayWhite16dp,
+                        text: '',
+                        style: CustomButtonStyle.secondary,
+                        theme: theme,
+                        onTap: () {
+                          widget.executor.execute(_reward);
+                        },
+                      ),
+                      const Gap(8),
                       CustomButton(
                         key: _addKey,
                         prefixIcon: Assets.assetsIcPlusWhite16dp,
@@ -238,33 +251,6 @@ class _State extends State<RewardConfiguratorWidget> {
           },
         ),
         const Gap(8),
-      ],
-    );
-  }
-
-  Widget _createStatusWidget(BuildContext context, ThemeData theme) {
-    return Column(
-      mainAxisSize: MainAxisSize.min,
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          context.localizations.reward_status_switch_title,
-          style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              color: theme.textColorPrimary),
-        ),
-        const Gap(6),
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            CustomSwitch(
-              value: !_reward.disabled,
-              onToggle: _handleStatusChange,
-              theme: theme,
-            ),
-          ],
-        )
       ],
     );
   }

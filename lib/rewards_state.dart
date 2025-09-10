@@ -208,6 +208,7 @@ class _State extends State<RewardsStateWidget> {
             child: DropdownScope(
                 manager: manager,
                 child: RewardConfiguratorWidget(
+                    executor: widget.executor,
                     twitchShared: widget.twitchShared,
                     audioplayer: widget.audioplayer,
                     reward: reward)),
