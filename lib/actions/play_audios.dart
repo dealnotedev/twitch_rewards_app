@@ -75,7 +75,7 @@ class _State extends State<PlayAudiosWidget> {
         ),
         const Gap(8),
         if (files.isEmpty) ...[
-          const Gap(8),
+          const Gap(16),
           SizedBox(
             width: double.infinity,
             child: Text(
@@ -83,7 +83,8 @@ class _State extends State<PlayAudiosWidget> {
               textAlign: TextAlign.center,
               style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
             ),
-          )
+          ),
+          const Gap(8)
         ] else ...[
           Container(
             decoration: BoxDecoration(

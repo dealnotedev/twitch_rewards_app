@@ -149,6 +149,7 @@ class _State extends State<RewardsStateWidget> {
               ...displayed.map((reward) => _RewardWidget(
                   twitchShared: _twitchShared,
                   key: ValueKey(reward),
+                  onDelete: () => _handleDelete(reward),
                   onConfigure: () => _openConfigureDialog(context, reward),
                   reward: reward,
                   theme: theme)),
@@ -217,6 +218,12 @@ class _State extends State<RewardsStateWidget> {
   void _handleSearchQuery() {
     setState(() {});
   }
+
+  void _handleDelete(Reward reward) {
+    setState(() {
+      _settings.rewards.rewards.remove(reward);
+    });
+  }
 }
 
 class _RewardWidget extends StatefulWidget {
@@ -225,12 +232,14 @@ class _RewardWidget extends StatefulWidget {
   final TwitchShared twitchShared;
   final VoidCallback? onConfigure;
   final VoidCallback? onPlay;
+  final VoidCallback? onDelete;
 
   const _RewardWidget(
       {super.key,
       required this.reward,
       required this.theme,
       this.onConfigure,
+      this.onDelete,
       this.onPlay,
       required this.twitchShared});
 
@@ -266,9 +275,10 @@ class _RewardState extends State<_RewardWidget> {
               width: 0.5,
               strokeAlign: BorderSide.strokeAlignOutside),
           borderRadius: BorderRadius.circular(12)),
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       child: Row(
         children: [
+          const Gap(8),
           Expanded(
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
@@ -339,12 +349,11 @@ class _RewardState extends State<_RewardWidget> {
           ),
           const Gap(8),
           RippleIcon(
-            size: 16,
-            icon: Assets.assetsIcMoreWhite16dp,
-            color: theme.textColorPrimary,
-            padding: 4,
-            onTap: () {},
-          )
+              borderRadius: BorderRadius.circular(8),
+              icon: Assets.assetsIcDeleteWhite16dp,
+              onTap: widget.onDelete,
+              size: 16,
+              color: theme.textColorPrimary),
         ],
       ),
     );

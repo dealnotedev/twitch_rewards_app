@@ -7,11 +7,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/audioplayer.dart';
-import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/connection_status.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
-import 'package:twitch_listener/dropdown/dropdown_menu.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
@@ -22,7 +19,6 @@ import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/reward_config.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/ripple_icon.dart';
@@ -36,7 +32,6 @@ import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:twitch_listener/twitch_state.dart';
-import 'package:twitch_listener/viewers_counter.dart';
 import 'package:win32/win32.dart' as win32;
 
 void main() async {
@@ -139,26 +134,7 @@ class _RebornPageState extends State<MyApp> {
                                   twitchShared: widget.locator.provide(),
                                 ),
                               ),
-                              const Gap(312),
-                              Padding(
-                                padding: const EdgeInsets.all(16),
-                                child: Row(
-                                  spacing: 8,
-                                  children: [
-                                    Expanded(
-                                      child: _createDropDown(context, theme,
-                                          key: _globalKey),
-                                    ),
-                                    Expanded(
-                                        child: _createDropDown(context, theme,
-                                            key: _globalKey2)),
-                                    Expanded(
-                                        child: _createDropDown(context, theme,
-                                            key: _globalKey3))
-                                  ],
-                                ),
-                              ),
-                              const Gap(612),
+                              const Gap(16)
                             ],
                           ),
                         ))
@@ -168,119 +144,12 @@ class _RebornPageState extends State<MyApp> {
             })));
   }
 
-  final _globalKey = GlobalKey();
-  final _globalKey2 = GlobalKey();
-  final _globalKey3 = GlobalKey();
-
   late final Settings _settings;
 
   @override
   void initState() {
     _settings = widget.locator.provide();
     super.initState();
-  }
-
-  Widget _createDropDown(BuildContext context, ThemeData theme,
-      {required GlobalKey key}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ConnectionStatusWidget(
-                theme: theme, status: ConnectionStatus.connected),
-            const Gap(4),
-            ViewersCounter(theme: theme, count: 12),
-          ],
-        ),
-        const Gap(4),
-        CustomButton(
-          text: context.localizations.button_connect,
-          style: CustomButtonStyle.primary,
-          theme: theme,
-          onTap: () {},
-        ),
-        const Gap(4),
-        Text(
-          'Wait for Completion',
-          style: TextStyle(
-              fontSize: 10,
-              fontWeight: FontWeight.w500,
-              color: theme.textColorPrimary),
-        ),
-        const Gap(4),
-        Material(
-          borderRadius: BorderRadius.circular(8),
-          color: theme.inputBackground,
-          child: InkWell(
-            onTap: () {
-              _showDropdownPopup(context, key: key);
-            },
-            borderRadius: BorderRadius.circular(8),
-            child: Container(
-              key: key,
-              decoration: BoxDecoration(
-                border: Border.all(color: theme.border, width: 0.5),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-              child: Row(
-                children: [
-                  Expanded(
-                      child: Text(
-                    'Yes',
-                    style: TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w400,
-                        color: theme.textColorPrimary),
-                  )),
-                  SimpleIcon.simpleSquare(Assets.assetsIcArrowDownWhite12dp,
-                      size: 12, color: theme.textColorDisabled)
-                ],
-              ),
-            ),
-          ),
-        )
-      ],
-    );
-  }
-
-  void _showDropdownPopup(BuildContext context,
-      {required GlobalKey key}) async {
-    if (key != _globalKey3) {
-      final manager = DropdownScope.of(context);
-      showDialog(
-          routeSettings: const RouteSettings(name: '/channel_points_setting'),
-          barrierDismissible: true,
-          barrierColor: Colors.black.withValues(alpha: 0.5),
-          context: context,
-          builder: (context) {
-            final theme = Theme.of(context);
-            return Dialog(
-              insetPadding: const EdgeInsets.all(48),
-              backgroundColor: theme.surfacePrimary,
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16)),
-              child: RewardConfigWidget(dropdownManager: manager),
-            );
-          });
-      return;
-    }
-
-    final manager = DropdownScope.of(context);
-    manager.show(context, builder: (cntx) {
-      return DropdownPopupMenu<bool>(
-        selected: true,
-        items: [
-          Item(id: true, title: context.localizations.yes),
-          Item(id: false, title: context.localizations.no)
-        ],
-        onTap: (bool id) {
-          manager.dismiss(key);
-        },
-      );
-    }, key: key);
   }
 }
 
