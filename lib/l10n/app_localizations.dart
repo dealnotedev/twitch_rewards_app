@@ -453,6 +453,30 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Clear Search'**
   String get button_clear_search;
+
+  /// No description provided for @reaction_play_audios_audio_files_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio Files'**
+  String get reaction_play_audios_audio_files_title;
+
+  /// No description provided for @reaction_play_audios_no_files.
+  ///
+  /// In en, this message translates to:
+  /// **'No audio files configured. Click \"Add File\" to start.'**
+  String get reaction_play_audios_no_files;
+
+  /// No description provided for @reaction_play_audios_button_add_file.
+  ///
+  /// In en, this message translates to:
+  /// **'Add File'**
+  String get reaction_play_audios_button_add_file;
+
+  /// No description provided for @reaction_play_audios_volume.
+  ///
+  /// In en, this message translates to:
+  /// **'Volume'**
+  String get reaction_play_audios_volume;
 }
 
 class _AppLocalizationsDelegate

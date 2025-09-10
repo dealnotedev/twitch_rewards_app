@@ -118,5 +118,9 @@
       }
     }
   },
-  "button_clear_search": "Clear Search"
+  "button_clear_search": "Clear Search",
+  "reaction_play_audios_audio_files_title": "Audio Files",
+  "reaction_play_audios_no_files": "No audio files configured. Click \"Add File\" to start.",
+  "reaction_play_audios_button_add_file": "Add File",
+  "reaction_play_audios_volume": "Volume"
 }

@@ -12,14 +12,17 @@ class CustomButton extends StatelessWidget {
   final String? prefixIcon;
   final String? suffixIcon;
 
+  final EdgeInsets? padding;
+
   const CustomButton(
       {super.key,
       this.prefixIcon,
-        this.suffixIcon,
+      this.suffixIcon,
       required this.text,
       required this.style,
       this.loading = false,
       required this.theme,
+      this.padding,
       this.onTap});
 
   @override
@@ -59,7 +62,8 @@ class CustomButton extends StatelessWidget {
             border: border,
             borderRadius: radius,
           ),
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          padding: padding ??
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -87,7 +91,7 @@ class CustomButton extends StatelessWidget {
                     color: textColor.withValues(
                         alpha: onTap != null ? 1.0 : 0.75)),
               ),
-              if(suffixIcon != null) ... [
+              if (suffixIcon != null) ...[
                 const Gap(8),
                 SimpleIcon.simpleSquare(suffixIcon, size: 16, color: textColor),
               ]

@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
@@ -18,9 +19,13 @@ import 'package:twitch_listener/twitch_shared.dart';
 class RewardsStateWidget extends StatefulWidget {
   final Settings settings;
   final TwitchShared twitchShared;
+  final Audioplayer audioplayer;
 
   const RewardsStateWidget(
-      {super.key, required this.settings, required this.twitchShared});
+      {super.key,
+      required this.settings,
+      required this.twitchShared,
+      required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -189,7 +194,10 @@ class _State extends State<RewardsStateWidget> {
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
             child: RewardConfiguratorWidget(
-                dropdownManager: manager, reward: reward),
+                twitchShared: widget.twitchShared,
+                audioplayer: widget.audioplayer,
+                dropdownManager: manager,
+                reward: reward),
           );
         });
     setState(() {});

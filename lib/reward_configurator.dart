@@ -1,9 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/actions/play_audios.dart';
+import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/custom_switch.dart';
 import 'package:twitch_listener/dropdown/dropdown_menu.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/empty_widget.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
@@ -14,13 +17,20 @@ import 'package:twitch_listener/simple_indicator.dart';
 import 'package:twitch_listener/simple_widgets.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/twitch_shared.dart';
 
 class RewardConfiguratorWidget extends StatefulWidget {
   final DropdownManager dropdownManager;
+  final TwitchShared twitchShared;
+  final Audioplayer audioplayer;
   final Reward reward;
 
   const RewardConfiguratorWidget(
-      {super.key, required this.reward, required this.dropdownManager});
+      {super.key,
+      required this.reward,
+      required this.dropdownManager,
+      required this.audioplayer,
+      required this.twitchShared});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -164,11 +174,15 @@ class _State extends State<RewardConfiguratorWidget> {
                   ),
                   if (_reward.handlers.isEmpty) ...[
                     const Gap(8),
-                    _createEmptyWidget(context, theme),
+                    EmptyWidget(
+                        text: context.localizations.reaction_chain_empty_text,
+                        margin: const EdgeInsets.symmetric(horizontal: 16),
+                        theme: theme),
                     const Gap(16),
                   ] else ...[
                     const Gap(4),
                     ..._reward.handlers.map((a) => _ActionWidget(
+                        audioplayer: widget.audioplayer,
                         onDelete: () => _handleActionDelete(a),
                         key: ValueKey(a.id),
                         action: a,
@@ -180,22 +194,6 @@ class _State extends State<RewardConfiguratorWidget> {
             ))
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _createEmptyWidget(BuildContext context, ThemeData theme) {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16),
-      width: double.infinity,
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
-      padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
-      child: Text(
-        context.localizations.reaction_chain_empty_text,
-        textAlign: TextAlign.center,
-        style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
       ),
     );
   }
@@ -228,12 +226,24 @@ class _State extends State<RewardConfiguratorWidget> {
                 style: _reward.disabled
                     ? IndicatorStyle.outlined
                     : IndicatorStyle.bold),
-            const Gap(8),
-            SimpleIndicator(
-                fontSize: 12,
-                text: context.localizations.x_points(9999),
-                theme: theme,
-                style: IndicatorStyle.neutral),
+            StreamBuilder(
+                stream: _nameController.stream(),
+                initialData: _nameController.text,
+                builder: (cntx, name) {
+                  final found = widget.twitchShared.redemptions.current[name.requireData];
+                  return Row(
+                    children: [
+                      if (found != null) ...[
+                        const Gap(8),
+                        SimpleIndicator(
+                            fontSize: 12,
+                            text: context.localizations.x_points(found.cost),
+                            theme: theme,
+                            style: IndicatorStyle.neutral),
+                      ]
+                    ],
+                  );
+                })
           ],
         )),
         RippleIcon(
@@ -294,12 +304,17 @@ class _State extends State<RewardConfiguratorWidget> {
 }
 
 class _ActionWidget extends StatefulWidget {
+  final Audioplayer audioplayer;
   final ThemeData theme;
   final RewardAction action;
   final VoidCallback? onDelete;
 
   const _ActionWidget(
-      {super.key, required this.action, required this.theme, this.onDelete});
+      {super.key,
+      required this.action,
+      required this.theme,
+      this.onDelete,
+      required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _ActionState();
@@ -322,15 +337,16 @@ class _ActionState extends State<_ActionWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       width: double.infinity,
-      padding: const EdgeInsets.all(8),
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
           border: Border.all(color: theme.dividerColor, width: 0.5)),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          const Gap(8),
           Row(
             children: [
+              const Gap(8),
               RippleIcon(
                   icon: Assets.assetsIcReorderWhite16dp,
                   size: 16,
@@ -358,8 +374,15 @@ class _ActionState extends State<_ActionWidget> {
                   onTap: widget.onDelete,
                   size: 16,
                   color: theme.textColorPrimary),
+              const Gap(8),
             ],
-          )
+          ),
+          const Gap(8),
+          SimpleDivider(theme: theme),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: _createInternal(context, theme),
+          ),
         ],
       ),
     );
@@ -369,5 +392,21 @@ class _ActionState extends State<_ActionWidget> {
     setState(() {
       _action.disabled = !checked;
     });
+  }
+
+  Widget _createInternal(BuildContext context, ThemeData theme) {
+    switch (_action.type) {
+      case RewardAction.typePlayAudios:
+        return PlayAudiosWidget(
+            action: _action, audioplayer: widget.audioplayer);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(32),
+      child: Text(
+        'Not yet implemented',
+        style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
+      ),
+    );
   }
 }

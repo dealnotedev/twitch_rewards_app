@@ -134,6 +134,7 @@ class _RebornPageState extends State<MyApp> {
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 16),
                                 child: RewardsStateWidget(
+                                  audioplayer: widget.locator.provide(),
                                   settings: _settings,
                                   twitchShared: widget.locator.provide(),
                                 ),

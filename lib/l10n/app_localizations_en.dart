@@ -220,4 +220,17 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get button_clear_search => 'Clear Search';
+
+  @override
+  String get reaction_play_audios_audio_files_title => 'Audio Files';
+
+  @override
+  String get reaction_play_audios_no_files =>
+      'No audio files configured. Click \"Add File\" to start.';
+
+  @override
+  String get reaction_play_audios_button_add_file => 'Add File';
+
+  @override
+  String get reaction_play_audios_volume => 'Volume';
 }
