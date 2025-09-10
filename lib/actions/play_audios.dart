@@ -85,20 +85,21 @@ class _State extends State<PlayAudiosWidget> {
             ),
           )
         ] else ...[
-          Column(
-            spacing: 8,
-            children: files
-                .mapIndexed((index, f) => _createAudioFileWidget(context, theme,
-                    entry: f, index: index))
-                .toList(),
+          Container(
+            decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: theme.dividerColor, width: 0.5)),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            child: Column(
+              spacing: 4,
+              children: files
+                  .mapIndexed((index, f) => _createAudioFileWidget(
+                      context, theme,
+                      entry: f, index: index))
+                  .toList(),
+            ),
           ),
-          const Gap(12),
-          Text(context.localizations.reaction_play_audios_playback_settings,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textColorPrimary)),
-          const Gap(8),
+          const Gap(16),
           Row(
             spacing: 8,
             children: [
@@ -184,64 +185,58 @@ class _State extends State<PlayAudiosWidget> {
 
   Widget _createAudioFileWidget(BuildContext context, ThemeData theme,
       {required AudioEntry entry, required int index}) {
-    return Container(
-      decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      child: Row(
-        children: [
-          const Gap(8),
-          SimpleIcon.simpleSquare(Assets.assetsIcAudioFileWhite16dp,
-              size: 16, color: theme.textColorPrimary),
-          const Gap(4),
-          Text(
-            (index + 1).toString(),
-            style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                color: theme.textColorPrimary),
-          ),
-          const Gap(12),
-          Expanded(
-              child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(4),
-              color: theme.inputBackground,
-            ),
-            child: Text(
-              entry.path,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: TextStyle(
-                fontSize: 12,
-                color: theme.textColorPrimary,
-                height: 1,
-              ),
-            ),
-          )),
-          const Gap(8),
-          SizedBox(
-              width: 84,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  _createSlider(context, theme, file: entry),
-                  _createSliderValues(context, theme, entry: entry)
-                ],
-              )),
-          const Gap(8),
-          RippleIcon(
-              borderRadius: BorderRadius.circular(8),
-              icon: Assets.assetsIcDeleteWhite16dp,
-              onTap: () {
-                _handleDeleteClick(entry);
-              },
-              size: 16,
+    return Row(
+      children: [
+        const Gap(6),
+        SimpleIcon.simpleSquare(Assets.assetsIcMusicNoteWhite16dp,
+            size: 16, color: theme.textColorPrimary),
+        const Gap(4),
+        Text(
+          (index + 1).toString(),
+          style: TextStyle(
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
               color: theme.textColorPrimary),
-        ],
-      ),
+        ),
+        const Gap(12),
+        Expanded(
+            child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(4),
+            color: theme.inputBackground,
+          ),
+          child: Text(
+            entry.path,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: 12,
+              color: theme.textColorPrimary,
+              height: 1,
+            ),
+          ),
+        )),
+        const Gap(8),
+        SizedBox(
+            width: 84,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                _createSlider(context, theme, file: entry),
+                _createSliderValues(context, theme, entry: entry)
+              ],
+            )),
+        const Gap(8),
+        RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcDeleteWhite16dp,
+            onTap: () {
+              _handleDeleteClick(entry);
+            },
+            size: 16,
+            color: theme.textColorPrimary),
+      ],
     );
   }
 

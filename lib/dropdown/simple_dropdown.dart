@@ -33,7 +33,7 @@ class SimpleDropdown<T> extends StatelessWidget {
         Text(
           title,
           style: TextStyle(
-              fontSize: 10,
+              fontSize: 12,
               fontWeight: FontWeight.w500,
               color: theme.textColorPrimary),
         ),

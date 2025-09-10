@@ -39,6 +39,8 @@ class Assets {
       'assets/ic_minimize_white_16dp.png';
   static const String assetsIcMoreWhite12dp = 'assets/ic_more_white_12dp.png';
   static const String assetsIcMoreWhite16dp = 'assets/ic_more_white_16dp.png';
+  static const String assetsIcMusicNoteWhite16dp =
+      'assets/ic_music_note_white_16dp.png';
   static const String assetsIcNextWhite16dp = 'assets/ic_next_white_16dp.png';
   static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
   static const String assetsIcObsWhite16dp = 'assets/ic_obs_white_16dp.png';
