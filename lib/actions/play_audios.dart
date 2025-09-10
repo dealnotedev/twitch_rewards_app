@@ -138,9 +138,18 @@ class _State extends State<PlayAudiosWidget> {
     items.add(Item(
         id: -1, title: context.localizations.reaction_play_audios_count_all));
 
+    final selected = _action.count ?? -1;
+
+    bool hasSelection = selected == -1;
+
     for (int i = 0; i < _action.audios.length; i++) {
       final count = i + 1;
       items.add(Item(id: count, title: count.toString()));
+      hasSelection = hasSelection || count == selected;
+    }
+
+    if (!hasSelection) {
+      items.add(Item(id: selected, title: selected.toString()));
     }
 
     return SimpleDropdown<int>(

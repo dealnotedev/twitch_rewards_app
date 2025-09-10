@@ -253,7 +253,7 @@ class _RewardState extends State<_RewardWidget> {
     final reward = widget.reward;
 
     final reactions = reward.handlers.length;
-    final reactionsEnabled = reward.handlers.map((h) => !h.disabled).length;
+    final reactionsEnabled = reward.handlers.where((h) => !h.disabled).length;
     final unnamed = reward.name.trim().isEmpty;
 
     return Container(
