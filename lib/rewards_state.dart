@@ -8,6 +8,7 @@ import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_configurator.dart';
+import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -17,6 +18,7 @@ import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch_shared.dart';
 
 class RewardsStateWidget extends StatefulWidget {
+  final RewardExecutor executor;
   final Settings settings;
   final TwitchShared twitchShared;
   final Audioplayer audioplayer;
@@ -25,7 +27,8 @@ class RewardsStateWidget extends StatefulWidget {
       {super.key,
       required this.settings,
       required this.twitchShared,
-      required this.audioplayer});
+      required this.audioplayer,
+      required this.executor});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -37,10 +40,12 @@ class _State extends State<RewardsStateWidget> {
 
   late final Settings _settings;
   late final TwitchShared _twitchShared;
+  late final RewardExecutor _executor;
 
   @override
   void initState() {
     _settings = widget.settings;
+    _executor = widget.executor;
     _twitchShared = widget.twitchShared;
     _searchControler.addListener(_handleSearchQuery);
     super.initState();
@@ -154,6 +159,7 @@ class _State extends State<RewardsStateWidget> {
               ...displayed.map((reward) => _RewardWidget(
                   twitchShared: _twitchShared,
                   key: ValueKey(reward),
+                  onPlay: () => _handleExecuteClick(reward),
                   onDelete: () => _handleDelete(reward),
                   onConfigure: () => _openConfigureDialog(context, reward),
                   reward: reward,
@@ -232,6 +238,10 @@ class _State extends State<RewardsStateWidget> {
 
   void _handleSaveChangesClick() {
     _settings.saveRewards(_settings.rewards);
+  }
+
+  void _handleExecuteClick(Reward reward) {
+    _executor.execute(reward);
   }
 }
 

@@ -2,7 +2,6 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
@@ -12,13 +11,12 @@ import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/input_sender.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
-import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/reward_widget.dart';
 import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/ripple_icon.dart';
@@ -32,7 +30,6 @@ import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
 import 'package:twitch_listener/twitch_state.dart';
-import 'package:win32/win32.dart' as win32;
 
 void main() async {
   final soloud = SoLoud.instance;
@@ -72,7 +69,17 @@ class MyApp extends StatefulWidget {
 }
 
 class _RebornPageState extends State<MyApp> {
+  late final Settings _settings;
+  late final RewardExecutor _executor;
+
   final _dropdownmanager = DropdownManager();
+
+  @override
+  void initState() {
+    _settings = widget.locator.provide();
+    _executor = widget.locator.provide();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -130,8 +137,9 @@ class _RebornPageState extends State<MyApp> {
                                     const EdgeInsets.symmetric(horizontal: 16),
                                 child: RewardsStateWidget(
                                   audioplayer: widget.locator.provide(),
-                                  settings: _settings,
                                   twitchShared: widget.locator.provide(),
+                                  executor: _executor,
+                                  settings: _settings,
                                 ),
                               ),
                               const Gap(16)
@@ -142,14 +150,6 @@ class _RebornPageState extends State<MyApp> {
                     ),
                   ));
             })));
-  }
-
-  late final Settings _settings;
-
-  @override
-  void initState() {
-    _settings = widget.locator.provide();
-    super.initState();
   }
 }
 
@@ -218,6 +218,7 @@ class LoggedState extends State<LoggedWidget> {
   late final Settings _settings;
   late final WebSocketManager _wsManager;
   late final Audioplayer _audioplayer;
+  late final RewardExecutor _executor;
 
   late final StreamSubscription<WsMessage> _wsSubscription;
 
@@ -229,6 +230,7 @@ class LoggedState extends State<LoggedWidget> {
     _obs = widget.locator.provide();
     _wsManager = widget.locator.provide();
     _audioplayer = widget.locator.provide();
+    _executor = widget.locator.provide();
 
     _wsSubscription = _wsManager.messages.listen(_handleWebSocketMessage);
     _searchController.addListener(_handleSearchQuery);
@@ -342,161 +344,6 @@ class LoggedState extends State<LoggedWidget> {
     }
   }
 
-  void _applyReward(Reward reward) async {
-    for (var action in reward.handlers) {
-      switch (action.type) {
-        case RewardAction.typeDelay:
-          await Future.delayed(Duration(seconds: action.duration));
-          break;
-
-        case RewardAction.typeEnableInput:
-          await _obs.enableInput(
-              inputName: action.inputName ?? '', enabled: action.enable);
-          break;
-
-        case RewardAction.typeEnableFilter:
-          final sourceName = action.sourceName;
-          final filterName = action.filterName;
-
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              filterName != null &&
-              filterName.isNotEmpty) {
-            await _obs.enableSourceFilter(
-                sourceName: sourceName,
-                filterName: filterName,
-                enabled: action.enable);
-          }
-          break;
-
-        case RewardAction.typeFlipSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
-
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.flipSource(
-                rootSceneName: sceneName,
-                sourceName: sourceName,
-                horizontal: action.horizontal,
-                vertical: action.vertical);
-          }
-          break;
-
-        case RewardAction.typeInvertFilter:
-          final sourceName = action.sourceName;
-          final filterName = action.filterName;
-
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              filterName != null &&
-              filterName.isNotEmpty) {
-            await _obs.invertSourceFilter(
-                sourceName: sourceName, filterName: filterName);
-          }
-          break;
-
-        case RewardAction.typeSetScene:
-          final sceneNames = action.targets;
-          if (sceneNames.isNotEmpty) {
-            await _obs.enableScene(sceneNames: sceneNames);
-          }
-          break;
-
-        case RewardAction.typeCrashProcess:
-          final target = action.target;
-          if (target != null) {
-            compute(_crashProcess, target);
-          }
-          break;
-
-        case RewardAction.typeToggleSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
-
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.toggleSource(
-                sceneName: sceneName, sourceName: sourceName);
-          }
-          break;
-
-        case RewardAction.typeSendInput:
-          final inputs = action.inputs;
-          if (inputs.isNotEmpty) {
-            InputSender.sendInputs(inputs);
-          }
-          break;
-
-        case RewardAction.typeEnableSource:
-          final sourceName = action.sourceName;
-          final sceneName = action.sceneName;
-
-          if (sourceName != null &&
-              sourceName.isNotEmpty &&
-              sceneName != null &&
-              sceneName.isNotEmpty) {
-            await _obs.enableSource(
-                sceneName: sceneName,
-                sourceName: sourceName,
-                enabled: action.enable);
-          }
-          break;
-
-        case RewardAction.typePlayAudio:
-          final filePath = action.filePath;
-
-          if (filePath != null && filePath.isNotEmpty) {
-            _audioplayer.playFileWaitCompletion(filePath,
-                volume: action.volume);
-          }
-          break;
-
-        case RewardAction.typePlayAudios:
-          if (action.awaitCompletion) {
-            await _playAudios(action);
-          } else {
-            _playAudios(action);
-          }
-          break;
-      }
-    }
-  }
-
-  Future<void> _playAudios(RewardAction action) async {
-    final all = List.of(action.audios);
-    final count = action.count;
-
-    if (all.isEmpty) return;
-
-    final List<AudioEntry> audios;
-
-    if (action.randomize) {
-      all.shuffle();
-
-      if (count != null) {
-        audios = all.take(count).toList();
-      } else {
-        audios = all;
-      }
-    } else {
-      audios = all;
-    }
-
-    for (int i = 0; i < audios.length; i++) {
-      final file = audios[i];
-
-      if (i > 0) {
-        await Future.delayed(const Duration(milliseconds: 250));
-      }
-      await _audioplayer.playFileWaitCompletion(file.path, volume: file.volume);
-    }
-  }
-
   void _handleCreateClick() {
     setState(() {
       _settings.rewards.rewards
@@ -523,29 +370,12 @@ class LoggedState extends State<LoggedWidget> {
     }
   }
 
-  static void _crashProcess(String processName) {
-    ProcessFinder.initialize();
-
-    final processId = ProcessFinder.listRunningProcesses()
-        .where((element) {
-          return element.name.trim() == processName;
-        })
-        .firstOrNull
-        ?.processId;
-
-    if (processId != null) {
-      final handle = win32.OpenProcess(
-          win32.PROCESS_ACCESS_RIGHTS.PROCESS_TERMINATE, 0, processId);
-
-      win32.TerminateProcess(handle, 0);
-      win32.CloseHandle(handle);
-    }
-
-    ProcessFinder.uninitialize();
-  }
-
   void _handleSearchQuery() {
     setState(() {});
+  }
+
+  void _applyReward(Reward reward) {
+    _executor.execute(reward);
   }
 }
 

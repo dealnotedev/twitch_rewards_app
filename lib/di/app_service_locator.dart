@@ -1,6 +1,7 @@
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_shared.dart';
@@ -25,10 +26,14 @@ class AppServiceLocator extends ServiceLocator {
         listenChat: false,
         listenFollow: false);
 
+    final obs = ObsConnect(settings: settings);
+    final executor = RewardExecutor(audioplayer: audioplayer, obs: obs);
+
     map[Settings] = settings;
     map[ServiceLocator] = this;
     map[WebSocketManager] = wsManager;
-    map[ObsConnect] = ObsConnect(settings: settings);
+    map[ObsConnect] = obs;
+    map[RewardExecutor] = executor;
     map[Audioplayer] = audioplayer;
     map[TwitchShared] = TwitchShared();
   }
