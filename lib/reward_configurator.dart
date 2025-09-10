@@ -401,9 +401,11 @@ class _ActionState extends State<_ActionWidget> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(32),
+      padding: const EdgeInsets.all(8),
+      width: double.infinity,
       child: Text(
         'Not yet implemented',
+        textAlign: TextAlign.center,
         style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
       ),
     );

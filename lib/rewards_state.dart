@@ -54,8 +54,6 @@ class _State extends State<RewardsStateWidget> {
     super.dispose();
   }
 
-  final _addKey = GlobalKey();
-
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -114,7 +112,14 @@ class _State extends State<RewardsStateWidget> {
                       style: IndicatorStyle.outlined),
                   const Expanded(child: SizedBox.shrink()),
                   CustomButton(
-                    key: _addKey,
+                    prefixIcon: Assets.assetsIcSaveWhite16dp,
+                    text: context.localizations.button_save_changes,
+                    style: CustomButtonStyle.secondary,
+                    theme: theme,
+                    onTap: _handleSaveChangesClick,
+                  ),
+                  const Gap(8),
+                  CustomButton(
                     prefixIcon: Assets.assetsIcPlusWhite16dp,
                     text: context.localizations.button_add_reward,
                     style: CustomButtonStyle.primary,
@@ -122,7 +127,7 @@ class _State extends State<RewardsStateWidget> {
                     onTap: () {
                       _handleAddRewardClick(context);
                     },
-                  )
+                  ),
                 ],
               ),
               const Gap(16),
@@ -223,6 +228,10 @@ class _State extends State<RewardsStateWidget> {
     setState(() {
       _settings.rewards.rewards.remove(reward);
     });
+  }
+
+  void _handleSaveChangesClick() {
+    _settings.saveRewards(_settings.rewards);
   }
 }
 

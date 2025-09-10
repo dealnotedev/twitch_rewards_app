@@ -50,6 +50,7 @@ class Assets {
   static const String assetsIcPlusWhite16dp = 'assets/ic_plus_white_16dp.png';
   static const String assetsIcReorderWhite16dp =
       'assets/ic_reorder_white_16dp.png';
+  static const String assetsIcSaveWhite16dp = 'assets/ic_save_white_16dp.png';
   static const String assetsIcSearchWhite16dp =
       'assets/ic_search_white_16dp.png';
   static const String assetsIcSettingsWhite12dp =

@@ -255,4 +255,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_play_audios_count_specific => 'Specific';
+
+  @override
+  String get button_save_changes => 'Save Changes';
 }

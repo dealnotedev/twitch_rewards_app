@@ -519,6 +519,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Specific'**
   String get reaction_play_audios_count_specific;
+
+  /// No description provided for @button_save_changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save Changes'**
+  String get button_save_changes;
 }
 
 class _AppLocalizationsDelegate
