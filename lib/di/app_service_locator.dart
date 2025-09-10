@@ -3,6 +3,7 @@ import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/twitch_shared.dart';
 
 class AppServiceLocator extends ServiceLocator {
   static late final AppServiceLocator instance;
@@ -28,6 +29,7 @@ class AppServiceLocator extends ServiceLocator {
     map[WebSocketManager] = wsManager;
     map[ObsConnect] = ObsConnect(settings: settings);
     map[Audioplayer] = audioplayer;
+    map[TwitchShared] = TwitchShared();
   }
 
   @override

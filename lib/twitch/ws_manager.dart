@@ -195,6 +195,7 @@ class WebSocketManager {
     final completer = _registrationCompleter = Completer<void>();
 
     final api = TwitchApi(
+      broadcasterId: broadcasterId,
       settings: _settings,
       clientSecret: twitchClientSecret,
     );

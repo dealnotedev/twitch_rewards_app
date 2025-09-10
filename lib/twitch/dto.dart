@@ -112,6 +112,67 @@ class StreamDto {
       userId: json['user_id'] as String);
 }
 
+class RedemptionDto {
+  final String id;
+  final bool enabled;
+  final int cost;
+  final String title;
+  final String? prompt;
+  final bool userInputRequired;
+  final bool paused;
+  final bool isInStock;
+
+  final ImageDto? image;
+  final ImageDto defaultImage;
+
+  RedemptionDto(
+      {required this.id,
+      required this.enabled,
+      required this.cost,
+      required this.title,
+      required this.prompt,
+      required this.userInputRequired,
+      required this.paused,
+      required this.isInStock,
+      required this.defaultImage,
+      required this.image});
+
+  static RedemptionDto fromJson(dynamic json) {
+    final imageJson = json['image'];
+    return RedemptionDto(
+        id: json['id'] as String,
+        enabled: json['is_enabled'] as bool,
+        cost: json['cost'] as int,
+        title: json['title'] as String,
+        prompt: json['prompt'] as String?,
+        userInputRequired: json['is_user_input_required'] as bool,
+        paused: json['is_paused'] as bool,
+        isInStock: json['is_in_stock'] as bool,
+        defaultImage: ImageDto.fromJson(json['default_image']),
+        image: imageJson != null ? ImageDto.fromJson(imageJson) : null);
+  }
+
+  @override
+  String toString() {
+    return title;
+  }
+}
+
+class ImageDto {
+  final String url1x;
+  final String url2x;
+  final String url4x;
+
+  ImageDto({required this.url1x, required this.url2x, required this.url4x});
+
+  static ImageDto fromJson(dynamic json) {
+    return ImageDto(
+        url1x: json['url_1x'] as String,
+        url2x: json['url_2x'] as String,
+        url4x: json['url_4x'] as String);
+  }
+}
+
 class UserDto {
   final String id;
   final String login;

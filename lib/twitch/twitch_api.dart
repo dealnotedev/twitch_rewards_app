@@ -13,7 +13,12 @@ class Statuses {
 class TwitchApi {
   late final Dio dio;
 
-  TwitchApi({required Settings settings, required String clientSecret}) {
+  final String broadcasterId;
+
+  TwitchApi(
+      {required Settings settings,
+      required String clientSecret,
+      required this.broadcasterId}) {
     final interceptor =
         TwitchCredsInterceptor(settings: settings, clientSecret: clientSecret);
     dio = Dio(BaseOptions(baseUrl: 'https://api.twitch.tv/helix'));
@@ -30,6 +35,18 @@ class TwitchApi {
     };
 
     return dio.post('/eventsub/subscriptions', data: data);
+  }
+
+  Future<List<RedemptionDto>> getCustomRewards() {
+    return dio
+        .get('/channel_points/custom_rewards',
+            queryParameters: {'broadcaster_id': broadcasterId})
+        .then((response) => response.data)
+        .then((json) {
+          return ((json['data'] as List<dynamic>)
+              .map(RedemptionDto.fromJson)
+              .toList());
+        });
   }
 
   Future<void> subscribeChat({

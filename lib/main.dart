@@ -115,6 +115,7 @@ class _RebornPageState extends State<MyApp> {
                                   const Gap(16),
                                   Expanded(
                                     child: TwitchStateWidget(
+                                        twitchShared: widget.locator.provide(),
                                         webSocketManager:
                                             widget.locator.provide(),
                                         settings: widget.locator.provide()),
@@ -132,7 +133,10 @@ class _RebornPageState extends State<MyApp> {
                               Padding(
                                 padding:
                                     const EdgeInsets.symmetric(horizontal: 16),
-                                child: RewardsStateWidget(settings: _settings),
+                                child: RewardsStateWidget(
+                                  settings: _settings,
+                                  twitchShared: widget.locator.provide(),
+                                ),
                               ),
                               const Gap(312),
                               Padding(

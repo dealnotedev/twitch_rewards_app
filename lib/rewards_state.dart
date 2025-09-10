@@ -13,11 +13,14 @@ import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/simple_indicator.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/twitch_shared.dart';
 
 class RewardsStateWidget extends StatefulWidget {
   final Settings settings;
+  final TwitchShared twitchShared;
 
-  const RewardsStateWidget({super.key, required this.settings});
+  const RewardsStateWidget(
+      {super.key, required this.settings, required this.twitchShared});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -28,10 +31,12 @@ class _State extends State<RewardsStateWidget> {
   final _focusNode = FocusNode();
 
   late final Settings _settings;
+  late final TwitchShared _twitchShared;
 
   @override
   void initState() {
     _settings = widget.settings;
+    _twitchShared = widget.twitchShared;
     _searchControler.addListener(_handleSearchQuery);
     super.initState();
   }
@@ -51,7 +56,8 @@ class _State extends State<RewardsStateWidget> {
     final theme = Theme.of(context);
     final all = _settings.rewards.rewards;
     final q = _searchControler.text.trim().toLowerCase();
-    final displayed = all.where((r) => q.isEmpty || r.name.toLowerCase().contains(q));
+    final displayed =
+        all.where((r) => q.isEmpty || r.name.toLowerCase().contains(q));
 
     final total = displayed.length;
     final active = displayed.where((r) => !r.disabled).length;
@@ -135,19 +141,21 @@ class _State extends State<RewardsStateWidget> {
                   focusNode: _focusNode,
                   theme: theme),
               const Gap(12),
-              ...displayed.map((r) => _RewardWidget(
-                  key: ValueKey(r),
-                  onConfigure: () => _openConfigureDialog(context, r),
-                  reward: r,
+              ...displayed.map((reward) => _RewardWidget(
+                  twitchShared: _twitchShared,
+                  key: ValueKey(reward),
+                  onConfigure: () => _openConfigureDialog(context, reward),
+                  reward: reward,
                   theme: theme)),
-              if(displayed.isEmpty && all.isNotEmpty) ... [
+              if (displayed.isEmpty && all.isNotEmpty) ...[
                 const Gap(16),
                 Align(
                   alignment: Alignment.center,
                   child: Text(
                     context.localizations.rewards_search_empty_text(q),
                     textAlign: TextAlign.center,
-                    style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
+                    style: TextStyle(
+                        fontSize: 12, color: theme.textColorSecondary),
                   ),
                 ),
                 const Gap(8),
@@ -159,7 +167,8 @@ class _State extends State<RewardsStateWidget> {
                         _searchControler.text = '';
                       },
                       text: context.localizations.button_clear_search,
-                      style: CustomButtonStyle.secondary, theme: theme),
+                      style: CustomButtonStyle.secondary,
+                      theme: theme),
                 )
               ]
             ]));
@@ -197,15 +206,14 @@ class _State extends State<RewardsStateWidget> {
   }
 
   void _handleSearchQuery() {
-    setState(() {
-
-    });
+    setState(() {});
   }
 }
 
 class _RewardWidget extends StatefulWidget {
   final ThemeData theme;
   final Reward reward;
+  final TwitchShared twitchShared;
   final VoidCallback? onConfigure;
   final VoidCallback? onPlay;
 
@@ -214,13 +222,22 @@ class _RewardWidget extends StatefulWidget {
       required this.reward,
       required this.theme,
       this.onConfigure,
-      this.onPlay});
+      this.onPlay,
+      required this.twitchShared});
 
   @override
   State<StatefulWidget> createState() => _RewardState();
 }
 
 class _RewardState extends State<_RewardWidget> {
+  late final TwitchShared _twitchShared;
+
+  @override
+  void initState() {
+    _twitchShared = widget.twitchShared;
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = widget.theme;
@@ -229,6 +246,7 @@ class _RewardState extends State<_RewardWidget> {
     final reactions = reward.handlers.length;
     final reactionsEnabled = reward.handlers.map((h) => !h.disabled).length;
     final unnamed = reward.name.trim().isEmpty;
+
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
@@ -246,37 +264,46 @@ class _RewardState extends State<_RewardWidget> {
               child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  Flexible(
-                    child: Text(
-                      unnamed
-                          ? context.localizations.reward_no_name
-                          : reward.name.trim(),
-                      style: TextStyle(
-                          fontSize: 14,
-                          fontStyle: unnamed ? FontStyle.italic : null,
-                          fontWeight:
-                              unnamed ? FontWeight.w400 : FontWeight.w600,
-                          color: theme.textColorPrimary),
-                    ),
-                  ),
-                  const Gap(8),
-                  SimpleIndicator(
-                      text: context.localizations.x_points(106),
-                      theme: theme,
-                      style: IndicatorStyle.neutral),
-                  const Gap(4),
-                  SimpleIndicator(
-                      text: reward.disabled
-                          ? context.localizations.channel_points_inactive
-                          : context.localizations.channel_points_active,
-                      theme: theme,
-                      style: reward.disabled
-                          ? IndicatorStyle.outlined
-                          : IndicatorStyle.bold)
-                ],
-              ),
+              StreamBuilder(
+                  stream: _twitchShared.redemptions.changes,
+                  initialData: _twitchShared.redemptions.current,
+                  builder: (cntx, snapshot) {
+                    final redemption = snapshot.requireData[reward.name];
+                    return Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            unnamed
+                                ? context.localizations.reward_no_name
+                                : reward.name.trim(),
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontStyle: unnamed ? FontStyle.italic : null,
+                                fontWeight:
+                                    unnamed ? FontWeight.w400 : FontWeight.w600,
+                                color: theme.textColorPrimary),
+                          ),
+                        ),
+                        const Gap(8),
+                        if (redemption != null) ...[
+                          SimpleIndicator(
+                              text: context.localizations
+                                  .x_points(redemption.cost),
+                              theme: theme,
+                              style: IndicatorStyle.neutral),
+                          const Gap(4),
+                        ],
+                        SimpleIndicator(
+                            text: reward.disabled
+                                ? context.localizations.channel_points_inactive
+                                : context.localizations.channel_points_active,
+                            theme: theme,
+                            style: reward.disabled
+                                ? IndicatorStyle.outlined
+                                : IndicatorStyle.bold)
+                      ],
+                    );
+                  }),
               const Gap(4),
               Text(
                 context.localizations

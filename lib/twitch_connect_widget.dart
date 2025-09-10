@@ -29,7 +29,7 @@ class _State extends State<TwitchConnectWidget> {
   @override
   void initState() {
     _settings = widget.settings;
-    _api = TwitchApi(settings: _settings, clientSecret: twitchClientSecret);
+    _api = TwitchApi(settings: _settings, clientSecret: twitchClientSecret, broadcasterId: (_settings.twitchAuth?.broadcasterId)!);
 
     _fetchUserInfo();
     super.initState();
