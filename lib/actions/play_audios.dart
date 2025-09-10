@@ -247,25 +247,28 @@ class _State extends State<PlayAudiosWidget> {
 
     const style =
         TextStyle(fontSize: 10, fontWeight: FontWeight.w500, height: 1);
-    return Row(
-      children: [
-        Expanded(
-            child: Visibility(
-                visible: volume > 1.5,
-                child: Text(
-                  volumePercentage,
-                  textAlign: TextAlign.center,
-                  style: style.copyWith(color: theme.textColorPrimaryInverted),
-                ))),
-        Expanded(
-            child: Visibility(
-                visible: volume <= 1.5,
-                child: Text(
-                  volumePercentage,
-                  textAlign: TextAlign.center,
-                  style: style.copyWith(color: theme.textColorPrimary),
-                )))
-      ],
+    return IgnorePointer(
+      child: Row(
+        children: [
+          Expanded(
+              child: Visibility(
+                  visible: volume > 1.5,
+                  child: Text(
+                    volumePercentage,
+                    textAlign: TextAlign.center,
+                    style:
+                        style.copyWith(color: theme.textColorPrimaryInverted),
+                  ))),
+          Expanded(
+              child: Visibility(
+                  visible: volume <= 1.5,
+                  child: Text(
+                    volumePercentage,
+                    textAlign: TextAlign.center,
+                    style: style.copyWith(color: theme.textColorPrimary),
+                  )))
+        ],
+      ),
     );
   }
 
