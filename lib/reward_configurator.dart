@@ -20,7 +20,6 @@ import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch_shared.dart';
 
 class RewardConfiguratorWidget extends StatefulWidget {
-  final DropdownManager dropdownManager;
   final TwitchShared twitchShared;
   final Audioplayer audioplayer;
   final Reward reward;
@@ -28,7 +27,6 @@ class RewardConfiguratorWidget extends StatefulWidget {
   const RewardConfiguratorWidget(
       {super.key,
       required this.reward,
-      required this.dropdownManager,
       required this.audioplayer,
       required this.twitchShared});
 
@@ -37,7 +35,6 @@ class RewardConfiguratorWidget extends StatefulWidget {
 }
 
 class _State extends State<RewardConfiguratorWidget> {
-  late final DropdownManager _dropdownManager;
   late final TextEditingController _nameController;
   late final Reward _reward;
 
@@ -45,7 +42,6 @@ class _State extends State<RewardConfiguratorWidget> {
 
   @override
   void initState() {
-    _dropdownManager = widget.dropdownManager;
     _reward = widget.reward;
     _nameController = TextEditingController(text: _reward.name);
     _nameController.addListener(_handleNameEdit);
@@ -64,7 +60,7 @@ class _State extends State<RewardConfiguratorWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return GestureDetector(
-      onTap: () => _dropdownManager.clear(),
+      onTap: () => DropdownScope.of(context).clear(),
       behavior: HitTestBehavior.opaque,
       child: Container(
         constraints: const BoxConstraints(maxWidth: 812),
@@ -265,7 +261,9 @@ class _State extends State<RewardConfiguratorWidget> {
   final _addKey = GlobalKey();
 
   void _showAddDropdown(BuildContext context) {
-    _dropdownManager.show(context, builder: (cntx) {
+    final manager = DropdownScope.of(context);
+
+    manager.show(context, builder: (cntx) {
       return DropdownPopupMenu<String>(
         selected: null,
         items: RewardAction.allTypes
@@ -273,7 +271,7 @@ class _State extends State<RewardConfiguratorWidget> {
             .map((a) => Item(id: a.type, title: a.title, icon: a.icon))
             .toList(),
         onTap: (String type) {
-          _dropdownManager.dismiss(_addKey);
+          manager.dismiss(_addKey);
           _handleAddActionClick(type);
         },
       );

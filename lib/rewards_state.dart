@@ -193,11 +193,12 @@ class _State extends State<RewardsStateWidget> {
             backgroundColor: theme.surfacePrimary,
             shape:
                 RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            child: RewardConfiguratorWidget(
-                twitchShared: widget.twitchShared,
-                audioplayer: widget.audioplayer,
-                dropdownManager: manager,
-                reward: reward),
+            child: DropdownScope(
+                manager: manager,
+                child: RewardConfiguratorWidget(
+                    twitchShared: widget.twitchShared,
+                    audioplayer: widget.audioplayer,
+                    reward: reward)),
           );
         });
     setState(() {});

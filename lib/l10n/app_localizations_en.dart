@@ -234,4 +234,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_play_audios_volume => 'Volume';
+
+  @override
+  String get reaction_play_audios_select_files_dialog => 'Select audio files';
+
+  @override
+  String get reaction_play_audios_playback_settings => 'Playback Settings';
+
+  @override
+  String get reaction_play_audios_wait_for_completion => 'Wait for Completion';
+
+  @override
+  String get reaction_play_audios_shuffle => 'Shuffle';
+
+  @override
+  String get reaction_play_audios_count_title => 'Number of Tracks';
+
+  @override
+  String get reaction_play_audios_count_all => 'All';
+
+  @override
+  String get reaction_play_audios_count_specific => 'Specific';
 }

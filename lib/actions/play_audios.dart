@@ -1,8 +1,13 @@
+import 'dart:io';
+
 import 'package:collection/collection.dart';
+import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
+import 'package:twitch_listener/dropdown/dropdown_menu.dart';
+import 'package:twitch_listener/dropdown/simple_dropdown.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
@@ -23,11 +28,19 @@ class PlayAudiosWidget extends StatefulWidget {
 
 class _State extends State<PlayAudiosWidget> {
   late final RewardAction _action;
+  late final Audioplayer _audioplayer;
 
   @override
   void initState() {
     _action = widget.action;
+    _audioplayer = widget.audioplayer;
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    _stopVolumePlaying();
+    super.dispose();
   }
 
   @override
@@ -56,7 +69,7 @@ class _State extends State<PlayAudiosWidget> {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               style: CustomButtonStyle.secondary,
               theme: theme,
-              onTap: () {},
+              onTap: () => _selectFile(context),
             )
           ],
         ),
@@ -71,11 +84,93 @@ class _State extends State<PlayAudiosWidget> {
               style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
             ),
           )
-        ] else
-          ...files.mapIndexed((index, f) =>
-              _createAudioFileWidget(context, theme, entry: f, index: index))
+        ] else ...[
+          Column(
+            spacing: 8,
+            children: files
+                .mapIndexed((index, f) => _createAudioFileWidget(context, theme,
+                    entry: f, index: index))
+                .toList(),
+          ),
+          const Gap(12),
+          Text(context.localizations.reaction_play_audios_playback_settings,
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.w500,
+                  color: theme.textColorPrimary)),
+          const Gap(8),
+          Row(
+            spacing: 8,
+            children: [
+              Expanded(child: _createWaitCompletion(context, theme)),
+              Expanded(child: _createShuffle(context, theme)),
+              Expanded(child: _createNumberOfTracks(context, theme))
+            ],
+          )
+        ]
       ],
     );
+  }
+
+  final _waitCompletionKey = GlobalKey();
+  final _shuffleKey = GlobalKey();
+  final _countKey = GlobalKey();
+
+  Widget _createWaitCompletion(BuildContext context, ThemeData theme) {
+    return SimpleDropdown<bool>(
+        theme: theme,
+        title: context.localizations.reaction_play_audios_wait_for_completion,
+        available: [
+          Item(id: true, title: context.localizations.yes),
+          Item(id: false, title: context.localizations.no)
+        ],
+        globalKey: _waitCompletionKey,
+        selected: _action.awaitCompletion,
+        onSelected: (value) {
+          setState(() {
+            _action.awaitCompletion = value;
+          });
+        });
+  }
+
+  Widget _createNumberOfTracks(BuildContext context, ThemeData theme) {
+    final items = <Item<int>>[];
+    items.add(Item(
+        id: -1, title: context.localizations.reaction_play_audios_count_all));
+
+    for (int i = 0; i < _action.audios.length; i++) {
+      final count = i + 1;
+      items.add(Item(id: count, title: count.toString()));
+    }
+
+    return SimpleDropdown<int>(
+        theme: theme,
+        title: context.localizations.reaction_play_audios_count_title,
+        available: items,
+        globalKey: _countKey,
+        selected: _action.count ?? -1,
+        onSelected: (value) {
+          setState(() {
+            _action.count = value == -1 ? null : value;
+          });
+        });
+  }
+
+  Widget _createShuffle(BuildContext context, ThemeData theme) {
+    return SimpleDropdown<bool>(
+        theme: theme,
+        title: context.localizations.reaction_play_audios_shuffle,
+        available: [
+          Item(id: true, title: context.localizations.yes),
+          Item(id: false, title: context.localizations.no)
+        ],
+        globalKey: _shuffleKey,
+        selected: _action.randomize,
+        onSelected: (value) {
+          setState(() {
+            _action.randomize = value;
+          });
+        });
   }
 
   Widget _createAudioFileWidget(BuildContext context, ThemeData theme,
@@ -84,7 +179,7 @@ class _State extends State<PlayAudiosWidget> {
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(8),
           border: Border.all(color: theme.dividerColor, width: 0.5)),
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       child: Row(
         children: [
           const Gap(8),
@@ -131,7 +226,9 @@ class _State extends State<PlayAudiosWidget> {
           RippleIcon(
               borderRadius: BorderRadius.circular(8),
               icon: Assets.assetsIcDeleteWhite16dp,
-              onTap: () {},
+              onTap: () {
+                _handleDeleteClick(entry);
+              },
               size: 16,
               color: theme.textColorPrimary),
         ],
@@ -189,10 +286,7 @@ class _State extends State<PlayAudiosWidget> {
         data: SliderTheme.of(context).copyWith(
             inactiveTrackColor: inactiveColor,
             trackHeight: 14,
-            trackGap: 0,
             overlayColor: Colors.transparent,
-            minThumbSeparation: 0,
-            trackShape: const RoundedRectSliderTrackShape(),
             padding: EdgeInsets.zero,
             activeTrackColor: activeColor,
             thumbColor: thumbColor,
@@ -210,13 +304,60 @@ class _State extends State<PlayAudiosWidget> {
             onChanged: (v) => _onVolumeChange(file, v)));
   }
 
-  void _onVolumeStart(AudioEntry file, double v) {}
+  PlayToken? _playToken;
 
-  void _onVolumeEnd(AudioEntry file, double v) {}
+  void _onVolumeEnd(AudioEntry entry, double value) {
+    _stopVolumePlaying();
+  }
+
+  void _stopVolumePlaying() {
+    final playToken = _playToken;
+    _playToken = null;
+
+    if (playToken != null) {
+      _audioplayer.cancelByToken(playToken);
+    }
+  }
+
+  void _onVolumeStart(AudioEntry entry, double value) async {
+    _stopVolumePlaying();
+
+    final file = File(entry.path);
+
+    if (file.existsSync()) {
+      _playToken = await _audioplayer.playFileInfinitely(file.path,
+          volume: entry.volume);
+    }
+  }
+
+  void _selectFile(BuildContext context) async {
+    final result = await FilePicker.platform.pickFiles(
+        dialogTitle:
+            context.localizations.reaction_play_audios_select_files_dialog,
+        type: FileType.custom,
+        allowedExtensions: ['wav'],
+        allowMultiple: true);
+
+    final paths = result?.files
+            .where((f) => f.path != null)
+            .map((f) => f.path!)
+            .toList() ??
+        [];
+
+    setState(() {
+      _action.audios.addAll(paths.map((p) => AudioEntry(path: p)));
+    });
+  }
 
   void _onVolumeChange(AudioEntry file, double v) {
     setState(() {
       file.volume.set(v);
+    });
+  }
+
+  void _handleDeleteClick(AudioEntry entry) {
+    setState(() {
+      _action.audios.remove(entry);
     });
   }
 }

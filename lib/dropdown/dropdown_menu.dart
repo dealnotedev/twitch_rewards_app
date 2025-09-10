@@ -49,6 +49,7 @@ class DropdownPopupMenu<T> extends StatelessWidget {
 
   Widget _createItemWidget(ThemeData theme, Item<T> e) {
     final checked = e.id == selected;
+
     final icon = e.icon;
     return InkWell(
       onTap: () {

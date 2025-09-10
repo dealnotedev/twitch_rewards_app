@@ -477,6 +477,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Volume'**
   String get reaction_play_audios_volume;
+
+  /// No description provided for @reaction_play_audios_select_files_dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Select audio files'**
+  String get reaction_play_audios_select_files_dialog;
+
+  /// No description provided for @reaction_play_audios_playback_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Playback Settings'**
+  String get reaction_play_audios_playback_settings;
+
+  /// No description provided for @reaction_play_audios_wait_for_completion.
+  ///
+  /// In en, this message translates to:
+  /// **'Wait for Completion'**
+  String get reaction_play_audios_wait_for_completion;
+
+  /// No description provided for @reaction_play_audios_shuffle.
+  ///
+  /// In en, this message translates to:
+  /// **'Shuffle'**
+  String get reaction_play_audios_shuffle;
+
+  /// No description provided for @reaction_play_audios_count_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Number of Tracks'**
+  String get reaction_play_audios_count_title;
+
+  /// No description provided for @reaction_play_audios_count_all.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get reaction_play_audios_count_all;
+
+  /// No description provided for @reaction_play_audios_count_specific.
+  ///
+  /// In en, this message translates to:
+  /// **'Specific'**
+  String get reaction_play_audios_count_specific;
 }
 
 class _AppLocalizationsDelegate

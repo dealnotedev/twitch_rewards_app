@@ -122,5 +122,12 @@
   "reaction_play_audios_audio_files_title": "Audio Files",
   "reaction_play_audios_no_files": "No audio files configured. Click \"Add File\" to start.",
   "reaction_play_audios_button_add_file": "Add File",
-  "reaction_play_audios_volume": "Volume"
+  "reaction_play_audios_volume": "Volume",
+  "reaction_play_audios_select_files_dialog": "Select audio files",
+  "reaction_play_audios_playback_settings": "Playback Settings",
+  "reaction_play_audios_wait_for_completion": "Wait for Completion",
+  "reaction_play_audios_shuffle": "Shuffle",
+  "reaction_play_audios_count_title": "Number of Tracks",
+  "reaction_play_audios_count_all": "All",
+  "reaction_play_audios_count_specific": "Specific"
 }
