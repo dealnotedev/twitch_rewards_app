@@ -230,7 +230,8 @@ class _State extends State<RewardConfiguratorWidget> {
                 stream: _nameController.stream(),
                 initialData: _nameController.text,
                 builder: (cntx, name) {
-                  final found = widget.twitchShared.redemptions.current[name.requireData];
+                  final found =
+                      widget.twitchShared.redemptions.current[name.requireData];
                   return Row(
                     children: [
                       if (found != null) ...[

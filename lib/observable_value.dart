@@ -48,16 +48,16 @@ class ObservableValueUtils {
   ObservableValueUtils._();
 
   static Stream<R> combineObservableChanges2<A, B, R>(
-      ObservableValue<A> a,
-      ObservableValue<B> b,
-      R Function(A a, B b) combiner,
-      ) {
+    ObservableValue<A> a,
+    ObservableValue<B> b,
+    R Function(A a, B b) combiner,
+  ) {
     final controller = StreamController<R>.broadcast();
 
     final subA =
-    a.changes.listen((v) => controller.add(combiner(v, b.current)));
+        a.changes.listen((v) => controller.add(combiner(v, b.current)));
     final subB =
-    b.changes.listen((v) => controller.add(combiner(a.current, v)));
+        b.changes.listen((v) => controller.add(combiner(a.current, v)));
 
     controller.onCancel = () {
       subA.cancel();
@@ -68,21 +68,21 @@ class ObservableValueUtils {
   }
 
   static Stream<R> combineObservableChanges3<A, B, C, R>(
-      ObservableValue<A> a,
-      ObservableValue<B> b,
+    ObservableValue<A> a,
+    ObservableValue<B> b,
       ObservableValue<C> c,
-      R Function(A a, B b, C c) combiner,
-      ) {
+    R Function(A a, B b, C c) combiner,
+  ) {
     final controller = StreamController<R>.broadcast();
 
     final subA = a.changes.listen(
-          (v) => controller.add(combiner(v, b.current, c.current)),
+      (v) => controller.add(combiner(v, b.current, c.current)),
     );
     final subB = b.changes.listen(
-          (v) => controller.add(combiner(a.current, v, c.current)),
+      (v) => controller.add(combiner(a.current, v, c.current)),
     );
     final subC = c.changes.listen(
-          (v) => controller.add(combiner(a.current, b.current, v)),
+      (v) => controller.add(combiner(a.current, b.current, v)),
     );
 
     controller.onCancel = () {

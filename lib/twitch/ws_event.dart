@@ -54,34 +54,33 @@ class WsMessageEvent {
   final String? messageId;
   final String? color;
 
-  WsMessageEvent({
-    required this.id,
-    required this.userName,
-    required this.userId,
-    required this.reward,
-    required this.message,
-    required this.messageType,
-    required this.chatterUserId,
-    required this.chatterUserName,
-    required this.messageId,
-    required this.color
-  });
+  WsMessageEvent(
+      {required this.id,
+      required this.userName,
+      required this.userId,
+      required this.reward,
+      required this.message,
+      required this.messageType,
+      required this.chatterUserId,
+      required this.chatterUserName,
+      required this.messageId,
+      required this.color});
 
   static WsMessageEvent fromJson(dynamic json) {
     final rewardJson = json['reward'];
     final messageJson = json['message'];
     return WsMessageEvent(
-      id: json['id'] as String?,
-      userName: json['user_name'] as String?,
-      userId: json['user_id'] as String?,
-      message: messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
-      reward: rewardJson != null ? WsReward.fromJson(rewardJson) : null,
-      messageType: json['message_type'] as String?,
+        id: json['id'] as String?,
+        userName: json['user_name'] as String?,
+        userId: json['user_id'] as String?,
+        message:
+            messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
+        reward: rewardJson != null ? WsReward.fromJson(rewardJson) : null,
+        messageType: json['message_type'] as String?,
         chatterUserId: json['chatter_user_id'] as String?,
         chatterUserName: json['chatter_user_name'] as String?,
         messageId: json['message_id'] as String?,
-        color: json['color'] as String?
-    );
+        color: json['color'] as String?);
   }
 }
 
@@ -104,10 +103,9 @@ class WsChatMessage {
   static WsChatMessage fromJson(dynamic json) {
     return WsChatMessage(
       text: json['text'] as String?,
-      fragments:
-          ((json['fragments'] as List<dynamic>? ?? []).map(
-            WsChatMessageFragment.fromJson,
-          )).toList(),
+      fragments: ((json['fragments'] as List<dynamic>? ?? []).map(
+        WsChatMessageFragment.fromJson,
+      )).toList(),
     );
   }
 }

@@ -90,45 +90,41 @@ class _State extends State<PlayAudiosWidget> {
         children: [
           ElevatedButton(onPressed: _selectFile, child: const Text('Add')),
           const Gap(16),
-          Row(
-              children: [
-                const Text('Wait completion'),
-                Checkbox(
-                    value: _action.awaitCompletion,
-                    onChanged: _handleAwaitCompletionCheck),
-              ]),
+          Row(children: [
+            const Text('Wait completion'),
+            Checkbox(
+                value: _action.awaitCompletion,
+                onChanged: _handleAwaitCompletionCheck),
+          ]),
           const Gap(8),
-          Row(
-              children: [
-                const Text('Random'),
-                Checkbox(
-                    value: _action.randomize, onChanged: _handleRandomCheck),
-              ]),
+          Row(children: [
+            const Text('Random'),
+            Checkbox(value: _action.randomize, onChanged: _handleRandomCheck),
+          ]),
           const Gap(8),
           if (_action.randomize) ...[
-            Row(
-                children: [
-                  const Text('Count'),
-                  RippleIcon(
-                      size: 16,
-                      iconWidget: const Icon(
-                        Icons.remove,
-                        size: 16,
-                      ),
-                      onTap: _decrementCount),
-                  Text(
-                    _action.count?.toString() ?? 'All',
-                    style: const TextStyle(
-                        color: Colors.green, fontWeight: FontWeight.w600),
+            Row(children: [
+              const Text('Count'),
+              RippleIcon(
+                  size: 16,
+                  iconWidget: const Icon(
+                    Icons.remove,
+                    size: 16,
                   ),
-                  RippleIcon(
-                      size: 16,
-                      iconWidget: const Icon(
-                        Icons.add,
-                        size: 16,
-                      ),
-                      onTap: _incrementCount),
-                ]),
+                  onTap: _decrementCount),
+              Text(
+                _action.count?.toString() ?? 'All',
+                style: const TextStyle(
+                    color: Colors.green, fontWeight: FontWeight.w600),
+              ),
+              RippleIcon(
+                  size: 16,
+                  iconWidget: const Icon(
+                    Icons.add,
+                    size: 16,
+                  ),
+                  onTap: _incrementCount),
+            ]),
           ],
         ],
       )
@@ -222,7 +218,8 @@ class _State extends State<PlayAudiosWidget> {
     final file = File(entry.path);
 
     if (file.existsSync()) {
-      _playToken = await _audioplayer.playFileInfinitely(file.path, volume: entry.volume);
+      _playToken = await _audioplayer.playFileInfinitely(file.path,
+          volume: entry.volume);
     }
   }
 
@@ -253,9 +250,7 @@ class _State extends State<PlayAudiosWidget> {
     super.didUpdateWidget(oldWidget);
   }
 
-  void _handleSave() {
-
-  }
+  void _handleSave() {}
 
   void _handleFileDeleteClick(int index) {
     setState(() {

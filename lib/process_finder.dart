@@ -52,7 +52,7 @@ class ProcessFinder {
     }
   }
 
-  static uninitialize(){
+  static uninitialize() {
     CoUninitialize();
   }
 
@@ -158,8 +158,7 @@ class ProcessFinder {
       while (enumerator.ptr.address > 0) {
         final pClsObj = calloc<Pointer<COMObject>>();
 
-        hr = enumerator.next(
-            WBEM_INFINITE, 1, pClsObj, uReturn);
+        hr = enumerator.next(WBEM_INFINITE, 1, pClsObj, uReturn);
 
         // Break out of the while loop if we've run out of processes to inspect
         if (uReturn.value == 0) break;

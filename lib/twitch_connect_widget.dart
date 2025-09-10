@@ -29,7 +29,10 @@ class _State extends State<TwitchConnectWidget> {
   @override
   void initState() {
     _settings = widget.settings;
-    _api = TwitchApi(settings: _settings, clientSecret: twitchClientSecret, broadcasterId: (_settings.twitchAuth?.broadcasterId)!);
+    _api = TwitchApi(
+        settings: _settings,
+        clientSecret: twitchClientSecret,
+        broadcasterId: (_settings.twitchAuth?.broadcasterId)!);
 
     _fetchUserInfo();
     super.initState();
@@ -144,7 +147,7 @@ class _State extends State<TwitchConnectWidget> {
                     ),
                   ],
                 ),
-                    const Gap(4),
+                const Gap(4),
                 RichText(
                     text: TextSpan(children: [
                   const TextSpan(
@@ -167,8 +170,8 @@ class _State extends State<TwitchConnectWidget> {
                     decoration: BoxDecoration(
                         color: Colors.red,
                         borderRadius: BorderRadius.circular(4)),
-                    padding:
-                        const EdgeInsets.only(left: 8, right: 8, top: 2, bottom: 4),
+                    padding: const EdgeInsets.only(
+                        left: 8, right: 8, top: 2, bottom: 4),
                     child: Text(
                       '${stream.viewerCount} viewers',
                       style: const TextStyle(

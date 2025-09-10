@@ -3,12 +3,15 @@ import 'package:twitch_listener/flutter_switch.dart';
 import 'package:twitch_listener/themes.dart';
 
 class CustomSwitch extends StatelessWidget {
-
   final ThemeData theme;
   final ValueChanged<bool> onToggle;
   final bool value;
 
-  const CustomSwitch({super.key, required this.onToggle, required this.value, required this.theme});
+  const CustomSwitch(
+      {super.key,
+      required this.onToggle,
+      required this.value,
+      required this.theme});
 
   @override
   Widget build(BuildContext context) {
@@ -17,7 +20,7 @@ class CustomSwitch extends StatelessWidget {
     final Color activeColor;
     final Color inactiveColor;
 
-    if(theme.dark){
+    if (theme.dark) {
       activeColor = const Color(0xFFEEEEEE);
       inactiveColor = const Color(0xFF252525);
       thumbColor = value ? const Color(0xFF121212) : const Color(0xFFEEEEEE);
@@ -35,6 +38,7 @@ class CustomSwitch extends StatelessWidget {
         toggleColor: thumbColor,
         activeColor: activeColor,
         inactiveColor: inactiveColor,
-        value: value, onToggle: onToggle);
+        value: value,
+        onToggle: onToggle);
   }
 }

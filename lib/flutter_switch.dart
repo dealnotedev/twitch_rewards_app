@@ -371,7 +371,8 @@ class _FlutterSwitchState extends State<FlutterSwitch>
                           duration: widget.duration,
                           child: Container(
                             width: textSpace,
-                            padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                            padding:
+                                const EdgeInsets.symmetric(horizontal: 4.0),
                             alignment: Alignment.centerRight,
                             child: _inactiveText,
                           ),
@@ -428,6 +429,7 @@ class _FlutterSwitchState extends State<FlutterSwitch>
 
   FontWeight get _activeTextFontWeight =>
       widget.activeTextFontWeight ?? FontWeight.w900;
+
   FontWeight get _inactiveTextFontWeight =>
       widget.inactiveTextFontWeight ?? FontWeight.w900;
 

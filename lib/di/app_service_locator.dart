@@ -8,7 +8,8 @@ import 'package:twitch_listener/twitch_shared.dart';
 class AppServiceLocator extends ServiceLocator {
   static late final AppServiceLocator instance;
 
-  static AppServiceLocator init({required Settings settings, required Audioplayer audioplayer}) {
+  static AppServiceLocator init(
+      {required Settings settings, required Audioplayer audioplayer}) {
     instance = AppServiceLocator._(settings, audioplayer);
     return instance;
   }

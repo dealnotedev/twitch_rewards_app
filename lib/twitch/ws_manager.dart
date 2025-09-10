@@ -210,7 +210,7 @@ class WebSocketManager {
         ),
       );
 
-      if(_listenFollow){
+      if (_listenFollow) {
         await _registerInternal(
           api,
           _Registration(

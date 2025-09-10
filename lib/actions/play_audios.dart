@@ -14,7 +14,8 @@ class PlayAudiosWidget extends StatefulWidget {
   final RewardAction action;
   final Audioplayer audioplayer;
 
-  const PlayAudiosWidget({super.key, required this.action, required this.audioplayer});
+  const PlayAudiosWidget(
+      {super.key, required this.action, required this.audioplayer});
 
   @override
   State<StatefulWidget> createState() => _State();

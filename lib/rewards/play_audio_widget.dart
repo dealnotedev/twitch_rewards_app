@@ -24,7 +24,6 @@ class PlayAudioWidget extends StatefulWidget {
 }
 
 class _State extends State<PlayAudioWidget> {
-
   late final Audioplayer _audioplayer;
 
   @override
@@ -147,8 +146,8 @@ class _State extends State<PlayAudioWidget> {
     final file = File(_pathController.text);
 
     if (file.existsSync()) {
-      _playToken = await _audioplayer
-          .playFileInfinitely(file.path, volume: widget.action.volume);
+      _playToken = await _audioplayer.playFileInfinitely(file.path,
+          volume: widget.action.volume);
     }
   }
 }

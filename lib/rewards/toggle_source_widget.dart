@@ -16,7 +16,6 @@ class ToggleSourceWidget extends StatefulWidget {
 }
 
 class _State extends State<ToggleSourceWidget> {
-
   @override
   void initState() {
     _sourceNameController =

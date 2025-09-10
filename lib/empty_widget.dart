@@ -2,13 +2,16 @@ import 'package:flutter/material.dart';
 import 'package:twitch_listener/themes.dart';
 
 class EmptyWidget extends StatelessWidget {
-
   final String text;
   final ThemeData theme;
 
   final EdgeInsets margin;
 
-  const EmptyWidget({super.key, required this.text, required this.theme, this.margin = EdgeInsets.zero});
+  const EmptyWidget(
+      {super.key,
+      required this.text,
+      required this.theme,
+      this.margin = EdgeInsets.zero});
 
   @override
   Widget build(BuildContext context) {
