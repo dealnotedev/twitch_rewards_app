@@ -201,7 +201,7 @@ class _State extends State<PlayAudioWidget> {
         dialogTitle:
             context.localizations.reaction_play_audio_select_file_dialog,
         type: FileType.custom,
-        allowedExtensions: ['wav', 'mp3'],
+        allowedExtensions: ['wav', 'mp3', 'ogg'],
         allowMultiple: false);
 
     final path = result?.files.firstOrNull?.path;
