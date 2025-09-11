@@ -63,11 +63,10 @@ class _State extends State<RewardConfiguratorWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () => DropdownScope.of(context).clear(),
-      behavior: HitTestBehavior.opaque,
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 812),
+    return Container(
+      color: theme.surfacePrimary,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 48),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           crossAxisAlignment: CrossAxisAlignment.start,

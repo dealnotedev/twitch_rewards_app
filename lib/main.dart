@@ -39,12 +39,7 @@ void main() async {
   final locator = AppServiceLocator.init(
       settings: settings, audioplayer: Audioplayer(soloud: soloud));
 
-  final dropdownManager =
-      DropdownManager(offset: const Offset(0, -40) // Window toolbar height
-          );
-
-  final router =
-      ApplicationRouter(locator: locator, dropdownManager: dropdownManager);
+  final router = ApplicationRouter(locator: locator);
 
   runApp(MyApp(
     locator: locator,
@@ -86,6 +81,10 @@ class _RebornPageState extends State<MyApp> {
     super.initState();
   }
 
+  final _dropdownManager =
+      DropdownManager(offset: const Offset(0, -40) // Window toolbar height
+          );
+
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
@@ -94,7 +93,7 @@ class _RebornPageState extends State<MyApp> {
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         home: DropdownScope(
-            manager: _router.dropdownManager,
+            manager: _dropdownManager,
             child: Builder(builder: (context) {
               final theme = Theme.of(context);
               return Scaffold(
@@ -109,7 +108,11 @@ class _RebornPageState extends State<MyApp> {
                         SimpleDivider(theme: theme),
                         Expanded(
                             child: Navigator(
-                          observers: [_router],
+                          observers: [
+                            _router,
+                            DropdownNavigationObserver(
+                                manager: _dropdownManager)
+                          ],
                           onGenerateRoute: _router.routerFactory,
                           initialRoute: ApplicationRouter.routeRoot,
                         ))

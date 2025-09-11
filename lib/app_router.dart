@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/di/service_locator.dart';
-import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_configurator.dart';
@@ -12,9 +11,8 @@ import 'package:twitch_listener/twitch_state.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
-  final DropdownManager dropdownManager;
 
-  ApplicationRouter({required this.locator, required this.dropdownManager});
+  ApplicationRouter({required this.locator});
 
   static const routeRoot = '/';
   static const _routeRewardConfig = '/reward/config';
@@ -26,7 +24,6 @@ class ApplicationRouter extends NavigatorObserver {
 
   @override
   void didPop(Route route, Route? previousRoute) {
-    dropdownManager.clear();
     _changes.add(_RouteChange(current: previousRoute, previous: route));
     _current = previousRoute;
     super.didPop(route, previousRoute);
@@ -34,7 +31,6 @@ class ApplicationRouter extends NavigatorObserver {
 
   @override
   void didPush(Route route, Route? previousRoute) {
-    dropdownManager.clear();
     _changes.add(_RouteChange(current: route, previous: previousRoute));
     _current = route;
     super.didPush(route, previousRoute);
@@ -73,14 +69,12 @@ class ApplicationRouter extends NavigatorObserver {
               settings: settings,
               builder: (context) {
                 final args = settings.arguments as _RewardConfigArgs;
-                return DropdownScope(
-                    manager: dropdownManager,
-                    child: RewardConfiguratorWidget(
-                      audioplayer: locator.provide(),
-                      twitchShared: locator.provide(),
-                      executor: locator.provide(),
-                      reward: args.reward,
-                    ));
+                return RewardConfiguratorWidget(
+                  audioplayer: locator.provide(),
+                  twitchShared: locator.provide(),
+                  executor: locator.provide(),
+                  reward: args.reward,
+                );
               });
 
         case routeRoot:
