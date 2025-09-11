@@ -645,6 +645,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Enter duration in seconds'**
   String get reaction_delay_seconds_hint;
+
+  /// No description provided for @reaction_set_scene_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter scene name and press \"Enter\"'**
+  String get reaction_set_scene_name_hint;
 }
 
 class _AppLocalizationsDelegate

@@ -6,6 +6,7 @@ import 'package:twitch_listener/actions/enable_input.dart';
 import 'package:twitch_listener/actions/enable_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
+import 'package:twitch_listener/actions/set_scene.dart';
 import 'package:twitch_listener/actions/toggle_filter.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
@@ -488,6 +489,9 @@ class _ActionState extends State<_ActionWidget> {
 
       case RewardAction.typeToggleFilter:
         return ToggleFilterWidget(action: _action);
+
+      case RewardAction.typeSetScene:
+        return SetSceneWidget(action: _action);
     }
 
     return Container(

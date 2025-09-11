@@ -150,5 +150,6 @@
   "action_disable": "Disable",
   "action_toggle": "Toggle",
   "reaction_delay_title": "Delay (seconds)",
-  "reaction_delay_seconds_hint": "Enter duration in seconds"
+  "reaction_delay_seconds_hint": "Enter duration in seconds",
+  "reaction_set_scene_name_hint": "Enter scene name and press \"Enter\""
 }

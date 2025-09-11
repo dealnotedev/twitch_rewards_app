@@ -318,4 +318,8 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_delay_seconds_hint => 'Enter duration in seconds';
+
+  @override
+  String get reaction_set_scene_name_hint =>
+      'Enter scene name and press \"Enter\"';
 }
