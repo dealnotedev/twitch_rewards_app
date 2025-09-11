@@ -74,7 +74,7 @@ dependencies:
 
   hid_listener: ^2.0.1
 
-  flutter_soloud: ^3.2.7
+  flutter_soloud: ^3.3.6
 
   flutter_svg: ^2.2.0
 
