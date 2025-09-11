@@ -531,6 +531,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Back'**
   String get button_back;
+
+  /// No description provided for @reward_configigure_basic_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Settings'**
+  String get reward_configigure_basic_settings;
 }
 
 class _AppLocalizationsDelegate

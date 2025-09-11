@@ -131,5 +131,6 @@
   "reaction_play_audios_count_all": "All",
   "reaction_play_audios_count_specific": "Specific",
   "button_save_changes": "Save Changes",
-  "button_back": "Back"
+  "button_back": "Back",
+  "reward_configigure_basic_settings": "Basic Settings"
 }

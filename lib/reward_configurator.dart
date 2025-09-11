@@ -66,121 +66,176 @@ class _State extends State<RewardConfiguratorWidget> {
     final theme = Theme.of(context);
     return Container(
       color: theme.surfacePrimary,
-      child: SingleChildScrollView(
-        padding: const EdgeInsets.only(bottom: 48),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Gap(8),
-            _createToolbar(context, theme),
-            const Gap(8),
-            SimpleDivider(theme: theme),
-            Flexible(
-                child: SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Gap(16),
-                  Row(
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Gap(8),
+          _createToolbar(context, theme),
+          const Gap(8),
+          SimpleDivider(theme: theme),
+          Expanded(
+              child: SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 48),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Gap(16),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                      color: theme.surfaceSecondary,
+                      border: Border.all(
+                          color: theme.dividerColor,
+                          width: 0.5,
+                          strokeAlign: BorderSide.strokeAlignOutside),
+                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Gap(16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              context.localizations.reward_name_title,
-                              style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                  color: theme.textColorPrimary),
-                            ),
-                            const Gap(6),
-                            TextFieldDecoration(
-                                clearable: false,
-                                builder: (cntx, decoration, style) {
-                                  return TextField(
-                                    decoration: decoration,
-                                    style: style,
-                                    focusNode: _nameFocusNode,
-                                    controller: _nameController,
-                                  );
-                                },
-                                hint: context.localizations.reward_name_hint,
-                                controller: _nameController,
-                                focusNode: _nameFocusNode,
-                                theme: theme)
-                          ],
-                        ),
-                      ),
-                      Expanded(
-                          child: Container(
-                        child: Lottie.asset(Assets.assetsRex,
-                            height: 60, width: 50, frameRate: FrameRate.max),
-                      )),
-                    ],
-                  ),
-                  const Gap(16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      const Gap(16),
-                      Expanded(
-                          child: Text(
-                        context.localizations.reaction_chain_title,
+                      Text(
+                        context.localizations.reward_configigure_basic_settings,
                         style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.w600,
-                            color: theme.textColorPrimary),
-                      )),
-                      CustomButton(
-                        prefixIcon: Assets.assetsIcPlayWhite16dp,
-                        text: '',
-                        style: CustomButtonStyle.secondary,
-                        theme: theme,
-                        onTap: () {
-                          widget.executor.execute(_reward);
-                        },
+                            fontSize: 14, color: theme.textColorPrimary),
                       ),
                       const Gap(8),
-                      CustomButton(
-                        key: _addKey,
-                        prefixIcon: Assets.assetsIcPlusWhite16dp,
-                        suffixIcon: Assets.assetsIcArrowDownWhite16dp,
-                        text: context.localizations.button_add_reaction,
-                        style: CustomButtonStyle.primary,
-                        theme: theme,
-                        onTap: () {
-                          _showAddDropdown(context);
-                        },
+                      Row(
+                        children: [
+                          Expanded(
+                              flex: 2,
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    context.localizations.reward_name_title,
+                                    style: TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.w600,
+                                        color: theme.textColorPrimary),
+                                  ),
+                                  const Gap(6),
+                                  TextFieldDecoration(
+                                      clearable: false,
+                                      builder: (cntx, decoration, style) {
+                                        return TextField(
+                                          decoration: decoration,
+                                          style: style,
+                                          focusNode: _nameFocusNode,
+                                          controller: _nameController,
+                                        );
+                                      },
+                                      hint: context
+                                          .localizations.reward_name_hint,
+                                      controller: _nameController,
+                                      focusNode: _nameFocusNode,
+                                      theme: theme),
+                                ],
+                              )),
+                          const Gap(16),
+                          Expanded(
+                              flex: 1,
+                              child: Lottie.asset(Assets.assetsRex,
+                                  width: 50,
+                                  height: 60,
+                                  frameRate: FrameRate.max))
+                        ],
                       ),
-                      const Gap(16)
+                      const Gap(8),
+                      Row(
+                        children: [
+                          CustomSwitch(
+                            value: !_reward.disabled,
+                            onToggle: _handleStatusChange,
+                            theme: theme,
+                          ),
+                          const Gap(8),
+                          Expanded(
+                              child: Text(
+                            _reward.disabled
+                                ? context.localizations.reward_status_inactive
+                                : context.localizations.reward_status_active,
+                            style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.w600,
+                                color: theme.textColorPrimary),
+                          ))
+                        ],
+                      )
                     ],
                   ),
-                  if (_reward.handlers.isEmpty) ...[
-                    const Gap(8),
-                    EmptyWidget(
-                        text: context.localizations.reaction_chain_empty_text,
-                        margin: const EdgeInsets.symmetric(horizontal: 16),
-                        theme: theme),
-                    const Gap(16),
-                  ] else ...[
-                    const Gap(4),
-                    ..._reward.handlers.map((a) => _ActionWidget(
-                        audioplayer: widget.audioplayer,
-                        onDelete: () => _handleActionDelete(a),
-                        key: ValueKey(a.id),
-                        action: a,
-                        theme: theme)),
-                    const Gap(12),
-                  ]
-                ],
-              ),
-            ))
-          ],
-        ),
+                ),
+                const Gap(16),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  decoration: BoxDecoration(
+                      color: theme.surfaceSecondary,
+                      border: Border.all(
+                          color: theme.dividerColor,
+                          width: 0.5,
+                          strokeAlign: BorderSide.strokeAlignOutside),
+                      borderRadius: BorderRadius.circular(12)),
+                  padding: const EdgeInsets.only(
+                      top: 16, left: 16, right: 16, bottom: 12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Expanded(
+                              child: Text(
+                            context.localizations.reaction_chain_title,
+                            style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: theme.textColorPrimary),
+                          )),
+                          CustomButton(
+                            prefixIcon: Assets.assetsIcPlayWhite16dp,
+                            text: '',
+                            style: CustomButtonStyle.secondary,
+                            theme: theme,
+                            onTap: () {
+                              widget.executor.execute(_reward);
+                            },
+                          ),
+                          const Gap(8),
+                          CustomButton(
+                            key: _addKey,
+                            prefixIcon: Assets.assetsIcPlusWhite16dp,
+                            suffixIcon: Assets.assetsIcArrowDownWhite16dp,
+                            text: context.localizations.button_add_reaction,
+                            style: CustomButtonStyle.secondary,
+                            theme: theme,
+                            onTap: () {
+                              _showAddDropdown(context);
+                            },
+                          ),
+                        ],
+                      ),
+                      if (_reward.handlers.isEmpty) ...[
+                        const Gap(8),
+                        EmptyWidget(
+                            text:
+                                context.localizations.reaction_chain_empty_text,
+                            theme: theme),
+                      ] else ...[
+                        const Gap(4),
+                        ..._reward.handlers.map((a) => _ActionWidget(
+                            audioplayer: widget.audioplayer,
+                            onDelete: () => _handleActionDelete(a),
+                            key: ValueKey(a.id),
+                            action: a,
+                            theme: theme)),
+                      ]
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ))
+        ],
       ),
     );
   }
@@ -232,16 +287,6 @@ class _State extends State<RewardConfiguratorWidget> {
                   fontWeight: FontWeight.w600,
                   color: theme.textColorPrimary),
             )),
-            const Gap(8),
-            SimpleIndicator(
-                fontSize: 12,
-                text: _reward.disabled
-                    ? context.localizations.channel_points_inactive
-                    : context.localizations.channel_points_active,
-                theme: theme,
-                style: _reward.disabled
-                    ? IndicatorStyle.outlined
-                    : IndicatorStyle.bold),
             StreamBuilder(
                 stream: _nameController.stream(),
                 initialData: _nameController.text,
@@ -262,24 +307,7 @@ class _State extends State<RewardConfiguratorWidget> {
                   );
                 }),
           ],
-        )),
-        CustomSwitch(
-          value: !_reward.disabled,
-          onToggle: _handleStatusChange,
-          theme: theme,
-        ),
-        const Gap(8),
-        RippleIcon(
-          borderRadius: BorderRadius.circular(8),
-          icon: Assets.assetsIcCloseWhite16dp,
-          hoverColor: const Color(0xFFD4183D),
-          size: 16,
-          color: theme.textColorPrimary,
-          onTap: () {
-            Navigator.of(context).pop();
-          },
-        ),
-        const Gap(8),
+        ))
       ],
     );
   }
@@ -360,7 +388,7 @@ class _ActionState extends State<_ActionWidget> {
     final attrs = RewardActionAtts.forType(context, _action.type);
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
