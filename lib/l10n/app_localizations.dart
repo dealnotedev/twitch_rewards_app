@@ -537,6 +537,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Basic Settings'**
   String get reward_configigure_basic_settings;
+
+  /// No description provided for @reaction_play_audio_path_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'File path'**
+  String get reaction_play_audio_path_hint;
+
+  /// No description provided for @button_select_file.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File'**
+  String get button_select_file;
+
+  /// No description provided for @reaction_play_audio_select_file_dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Select audio file'**
+  String get reaction_play_audio_select_file_dialog;
 }
 
 class _AppLocalizationsDelegate

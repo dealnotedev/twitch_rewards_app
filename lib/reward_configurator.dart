@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
+import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
@@ -463,6 +464,9 @@ class _ActionState extends State<_ActionWidget> {
     switch (_action.type) {
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(
+            action: _action, audioplayer: widget.audioplayer);
+      case RewardAction.typePlayAudio:
+        return PlayAudioWidget(
             action: _action, audioplayer: widget.audioplayer);
     }
 

@@ -1,5 +1,6 @@
 // ignore: unused_import
 import 'package:intl/intl.dart' as intl;
+
 import 'app_localizations.dart';
 
 // ignore_for_file: type=lint
@@ -263,4 +264,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reward_configigure_basic_settings => 'Basic Settings';
+
+  @override
+  String get reaction_play_audio_path_hint => 'File path';
+
+  @override
+  String get button_select_file => 'Select File';
+
+  @override
+  String get reaction_play_audio_select_file_dialog => 'Select audio file';
 }
