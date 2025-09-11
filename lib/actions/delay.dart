@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:gap/gap.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
-import 'package:twitch_listener/themes.dart';
 
 class DelayWidget extends StatefulWidget {
   final RewardAction action;
@@ -43,47 +41,26 @@ class _State extends State<DelayWidget> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    return Row(
-      children: [
-        Expanded(
-            child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              context.localizations.reaction_delay_title,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: theme.textColorPrimary),
-            ),
-            const Gap(6),
-            TextFieldDecoration(
-                clearable: false,
-                builder: (cntx, decoration, style) {
-                  return TextField(
-                    controller: _secondsController,
-                    focusNode: _secondsFocusNode,
-                    maxLines: 1,
-                    keyboardType: TextInputType.number,
-                    inputFormatters: <TextInputFormatter>[
-                      FilteringTextInputFormatter.digitsOnly
-                    ],
-                    textInputAction: TextInputAction.search,
-                    style: style,
-                    decoration: decoration,
-                  );
-                },
-                hint: context.localizations.reaction_delay_seconds_hint,
-                controller: _secondsController,
-                focusNode: _secondsFocusNode,
-                theme: theme)
-          ],
-        )),
-        const Gap(8),
-        const Expanded(child: SizedBox.shrink())
-      ],
-    );
+    return TextFieldDecoration(
+        clearable: false,
+        builder: (cntx, decoration, style) {
+          return TextField(
+            controller: _secondsController,
+            focusNode: _secondsFocusNode,
+            maxLines: 1,
+            keyboardType: TextInputType.number,
+            inputFormatters: <TextInputFormatter>[
+              FilteringTextInputFormatter.digitsOnly
+            ],
+            textInputAction: TextInputAction.search,
+            style: style,
+            decoration: decoration,
+          );
+        },
+        hint: context.localizations.reaction_delay_seconds_hint,
+        controller: _secondsController,
+        focusNode: _secondsFocusNode,
+        theme: theme);
   }
 
   void _handleSecondsEdit() {

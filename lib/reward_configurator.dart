@@ -425,14 +425,13 @@ class _ActionState extends State<_ActionWidget> {
               SimpleIcon.simpleSquare(attrs.icon,
                   size: 16, color: theme.textColorPrimary),
               const Gap(12),
-              Expanded(
-                  child: Text(
-                attrs.title,
+              Text(
+                _getActionTitle(context, attrs: attrs),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(fontSize: 13, color: theme.textColorPrimary),
-              )),
-              const Gap(12),
+              ),
+              Expanded(child: _createAdditionalHeaderWidget(context, theme)),
               if (_enableDisableAvailable) ...[
                 CustomSwitch(
                     onToggle: _handleToggle,
@@ -450,11 +449,7 @@ class _ActionState extends State<_ActionWidget> {
             ],
           ),
           const Gap(8),
-          SimpleDivider(theme: theme),
-          Padding(
-            padding: const EdgeInsets.all(16),
-            child: _createInternal(context, theme),
-          ),
+          ..._createCustomWidgets(context, theme)
         ],
       ),
     );
@@ -466,6 +461,39 @@ class _ActionState extends State<_ActionWidget> {
     setState(() {
       _action.disabled = !checked;
     });
+  }
+
+  static String _getActionTitle(BuildContext context,
+      {required RewardActionAtts attrs}) {
+    switch (attrs.type) {
+      case RewardAction.typeDelay:
+        return context.localizations.reaction_delay_title;
+      default:
+        return attrs.title;
+    }
+  }
+
+  List<Widget> _createCustomWidgets(BuildContext context, ThemeData theme) {
+    if (_action.type == RewardAction.typeDelay) {
+      return [];
+    }
+    return [
+      SimpleDivider(theme: theme),
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: _createInternal(context, theme),
+      ),
+    ];
+  }
+
+  Widget _createAdditionalHeaderWidget(BuildContext context, ThemeData theme) {
+    if (_action.type != RewardAction.typeDelay) {
+      return const SizedBox.shrink();
+    }
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+      child: DelayWidget(action: _action),
+    );
   }
 
   Widget _createInternal(BuildContext context, ThemeData theme) {
