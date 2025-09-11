@@ -53,6 +53,7 @@ class _State extends State<PlayAudiosWidget> {
       mainAxisSize: MainAxisSize.min,
       children: [
         Row(
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
             Expanded(
                 child: Text(

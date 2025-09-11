@@ -9,6 +9,7 @@ class Assets {
   static const String assetsIcAudioFileWhite16dp =
       'assets/ic_audio_file_white_16dp.png';
   static const String assetsIcAudioWhite16dp = 'assets/ic_audio_white_16dp.png';
+  static const String assetsIcBackWhite16dp = 'assets/ic_back_white_16dp.png';
   static const String assetsIcCheckWhite16dp = 'assets/ic_check_white_16dp.png';
   static const String assetsIcClockWhite16dp = 'assets/ic_clock_white_16dp.png';
   static const String assetsIcCloseWhite16dp = 'assets/ic_close_white_16dp.png';
