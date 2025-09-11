@@ -399,7 +399,7 @@ class _ActionState extends State<_ActionWidget> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(8),
           border: Border(
             left: BorderSide(
               color: theme.dividerColor,
@@ -511,9 +511,6 @@ class _ActionState extends State<_ActionWidget> {
 
       case RewardAction.typeEnableInput:
         return EnableInputWidget(action: _action);
-
-      case RewardAction.typeDelay:
-        return DelayWidget(action: _action);
 
       case RewardAction.typeToggleFilter:
         return ToggleFilterWidget(action: _action);
