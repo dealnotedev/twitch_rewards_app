@@ -580,6 +580,18 @@ abstract class AppLocalizations {
   /// **'Source 1'**
   String get source_name_hint;
 
+  /// No description provided for @input_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Input name'**
+  String get input_name_title;
+
+  /// No description provided for @input_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mic/Aux'**
+  String get input_name_hint;
+
   /// No description provided for @action_title.
   ///
   /// In en, this message translates to:

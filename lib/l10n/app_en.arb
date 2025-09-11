@@ -140,6 +140,8 @@
   "scene_name_hint": "Scene Default",
   "source_name_title": "Source name",
   "source_name_hint": "Source 1",
+  "input_name_title": "Input name",
+  "input_name_hint": "Mic/Aux",
   "action_title": "Action",
   "action_enable": "Enable",
   "action_disable": "Disable",

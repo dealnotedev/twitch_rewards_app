@@ -72,7 +72,7 @@ class _State extends State<EnableSourceWidget> {
                   return TextField(
                     controller: _sceneNameController,
                     focusNode: _sceneNameFocusNode,
-                    textInputAction: TextInputAction.search,
+                    textInputAction: TextInputAction.done,
                     style: style,
                     decoration: decoration,
                   );
@@ -103,7 +103,7 @@ class _State extends State<EnableSourceWidget> {
                   return TextField(
                     controller: _sourceNameController,
                     focusNode: _sourceNameFocusNode,
-                    textInputAction: TextInputAction.search,
+                    textInputAction: TextInputAction.done,
                     style: style,
                     decoration: decoration,
                   );

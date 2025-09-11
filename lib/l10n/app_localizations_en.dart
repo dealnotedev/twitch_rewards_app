@@ -287,6 +287,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get source_name_hint => 'Source 1';
 
   @override
+  String get input_name_title => 'Input name';
+
+  @override
+  String get input_name_hint => 'Mic/Aux';
+
+  @override
   String get action_title => 'Action';
 
   @override
