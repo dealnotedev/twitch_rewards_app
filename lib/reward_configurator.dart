@@ -386,12 +386,25 @@ class _ActionState extends State<_ActionWidget> {
     final theme = widget.theme;
     final attrs = RewardActionAtts.forType(context, _action.type);
 
+    final borderDefault = BorderSide(
+      color: theme.dividerColor,
+      width: 0.5,
+    );
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
       decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
+          border: Border(
+            left: BorderSide(
+              color: theme.dividerColor,
+              strokeAlign: BorderSide.strokeAlignOutside,
+              width: 4,
+            ),
+            top: borderDefault,
+            right: borderDefault,
+            bottom: borderDefault,
+          )),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
