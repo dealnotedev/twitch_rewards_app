@@ -525,6 +525,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Changes'**
   String get button_save_changes;
+
+  /// No description provided for @button_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get button_back;
 }
 
 class _AppLocalizationsDelegate

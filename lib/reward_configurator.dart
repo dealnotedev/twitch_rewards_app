@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
+import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/custom_switch.dart';
@@ -184,12 +185,41 @@ class _State extends State<RewardConfiguratorWidget> {
     );
   }
 
+  Widget _createBackButton(BuildContext context, ThemeData theme) {
+    final radius = BorderRadius.circular(8);
+    return Material(
+        type: MaterialType.transparency,
+        borderRadius: radius,
+        child: InkWell(
+          onTap: () {
+            ApplicationRouter.pop(context);
+          },
+          borderRadius: radius,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
+            child: Row(
+              children: [
+                SimpleIcon.simpleSquare(Assets.assetsIcBackWhite16dp,
+                    size: 16, color: theme.textColorPrimary),
+                const Gap(4),
+                Text(
+                  context.localizations.button_back,
+                  style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: theme.textColorPrimary),
+                )
+              ],
+            ),
+          ),
+        ));
+  }
+
   Widget _createToolbar(BuildContext context, ThemeData theme) {
     return Row(
       children: [
-        const Gap(16),
-        SimpleIcon.simpleSquare(Assets.assetsIcConfigWhite16dp,
-            size: 16, color: theme.textColorPrimary),
+        const Gap(8),
+        _createBackButton(context, theme),
         const Gap(8),
         Expanded(
             child: Row(

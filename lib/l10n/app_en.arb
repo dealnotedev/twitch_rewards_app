@@ -130,5 +130,6 @@
   "reaction_play_audios_count_title": "Number of Tracks",
   "reaction_play_audios_count_all": "All",
   "reaction_play_audios_count_specific": "Specific",
-  "button_save_changes": "Save Changes"
+  "button_save_changes": "Save Changes",
+  "button_back": "Back"
 }

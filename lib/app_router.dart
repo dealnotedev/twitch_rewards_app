@@ -55,6 +55,10 @@ class ApplicationRouter extends NavigatorObserver {
     popTo(context, routeRoot);
   }
 
+  static void pop(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   static void popTo(BuildContext context, String? to) {
     Navigator.popUntil(context, (route) {
       return route.settings.name == to;
