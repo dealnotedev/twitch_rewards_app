@@ -1,10 +1,14 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_configurator.dart';
+import 'package:twitch_listener/rewards_state.dart';
+import 'package:twitch_listener/twitch_state.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
@@ -22,6 +26,7 @@ class ApplicationRouter extends NavigatorObserver {
 
   @override
   void didPop(Route route, Route? previousRoute) {
+    dropdownManager.clear();
     _changes.add(_RouteChange(current: previousRoute, previous: route));
     _current = previousRoute;
     super.didPop(route, previousRoute);
@@ -29,6 +34,7 @@ class ApplicationRouter extends NavigatorObserver {
 
   @override
   void didPush(Route route, Route? previousRoute) {
+    dropdownManager.clear();
     _changes.add(_RouteChange(current: route, previous: previousRoute));
     _current = route;
     super.didPush(route, previousRoute);
@@ -76,6 +82,48 @@ class ApplicationRouter extends NavigatorObserver {
                       reward: args.reward,
                     ));
               });
+
+        case routeRoot:
+          return MaterialPageRoute(builder: (context) {
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Gap(16),
+                      Expanded(
+                        child: TwitchStateWidget(
+                            twitchShared: locator.provide(),
+                            webSocketManager: locator.provide(),
+                            settings: locator.provide()),
+                      ),
+                      const Gap(16),
+                      Expanded(
+                        child: ObsStateWidget(
+                            connect: locator.provide(),
+                            settings: locator.provide()),
+                      ),
+                      const Gap(16),
+                    ],
+                  ),
+                  const Gap(16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: RewardsStateWidget(
+                      audioplayer: locator.provide(),
+                      twitchShared: locator.provide(),
+                      executor: locator.provide(),
+                      settings: locator.provide(),
+                    ),
+                  ),
+                  const Gap(16)
+                ],
+              ),
+            );
+          });
       }
 
       return null;

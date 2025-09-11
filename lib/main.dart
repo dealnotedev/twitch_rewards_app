@@ -5,6 +5,7 @@ import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
@@ -13,12 +14,10 @@ import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
-import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/obs/obs_widget.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/reward_widget.dart';
-import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -29,7 +28,6 @@ import 'package:twitch_listener/twitch/twitch_login_widget.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_connect_widget.dart';
-import 'package:twitch_listener/twitch_state.dart';
 
 void main() async {
   final soloud = SoLoud.instance;
@@ -41,7 +39,15 @@ void main() async {
   final locator = AppServiceLocator.init(
       settings: settings, audioplayer: Audioplayer(soloud: soloud));
 
-  runApp(MyApp(locator: locator));
+  final dropdownManager = DropdownManager();
+
+  final router =
+      ApplicationRouter(locator: locator, dropdownManager: dropdownManager);
+
+  runApp(MyApp(
+    locator: locator,
+    router: router,
+  ));
 
   doWhenWindowReady(() {
     const initialSize = Size(640, 720);
@@ -61,8 +67,9 @@ void main() async {
 
 class MyApp extends StatefulWidget {
   final ServiceLocator locator;
+  final ApplicationRouter router;
 
-  const MyApp({super.key, required this.locator});
+  const MyApp({super.key, required this.locator, required this.router});
 
   @override
   State<StatefulWidget> createState() => _RebornPageState();
@@ -71,6 +78,7 @@ class MyApp extends StatefulWidget {
 class _RebornPageState extends State<MyApp> {
   late final Settings _settings;
   late final RewardExecutor _executor;
+  late final ApplicationRouter _router;
 
   final _dropdownmanager = DropdownManager();
 
@@ -78,6 +86,7 @@ class _RebornPageState extends State<MyApp> {
   void initState() {
     _settings = widget.locator.provide();
     _executor = widget.locator.provide();
+    _router = widget.router;
     super.initState();
   }
 
@@ -88,9 +97,7 @@ class _RebornPageState extends State<MyApp> {
         theme: Themes.light,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        navigatorObservers: [
-          DropdownNavigationObserver(manager: _dropdownmanager)
-        ],
+        navigatorObservers: [_router],
         home: DropdownScope(
             manager: _dropdownmanager,
             child: Builder(builder: (context) {
@@ -106,45 +113,9 @@ class _RebornPageState extends State<MyApp> {
                         Container(child: _createWindowTitleBarBox(context)),
                         SimpleDivider(theme: theme),
                         Expanded(
-                            child: SingleChildScrollView(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Gap(16),
-                              Row(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  const Gap(16),
-                                  Expanded(
-                                    child: TwitchStateWidget(
-                                        twitchShared: widget.locator.provide(),
-                                        webSocketManager:
-                                            widget.locator.provide(),
-                                        settings: widget.locator.provide()),
-                                  ),
-                                  const Gap(16),
-                                  Expanded(
-                                    child: ObsStateWidget(
-                                        connect: widget.locator.provide(),
-                                        settings: widget.locator.provide()),
-                                  ),
-                                  const Gap(16),
-                                ],
-                              ),
-                              const Gap(16),
-                              Padding(
-                                padding:
-                                    const EdgeInsets.symmetric(horizontal: 16),
-                                child: RewardsStateWidget(
-                                  audioplayer: widget.locator.provide(),
-                                  twitchShared: widget.locator.provide(),
-                                  executor: _executor,
-                                  settings: _settings,
-                                ),
-                              ),
-                              const Gap(16)
-                            ],
-                          ),
+                            child: Navigator(
+                          onGenerateRoute: _router.routerFactory,
+                          initialRoute: ApplicationRouter.routeRoot,
                         ))
                       ],
                     ),
