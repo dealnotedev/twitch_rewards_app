@@ -40,7 +40,7 @@ void main() async {
       settings: settings, audioplayer: Audioplayer(soloud: soloud));
 
   final dropdownManager =
-      DropdownManager(offset: const Offset(0, 40) // Window toolbar height
+      DropdownManager(offset: const Offset(0, -40) // Window toolbar height
           );
 
   final router =
@@ -78,14 +78,10 @@ class MyApp extends StatefulWidget {
 }
 
 class _RebornPageState extends State<MyApp> {
-  late final Settings _settings;
-  late final RewardExecutor _executor;
   late final ApplicationRouter _router;
 
   @override
   void initState() {
-    _settings = widget.locator.provide();
-    _executor = widget.locator.provide();
     _router = widget.router;
     super.initState();
   }
@@ -97,7 +93,6 @@ class _RebornPageState extends State<MyApp> {
         theme: Themes.light,
         locale: const Locale('en'),
         localizationsDelegates: AppLocalizations.localizationsDelegates,
-        navigatorObservers: [_router],
         home: DropdownScope(
             manager: _router.dropdownManager,
             child: Builder(builder: (context) {
@@ -106,7 +101,7 @@ class _RebornPageState extends State<MyApp> {
                   backgroundColor: theme.surfacePrimary,
                   body: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => _router.dropdownManager.clear(),
+                    onTap: () => DropdownScope.of(context).clear(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -114,6 +109,7 @@ class _RebornPageState extends State<MyApp> {
                         SimpleDivider(theme: theme),
                         Expanded(
                             child: Navigator(
+                          observers: [_router],
                           onGenerateRoute: _router.routerFactory,
                           initialRoute: ApplicationRouter.routeRoot,
                         ))
