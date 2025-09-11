@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/actions/volume_slider.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/extensions.dart';
@@ -79,15 +80,12 @@ class _State extends State<PlayAudioWidget> {
                     focusNode: _focusNode,
                     theme: theme)),
             const Gap(16),
-            SizedBox(
-                width: 84,
-                child: Stack(
-                  alignment: Alignment.center,
-                  children: [
-                    _createSlider(context, theme),
-                    _createSliderValues(context, theme)
-                  ],
-                )),
+            VolumeSlider(
+                theme: theme,
+                volume: _action.volume,
+                onChangeChange: _onVolumeChange,
+                onChangeEnd: _onVolumeEnd,
+                onChangeStart: _onVolumeStart),
             const Gap(16),
             CustomButton(
               text: context.localizations.button_select_file,
@@ -99,75 +97,6 @@ class _State extends State<PlayAudioWidget> {
         )
       ],
     );
-  }
-
-  Widget _createSliderValues(BuildContext context, ThemeData theme) {
-    final volume = _action.volume.current;
-    final volumePercentage = '${(volume * 100.0).round()}%';
-
-    const style =
-        TextStyle(fontSize: 10, fontWeight: FontWeight.w500, height: 1);
-    return IgnorePointer(
-      child: Row(
-        children: [
-          Expanded(
-              child: Visibility(
-                  visible: volume > 1.5,
-                  child: Text(
-                    volumePercentage,
-                    textAlign: TextAlign.center,
-                    style:
-                        style.copyWith(color: theme.textColorPrimaryInverted),
-                  ))),
-          Expanded(
-              child: Visibility(
-                  visible: volume <= 1.5,
-                  child: Text(
-                    volumePercentage,
-                    textAlign: TextAlign.center,
-                    style: style.copyWith(color: theme.textColorPrimary),
-                  )))
-        ],
-      ),
-    );
-  }
-
-  Widget _createSlider(BuildContext context, ThemeData theme) {
-    final Color thumbColor;
-
-    final Color activeColor;
-    final Color inactiveColor;
-
-    if (theme.dark) {
-      activeColor = const Color(0xFFEEEEEE);
-      inactiveColor = const Color(0xFF252525);
-      thumbColor = const Color(0xFF121212);
-    } else {
-      activeColor = const Color(0xFF030213);
-      inactiveColor = const Color(0xFFCBCED4);
-      thumbColor = Colors.white;
-    }
-
-    return SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-            inactiveTrackColor: inactiveColor,
-            trackHeight: 14,
-            overlayColor: Colors.transparent,
-            padding: EdgeInsets.zero,
-            activeTrackColor: activeColor,
-            thumbColor: thumbColor,
-            thumbShape: const RoundSliderThumbShape(
-                enabledThumbRadius: 6,
-                elevation: 0,
-                pressedElevation: 0,
-                disabledThumbRadius: 6)),
-        child: Slider(
-            max: 3.0,
-            divisions: 60,
-            value: _action.volume.current,
-            onChangeStart: (v) => _onVolumeStart(v),
-            onChangeEnd: (v) => _onVolumeEnd(v),
-            onChanged: (v) => _onVolumeChange(v)));
   }
 
   PlayToken? _playToken;

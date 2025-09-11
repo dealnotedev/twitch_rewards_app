@@ -555,6 +555,48 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Select audio file'**
   String get reaction_play_audio_select_file_dialog;
+
+  /// No description provided for @scene_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene name'**
+  String get scene_name_title;
+
+  /// No description provided for @scene_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene Default'**
+  String get scene_name_hint;
+
+  /// No description provided for @source_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Source name'**
+  String get source_name_title;
+
+  /// No description provided for @source_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Source 1'**
+  String get source_name_hint;
+
+  /// No description provided for @action_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get action_title;
+
+  /// No description provided for @action_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get action_enable;
+
+  /// No description provided for @action_disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get action_disable;
 }
 
 class _AppLocalizationsDelegate

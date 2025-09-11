@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
+import 'package:twitch_listener/actions/enable_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
 import 'package:twitch_listener/app_router.dart';
@@ -188,8 +189,7 @@ class _State extends State<RewardConfiguratorWidget> {
                               child: Text(
                             context.localizations.reaction_chain_title,
                             style: TextStyle(
-                                fontSize: 14,
-                                color: theme.textColorPrimary),
+                                fontSize: 14, color: theme.textColorPrimary),
                           )),
                           CustomButton(
                             prefixIcon: Assets.assetsIcPlayWhite16dp,
@@ -426,14 +426,16 @@ class _ActionState extends State<_ActionWidget> {
                 attrs.title,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 14, color: theme.textColorPrimary),
+                style: TextStyle(fontSize: 13, color: theme.textColorPrimary),
               )),
               const Gap(12),
-              CustomSwitch(
-                  onToggle: _handleToggle,
-                  value: !_action.disabled,
-                  theme: theme),
-              const Gap(8),
+              if (_enableDisableAvailable) ...[
+                CustomSwitch(
+                    onToggle: _handleToggle,
+                    value: !_action.disabled,
+                    theme: theme),
+                const Gap(8),
+              ],
               RippleIcon(
                   borderRadius: BorderRadius.circular(8),
                   icon: Assets.assetsIcDeleteWhite16dp,
@@ -454,6 +456,8 @@ class _ActionState extends State<_ActionWidget> {
     );
   }
 
+  static const _enableDisableAvailable = false;
+
   void _handleToggle(bool checked) {
     setState(() {
       _action.disabled = !checked;
@@ -465,9 +469,13 @@ class _ActionState extends State<_ActionWidget> {
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(
             action: _action, audioplayer: widget.audioplayer);
+
       case RewardAction.typePlayAudio:
         return PlayAudioWidget(
             action: _action, audioplayer: widget.audioplayer);
+
+      case RewardAction.typeEnableSource:
+        return EnableSourceWidget(action: _action);
     }
 
     return Container(

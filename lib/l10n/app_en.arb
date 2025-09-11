@@ -135,5 +135,12 @@
   "reward_configigure_basic_settings": "Basic Settings",
   "reaction_play_audio_path_hint": "File path",
   "button_select_file": "Select File",
-  "reaction_play_audio_select_file_dialog": "Select audio file"
+  "reaction_play_audio_select_file_dialog": "Select audio file",
+  "scene_name_title": "Scene name",
+  "scene_name_hint": "Scene Default",
+  "source_name_title": "Source name",
+  "source_name_hint": "Source 1",
+  "action_title": "Action",
+  "action_enable": "Enable",
+  "action_disable": "Disable"
 }

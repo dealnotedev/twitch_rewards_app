@@ -273,4 +273,25 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get reaction_play_audio_select_file_dialog => 'Select audio file';
+
+  @override
+  String get scene_name_title => 'Scene name';
+
+  @override
+  String get scene_name_hint => 'Scene Default';
+
+  @override
+  String get source_name_title => 'Source name';
+
+  @override
+  String get source_name_hint => 'Source 1';
+
+  @override
+  String get action_title => 'Action';
+
+  @override
+  String get action_enable => 'Enable';
+
+  @override
+  String get action_disable => 'Disable';
 }

@@ -4,6 +4,7 @@ import 'package:collection/collection.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/actions/volume_slider.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/dropdown/dropdown_menu.dart';
@@ -220,15 +221,13 @@ class _State extends State<PlayAudiosWidget> {
           ),
         )),
         const Gap(8),
-        SizedBox(
-            width: 84,
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                _createSlider(context, theme, file: entry),
-                _createSliderValues(context, theme, entry: entry)
-              ],
-            )),
+        VolumeSlider(
+          theme: theme,
+          volume: entry.volume,
+          onChangeEnd: (v) => _onVolumeEnd(entry, v),
+          onChangeChange: (v) => _onVolumeChange(entry, v),
+          onChangeStart: (v) => _onVolumeStart(entry, v),
+        ),
         const Gap(8),
         RippleIcon(
             borderRadius: BorderRadius.circular(8),
@@ -240,77 +239,6 @@ class _State extends State<PlayAudiosWidget> {
             color: theme.textColorPrimary),
       ],
     );
-  }
-
-  Widget _createSliderValues(BuildContext context, ThemeData theme,
-      {required AudioEntry entry}) {
-    final volume = entry.volume.current;
-    final volumePercentage = '${(volume * 100.0).round()}%';
-
-    const style =
-        TextStyle(fontSize: 10, fontWeight: FontWeight.w500, height: 1);
-    return IgnorePointer(
-      child: Row(
-        children: [
-          Expanded(
-              child: Visibility(
-                  visible: volume > 1.5,
-                  child: Text(
-                    volumePercentage,
-                    textAlign: TextAlign.center,
-                    style:
-                        style.copyWith(color: theme.textColorPrimaryInverted),
-                  ))),
-          Expanded(
-              child: Visibility(
-                  visible: volume <= 1.5,
-                  child: Text(
-                    volumePercentage,
-                    textAlign: TextAlign.center,
-                    style: style.copyWith(color: theme.textColorPrimary),
-                  )))
-        ],
-      ),
-    );
-  }
-
-  Widget _createSlider(BuildContext context, ThemeData theme,
-      {required AudioEntry file}) {
-    final Color thumbColor;
-
-    final Color activeColor;
-    final Color inactiveColor;
-
-    if (theme.dark) {
-      activeColor = const Color(0xFFEEEEEE);
-      inactiveColor = const Color(0xFF252525);
-      thumbColor = const Color(0xFF121212);
-    } else {
-      activeColor = const Color(0xFF030213);
-      inactiveColor = const Color(0xFFCBCED4);
-      thumbColor = Colors.white;
-    }
-
-    return SliderTheme(
-        data: SliderTheme.of(context).copyWith(
-            inactiveTrackColor: inactiveColor,
-            trackHeight: 14,
-            overlayColor: Colors.transparent,
-            padding: EdgeInsets.zero,
-            activeTrackColor: activeColor,
-            thumbColor: thumbColor,
-            thumbShape: const RoundSliderThumbShape(
-                enabledThumbRadius: 6,
-                elevation: 0,
-                pressedElevation: 0,
-                disabledThumbRadius: 6)),
-        child: Slider(
-            max: 3.0,
-            divisions: 60,
-            value: file.volume.current,
-            onChangeStart: (v) => _onVolumeStart(file, v),
-            onChangeEnd: (v) => _onVolumeEnd(file, v),
-            onChanged: (v) => _onVolumeChange(file, v)));
   }
 
   PlayToken? _playToken;
