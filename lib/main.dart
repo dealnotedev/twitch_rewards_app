@@ -74,52 +74,164 @@ class MyApp extends StatefulWidget {
 
 class _RebornPageState extends State<MyApp> {
   late final ApplicationRouter _router;
+  late final Settings _settings;
 
   @override
   void initState() {
     _router = widget.router;
+    _settings = widget.locator.provide();
     super.initState();
   }
 
   final _dropdownManager =
-      DropdownManager(offset: const Offset(0, -40) // Window toolbar height
-          );
+      DropdownManager(offset: const Offset(0, -_toolbarHeight));
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-        debugShowCheckedModeBanner: false,
-        theme: Themes.light,
-        locale: const Locale('en'),
-        localizationsDelegates: AppLocalizations.localizationsDelegates,
-        home: DropdownScope(
-            manager: _dropdownManager,
-            child: Builder(builder: (context) {
-              final theme = Theme.of(context);
-              return Scaffold(
-                  backgroundColor: theme.surfacePrimary,
-                  body: GestureDetector(
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => DropdownScope.of(context).clear(),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Container(child: _createWindowTitleBarBox(context)),
-                        SimpleDivider(theme: theme),
-                        Expanded(
-                            child: Navigator(
-                          observers: [
-                            _router,
-                            DropdownNavigationObserver(
-                                manager: _dropdownManager)
-                          ],
-                          onGenerateRoute: _router.routerFactory,
-                          initialRoute: ApplicationRouter.routeRoot,
-                        ))
-                      ],
-                    ),
-                  ));
-            })));
+    return StreamBuilder(
+        stream: _settings.appearanceChanges,
+        initialData: _settings.appearance,
+        builder: (context, snapshot) {
+          final appearance = snapshot.requireData;
+
+          final ThemeMode themeMode;
+          switch (appearance.brightness) {
+            case AppBrightness.system:
+              themeMode = ThemeMode.system;
+              break;
+
+            case AppBrightness.dark:
+              themeMode = ThemeMode.dark;
+              break;
+
+            case AppBrightness.light:
+              themeMode = ThemeMode.light;
+              break;
+          }
+
+          return MaterialApp(
+              debugShowCheckedModeBanner: false,
+              theme: Themes.light,
+              darkTheme: Themes.dark,
+              themeMode: themeMode,
+              locale: const Locale('en'),
+              localizationsDelegates: AppLocalizations.localizationsDelegates,
+              home: DropdownScope(
+                  manager: _dropdownManager,
+                  child: Builder(builder: (context) {
+                    final theme = Theme.of(context);
+                    return Scaffold(
+                        backgroundColor: theme.surfacePrimary,
+                        body: GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTap: () => DropdownScope.of(context).clear(),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                  child: _createWindowTitleBarBox(
+                                      context, theme,
+                                      appearance: appearance)),
+                              SimpleDivider(theme: theme),
+                              Expanded(
+                                  child: Navigator(
+                                observers: [
+                                  _router,
+                                  DropdownNavigationObserver(
+                                      manager: _dropdownManager)
+                                ],
+                                onGenerateRoute: _router.routerFactory,
+                                initialRoute: ApplicationRouter.routeRoot,
+                              ))
+                            ],
+                          ),
+                        ));
+                  })));
+        });
+  }
+
+  static const _toolbarHeight = 40.0;
+
+  Widget _createWindowTitleBarBox(BuildContext context, ThemeData theme,
+      {required Appearance appearance}) {
+    final String brigthessIcon;
+    switch (appearance.brightness) {
+      case AppBrightness.system:
+        brigthessIcon = Assets.assetsIcSunMoonWhite16dp;
+        break;
+      case AppBrightness.dark:
+        brigthessIcon = Assets.assetsIcMoonWhite16dp;
+        break;
+      case AppBrightness.light:
+        brigthessIcon = Assets.assetsIcSunWhite16dp;
+        break;
+    }
+    return Container(
+        color: theme.surfaceSecondary,
+        height: _toolbarHeight,
+        child: Row(children: [
+          Expanded(
+              child: MoveWindow(
+                  child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+            child: Row(
+              children: [
+                Tooltip(
+                  message: 'It\'s dealnoteDev',
+                  child: SimpleIcon.simpleSquare(Assets.assetsIcLogo20dp,
+                      size: 20),
+                ),
+                const Gap(12),
+                Expanded(
+                    child: Text(
+                  context.localizations.app_title,
+                  style: TextStyle(
+                      color: theme.textColorPrimary,
+                      fontSize: 14,
+                      fontWeight: FontWeight.w500),
+                )),
+              ],
+            ),
+          ))),
+          RippleIcon(
+            size: 16,
+            icon: brigthessIcon,
+            borderRadius: BorderRadius.circular(8),
+            color: theme.textColorPrimary,
+            onTap: () {
+              _settings.toggleBrightness(appearance.brightness);
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcMinimizeWhite16dp,
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.minimize();
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcMaximizeWhite16dp,
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.maximizeOrRestore();
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcCloseWhite16dp,
+            hoverColor: const Color(0xFFD4183D),
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.close();
+            },
+          ),
+          const Gap(8)
+        ]));
   }
 }
 
