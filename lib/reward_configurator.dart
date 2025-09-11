@@ -188,7 +188,6 @@ class _State extends State<RewardConfiguratorWidget> {
                             context.localizations.reaction_chain_title,
                             style: TextStyle(
                                 fontSize: 14,
-                                fontWeight: FontWeight.w600,
                                 color: theme.textColorPrimary),
                           )),
                           CustomButton(
