@@ -400,6 +400,12 @@ abstract class AppLocalizations {
   /// **'Invert filter'**
   String get reaction_invert_filter;
 
+  /// No description provided for @reaction_toggle_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle filter'**
+  String get reaction_toggle_filter;
+
   /// No description provided for @reaction_flip_source.
   ///
   /// In en, this message translates to:
@@ -592,6 +598,18 @@ abstract class AppLocalizations {
   /// **'Mic/Aux'**
   String get input_name_hint;
 
+  /// No description provided for @filter_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter name'**
+  String get filter_name_title;
+
+  /// No description provided for @filter_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Mask/Blend'**
+  String get filter_name_hint;
+
   /// No description provided for @action_title.
   ///
   /// In en, this message translates to:
@@ -609,6 +627,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disable'**
   String get action_disable;
+
+  /// No description provided for @action_toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle'**
+  String get action_toggle;
 
   /// No description provided for @reaction_delay_title.
   ///

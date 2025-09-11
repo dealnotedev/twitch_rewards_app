@@ -26,6 +26,37 @@ class Settings {
     appearance = _extractAppearance(prefs);
   }
 
+  Future<void> makeRequiredMigrations() async {
+    int changes = 0;
+
+    for (var reward in rewards.rewards) {
+      for (int i = 0; i < reward.handlers.length; i++) {
+        final action = reward.handlers[i];
+
+        if (action.type == RewardAction.typeEnableFilter) {
+          reward.handlers[i] = RewardAction(type: RewardAction.typeToggleFilter)
+            ..filterName = action.filterName
+            ..sourceName = action.sourceName
+            ..action = action.enable ? 'enable' : 'disable';
+          changes++;
+        }
+
+        if (action.type == RewardAction.typeInvertFilter) {
+          reward.handlers[i] = RewardAction(type: RewardAction.typeToggleFilter)
+            ..filterName = action.filterName
+            ..sourceName = action.sourceName
+            ..action = 'toggle';
+          changes++;
+        }
+      }
+    }
+
+    if (changes > 0) {
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString(_kRewards, jsonEncode(rewards.toJson()));
+    }
+  }
+
   final _rewardsSubject = StreamController<Rewards>.broadcast();
 
   Stream<Rewards> get rewardsStream => _rewardsSubject.stream;

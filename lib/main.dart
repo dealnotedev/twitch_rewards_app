@@ -35,6 +35,7 @@ void main() async {
 
   final settings = Settings();
   await settings.init();
+  await settings.makeRequiredMigrations();
 
   final locator = AppServiceLocator.init(
       settings: settings, audioplayer: Audioplayer(soloud: soloud));

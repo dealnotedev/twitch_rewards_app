@@ -6,6 +6,7 @@ import 'package:twitch_listener/actions/enable_input.dart';
 import 'package:twitch_listener/actions/enable_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
+import 'package:twitch_listener/actions/toggle_filter.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
@@ -322,7 +323,7 @@ class _State extends State<RewardConfiguratorWidget> {
     manager.show(context, builder: (cntx) {
       return DropdownPopupMenu<String>(
         selected: null,
-        items: RewardAction.allTypes
+        items: RewardAction.availableTypes
             .map((t) => RewardActionAtts.forType(context, t))
             .map((a) => Item(id: a.type, title: a.title, icon: a.icon))
             .toList(),
@@ -345,7 +346,7 @@ class _State extends State<RewardConfiguratorWidget> {
   }
 
   void _handleAddActionClick(String type) {
-    final action = RewardAction(type: type);
+    final action = RewardAction.create(type);
     setState(() {
       _reward.handlers.add(action);
     });
@@ -484,6 +485,9 @@ class _ActionState extends State<_ActionWidget> {
 
       case RewardAction.typeDelay:
         return DelayWidget(action: _action);
+
+      case RewardAction.typeToggleFilter:
+        return ToggleFilterWidget(action: _action);
     }
 
     return Container(

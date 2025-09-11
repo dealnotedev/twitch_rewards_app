@@ -11,7 +11,7 @@ class SimpleDropdown<T> extends StatelessWidget {
   final String title;
   final ThemeData theme;
   final List<Item<T>> available;
-  final T selected;
+  final T? selected;
   final GlobalKey globalKey;
 
   final void Function(T id) onSelected;

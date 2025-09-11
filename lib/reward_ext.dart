@@ -38,6 +38,11 @@ class RewardActionAtts {
             type: type,
             title: context.localizations.reaction_enable_filter,
             icon: Assets.assetsIcFilterWhite16dp);
+      case RewardAction.typeToggleFilter:
+        return RewardActionAtts(
+            type: type,
+            title: context.localizations.reaction_toggle_filter,
+            icon: Assets.assetsIcFilterWhite16dp);
       case RewardAction.typeInvertFilter:
         return RewardActionAtts(
             type: type,

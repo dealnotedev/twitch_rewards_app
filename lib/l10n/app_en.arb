@@ -102,6 +102,7 @@
   "reaction_play_audios": "Play audio files",
   "reaction_enable_filter": "Enable filter",
   "reaction_invert_filter": "Invert filter",
+  "reaction_toggle_filter": "Toggle filter",
   "reaction_flip_source": "Flip source",
   "reaction_enable_source": "Enable source",
   "reaction_toggle_source": "Toggle source",
@@ -142,9 +143,12 @@
   "source_name_hint": "Source 1",
   "input_name_title": "Input name",
   "input_name_hint": "Mic/Aux",
+  "filter_name_title": "Filter name",
+  "filter_name_hint": "Image Mask/Blend",
   "action_title": "Action",
   "action_enable": "Enable",
   "action_disable": "Disable",
+  "action_toggle": "Toggle",
   "reaction_delay_title": "Delay (seconds)",
   "reaction_delay_seconds_hint": "Enter duration in seconds"
 }

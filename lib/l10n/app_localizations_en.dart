@@ -194,6 +194,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reaction_invert_filter => 'Invert filter';
 
   @override
+  String get reaction_toggle_filter => 'Toggle filter';
+
+  @override
   String get reaction_flip_source => 'Flip source';
 
   @override
@@ -293,6 +296,12 @@ class AppLocalizationsEn extends AppLocalizations {
   String get input_name_hint => 'Mic/Aux';
 
   @override
+  String get filter_name_title => 'Filter name';
+
+  @override
+  String get filter_name_hint => 'Image Mask/Blend';
+
+  @override
   String get action_title => 'Action';
 
   @override
@@ -300,6 +309,9 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get action_disable => 'Disable';
+
+  @override
+  String get action_toggle => 'Toggle';
 
   @override
   String get reaction_delay_title => 'Delay (seconds)';
