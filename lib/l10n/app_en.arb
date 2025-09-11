@@ -142,5 +142,7 @@
   "source_name_hint": "Source 1",
   "action_title": "Action",
   "action_enable": "Enable",
-  "action_disable": "Disable"
+  "action_disable": "Disable",
+  "reaction_delay_title": "Delay (seconds)",
+  "reaction_delay_seconds_hint": "Enter duration in seconds"
 }

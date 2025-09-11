@@ -597,6 +597,18 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Disable'**
   String get action_disable;
+
+  /// No description provided for @reaction_delay_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay (seconds)'**
+  String get reaction_delay_title;
+
+  /// No description provided for @reaction_delay_seconds_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter duration in seconds'**
+  String get reaction_delay_seconds_hint;
 }
 
 class _AppLocalizationsDelegate

@@ -294,4 +294,10 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get action_disable => 'Disable';
+
+  @override
+  String get reaction_delay_title => 'Delay (seconds)';
+
+  @override
+  String get reaction_delay_seconds_hint => 'Enter duration in seconds';
 }

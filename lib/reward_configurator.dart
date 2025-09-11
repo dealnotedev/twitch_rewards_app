@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
+import 'package:twitch_listener/actions/delay.dart';
 import 'package:twitch_listener/actions/enable_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
@@ -476,6 +477,9 @@ class _ActionState extends State<_ActionWidget> {
 
       case RewardAction.typeEnableSource:
         return EnableSourceWidget(action: _action);
+
+      case RewardAction.typeDelay:
+        return DelayWidget(action: _action);
     }
 
     return Container(
