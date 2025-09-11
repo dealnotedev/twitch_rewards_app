@@ -11,16 +11,19 @@ class SimpleDropdown<T> extends StatelessWidget {
   final String title;
   final ThemeData theme;
   final List<Item<T>> available;
-  final T selected;
+  final T? selected;
   final GlobalKey globalKey;
 
   final void Function(T id) onSelected;
+
+  final EdgeInsets? padding;
 
   const SimpleDropdown(
       {super.key,
       required this.theme,
       required this.title,
       required this.available,
+      this.padding,
       required this.globalKey,
       required this.selected,
       required this.onSelected});
@@ -37,7 +40,7 @@ class SimpleDropdown<T> extends StatelessWidget {
               fontWeight: FontWeight.w500,
               color: theme.textColorPrimary),
         ),
-        const Gap(4),
+        const Gap(6),
         Material(
           borderRadius: BorderRadius.circular(8),
           color: theme.inputBackground,
@@ -52,7 +55,8 @@ class SimpleDropdown<T> extends StatelessWidget {
                 border: Border.all(color: theme.border, width: 0.5),
                 borderRadius: BorderRadius.circular(8),
               ),
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              padding: padding ??
+                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               child: Row(
                 children: [
                   Expanded(
@@ -62,7 +66,7 @@ class SimpleDropdown<T> extends StatelessWidget {
                             ?.title ??
                         '',
                     style: TextStyle(
-                        fontSize: 12,
+                        fontSize: 13,
                         fontWeight: FontWeight.w400,
                         color: theme.textColorPrimary),
                   )),

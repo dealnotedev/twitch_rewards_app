@@ -1,13 +1,12 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/reward_configurator.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
@@ -192,28 +191,8 @@ class _State extends State<RewardsStateWidget> {
   }
 
   void _openConfigureDialog(BuildContext context, Reward reward) async {
-    final manager = DropdownScope.of(context);
-    await showDialog(
-        routeSettings: const RouteSettings(name: '/reward_configurator'),
-        barrierDismissible: true,
-        barrierColor: Colors.black.withValues(alpha: 0.5),
-        context: context,
-        builder: (context) {
-          final theme = Theme.of(context);
-          return Dialog(
-            insetPadding: const EdgeInsets.all(48),
-            backgroundColor: theme.surfacePrimary,
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            child: DropdownScope(
-                manager: manager,
-                child: RewardConfiguratorWidget(
-                    executor: widget.executor,
-                    twitchShared: widget.twitchShared,
-                    audioplayer: widget.audioplayer,
-                    reward: reward)),
-          );
-        });
+    await ApplicationRouter.openRewardConfig(context, reward: reward);
+
     setState(() {});
   }
 

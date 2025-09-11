@@ -267,7 +267,7 @@ class _State extends State<RewardWidget> {
 
   void _handleAddAction(AddAction e) {
     setState(() {
-      _reward.handlers.add(RewardAction(type: e.type));
+      _reward.handlers.add(RewardAction.create(e.type));
     });
   }
 

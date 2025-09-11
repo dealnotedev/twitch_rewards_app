@@ -1,16 +1,18 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
 import 'package:twitch_listener/di/service_locator.dart';
-import 'package:twitch_listener/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/obs/obs_state.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_configurator.dart';
+import 'package:twitch_listener/rewards_state.dart';
+import 'package:twitch_listener/twitch_state.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
-  final DropdownManager dropdownManager;
 
-  ApplicationRouter({required this.locator, required this.dropdownManager});
+  ApplicationRouter({required this.locator});
 
   static const routeRoot = '/';
   static const _routeRewardConfig = '/reward/config';
@@ -53,6 +55,10 @@ class ApplicationRouter extends NavigatorObserver {
     popTo(context, routeRoot);
   }
 
+  static void pop(BuildContext context) {
+    Navigator.pop(context);
+  }
+
   static void popTo(BuildContext context, String? to) {
     Navigator.popUntil(context, (route) {
       return route.settings.name == to;
@@ -67,15 +73,55 @@ class ApplicationRouter extends NavigatorObserver {
               settings: settings,
               builder: (context) {
                 final args = settings.arguments as _RewardConfigArgs;
-                return DropdownScope(
-                    manager: dropdownManager,
-                    child: RewardConfiguratorWidget(
+                return RewardConfiguratorWidget(
+                  audioplayer: locator.provide(),
+                  twitchShared: locator.provide(),
+                  executor: locator.provide(),
+                  reward: args.reward,
+                );
+              });
+
+        case routeRoot:
+          return MaterialPageRoute(builder: (context) {
+            return SingleChildScrollView(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(16),
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Gap(16),
+                      Expanded(
+                        child: TwitchStateWidget(
+                            twitchShared: locator.provide(),
+                            webSocketManager: locator.provide(),
+                            settings: locator.provide()),
+                      ),
+                      const Gap(16),
+                      Expanded(
+                        child: ObsStateWidget(
+                            connect: locator.provide(),
+                            settings: locator.provide()),
+                      ),
+                      const Gap(16),
+                    ],
+                  ),
+                  const Gap(16),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16),
+                    child: RewardsStateWidget(
                       audioplayer: locator.provide(),
                       twitchShared: locator.provide(),
                       executor: locator.provide(),
-                      reward: args.reward,
-                    ));
-              });
+                      settings: locator.provide(),
+                    ),
+                  ),
+                  const Gap(16)
+                ],
+              ),
+            );
+          });
       }
 
       return null;

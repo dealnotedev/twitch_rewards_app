@@ -400,6 +400,12 @@ abstract class AppLocalizations {
   /// **'Invert filter'**
   String get reaction_invert_filter;
 
+  /// No description provided for @reaction_toggle_filter.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle filter'**
+  String get reaction_toggle_filter;
+
   /// No description provided for @reaction_flip_source.
   ///
   /// In en, this message translates to:
@@ -525,6 +531,126 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Save Changes'**
   String get button_save_changes;
+
+  /// No description provided for @button_back.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get button_back;
+
+  /// No description provided for @reward_configigure_basic_settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Basic Settings'**
+  String get reward_configigure_basic_settings;
+
+  /// No description provided for @reaction_play_audio_path_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'File path'**
+  String get reaction_play_audio_path_hint;
+
+  /// No description provided for @button_select_file.
+  ///
+  /// In en, this message translates to:
+  /// **'Select File'**
+  String get button_select_file;
+
+  /// No description provided for @reaction_play_audio_select_file_dialog.
+  ///
+  /// In en, this message translates to:
+  /// **'Select audio file'**
+  String get reaction_play_audio_select_file_dialog;
+
+  /// No description provided for @scene_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene name'**
+  String get scene_name_title;
+
+  /// No description provided for @scene_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Scene Default'**
+  String get scene_name_hint;
+
+  /// No description provided for @source_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Source name'**
+  String get source_name_title;
+
+  /// No description provided for @source_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Source 1'**
+  String get source_name_hint;
+
+  /// No description provided for @input_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Input name'**
+  String get input_name_title;
+
+  /// No description provided for @input_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Mic/Aux'**
+  String get input_name_hint;
+
+  /// No description provided for @filter_name_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Filter name'**
+  String get filter_name_title;
+
+  /// No description provided for @filter_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Image Mask/Blend'**
+  String get filter_name_hint;
+
+  /// No description provided for @action_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Action'**
+  String get action_title;
+
+  /// No description provided for @action_enable.
+  ///
+  /// In en, this message translates to:
+  /// **'Enable'**
+  String get action_enable;
+
+  /// No description provided for @action_disable.
+  ///
+  /// In en, this message translates to:
+  /// **'Disable'**
+  String get action_disable;
+
+  /// No description provided for @action_toggle.
+  ///
+  /// In en, this message translates to:
+  /// **'Toggle'**
+  String get action_toggle;
+
+  /// No description provided for @reaction_delay_title.
+  ///
+  /// In en, this message translates to:
+  /// **'Delay (seconds)'**
+  String get reaction_delay_title;
+
+  /// No description provided for @reaction_delay_seconds_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter duration in seconds'**
+  String get reaction_delay_seconds_hint;
+
+  /// No description provided for @reaction_set_scene_name_hint.
+  ///
+  /// In en, this message translates to:
+  /// **'Enter scene name and press \"Enter\"'**
+  String get reaction_set_scene_name_hint;
 }
 
 class _AppLocalizationsDelegate

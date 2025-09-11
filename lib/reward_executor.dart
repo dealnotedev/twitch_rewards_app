@@ -24,6 +24,30 @@ class RewardExecutor {
               inputName: action.inputName ?? '', enabled: action.enable);
           break;
 
+        case RewardAction.typeToggleFilter:
+          final sourceName = action.sourceName;
+          final filterName = action.filterName;
+
+          if (sourceName != null &&
+              sourceName.isNotEmpty &&
+              filterName != null &&
+              filterName.isNotEmpty) {
+            switch (action.action) {
+              case 'enable':
+              case 'disable':
+                await obs.enableSourceFilter(
+                    sourceName: sourceName,
+                    filterName: filterName,
+                    enabled: action.action == 'enable');
+                break;
+              case 'toggle':
+                await obs.invertSourceFilter(
+                    sourceName: sourceName, filterName: filterName);
+                break;
+            }
+          }
+          break;
+
         case RewardAction.typeEnableFilter:
           final sourceName = action.sourceName;
           final filterName = action.filterName;

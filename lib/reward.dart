@@ -41,6 +41,7 @@ class RewardAction {
   static const typePlayAudio = 'play_audio';
   static const typePlayAudios = 'play_audios';
   static const typeEnableFilter = 'enable_filter';
+  static const typeToggleFilter = 'toggle_filter';
   static const typeInvertFilter = 'invert_filter';
   static const typeFlipSource = 'flip_source';
   static const typeEnableSource = 'enable_source';
@@ -49,13 +50,12 @@ class RewardAction {
   static const typeToggleSource = 'toggle_source';
   static const typeSendInput = 'send_input';
 
-  static const allTypes = [
+  static const availableTypes = [
     typeEnableInput,
     typeDelay,
     typePlayAudio,
     typePlayAudios,
-    typeEnableFilter,
-    typeInvertFilter,
+    typeToggleFilter,
     typeFlipSource,
     typeEnableSource,
     typeToggleSource,
@@ -103,6 +103,20 @@ class RewardAction {
 
   ObservableValue<double> volume;
 
+  String? action;
+
+  static RewardAction create(String type) {
+    final action = RewardAction(type: type);
+
+    switch (type) {
+      case typeToggleFilter:
+        action.action = 'enable';
+        break;
+    }
+
+    return action;
+  }
+
   RewardAction(
       {required this.type,
       this.enable = false,
@@ -114,6 +128,7 @@ class RewardAction {
       this.sceneName,
       this.target,
       this.count,
+      this.action,
       double? volume,
       this.randomize = false,
       this.awaitCompletion = false,
@@ -154,7 +169,8 @@ class RewardAction {
       'awaitCompletion': awaitCompletion,
       'disabled': disabled,
       'inputs': inputs.map((e) => e.toJson()).toList(),
-      'audios': audios.map((e) => e.toJson()).toList()
+      'audios': audios.map((e) => e.toJson()).toList(),
+      'action': action
     };
   }
 
@@ -163,6 +179,7 @@ class RewardAction {
     final audiosJson = json['audios'] as List<dynamic>?;
     final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
+        action: json['action'] as String?,
         disabled: json['disabled'] as bool? ?? false,
         randomize: json['randomize'] as bool? ?? false,
         count: json['count'] as int?,

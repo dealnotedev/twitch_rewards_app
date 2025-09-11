@@ -193,6 +193,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get reaction_invert_filter => 'Invert filter';
 
   @override
+  String get reaction_toggle_filter => 'Toggle filter';
+
+  @override
   String get reaction_flip_source => 'Flip source';
 
   @override
@@ -257,4 +260,65 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get button_save_changes => 'Save Changes';
+
+  @override
+  String get button_back => 'Back';
+
+  @override
+  String get reward_configigure_basic_settings => 'Basic Settings';
+
+  @override
+  String get reaction_play_audio_path_hint => 'File path';
+
+  @override
+  String get button_select_file => 'Select File';
+
+  @override
+  String get reaction_play_audio_select_file_dialog => 'Select audio file';
+
+  @override
+  String get scene_name_title => 'Scene name';
+
+  @override
+  String get scene_name_hint => 'Scene Default';
+
+  @override
+  String get source_name_title => 'Source name';
+
+  @override
+  String get source_name_hint => 'Source 1';
+
+  @override
+  String get input_name_title => 'Input name';
+
+  @override
+  String get input_name_hint => 'Mic/Aux';
+
+  @override
+  String get filter_name_title => 'Filter name';
+
+  @override
+  String get filter_name_hint => 'Image Mask/Blend';
+
+  @override
+  String get action_title => 'Action';
+
+  @override
+  String get action_enable => 'Enable';
+
+  @override
+  String get action_disable => 'Disable';
+
+  @override
+  String get action_toggle => 'Toggle';
+
+  @override
+  String get reaction_delay_title => 'Delay (seconds)';
+
+  @override
+  String get reaction_delay_seconds_hint => 'Enter duration in seconds';
+
+  @override
+  String get reaction_set_scene_name_hint =>
+      'Enter scene name and press \"Enter\"';
 }

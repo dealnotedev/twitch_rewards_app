@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'dart:convert';
 
+import 'package:collection/collection.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_listener/reward.dart';
@@ -11,13 +12,49 @@ class Settings {
   static const _kObsWsUrl = 'obs_ws_url';
   static const _kObsWsPassword = 'obs_ws_password';
   static const _kRewards = 'rewards';
+  static const _kBrightness = 'brightness';
 
   late Rewards rewards;
 
   Future<void> init() async {
-    await initTwitchCreds();
-    await initObsPrefs();
-    await initRewards();
+    final prefs = await SharedPreferences.getInstance();
+
+    _initTwitchCreds(prefs);
+    _initObsPrefs(prefs);
+    _initRewards(prefs);
+
+    appearance = _extractAppearance(prefs);
+  }
+
+  Future<void> makeRequiredMigrations() async {
+    int changes = 0;
+
+    for (var reward in rewards.rewards) {
+      for (int i = 0; i < reward.handlers.length; i++) {
+        final action = reward.handlers[i];
+
+        if (action.type == RewardAction.typeEnableFilter) {
+          reward.handlers[i] = RewardAction(type: RewardAction.typeToggleFilter)
+            ..filterName = action.filterName
+            ..sourceName = action.sourceName
+            ..action = action.enable ? 'enable' : 'disable';
+          changes++;
+        }
+
+        if (action.type == RewardAction.typeInvertFilter) {
+          reward.handlers[i] = RewardAction(type: RewardAction.typeToggleFilter)
+            ..filterName = action.filterName
+            ..sourceName = action.sourceName
+            ..action = 'toggle';
+          changes++;
+        }
+      }
+    }
+
+    if (changes > 0) {
+      final prefs = await SharedPreferences.getInstance();
+      prefs.setString(_kRewards, jsonEncode(rewards.toJson()));
+    }
   }
 
   final _rewardsSubject = StreamController<Rewards>.broadcast();
@@ -38,16 +75,13 @@ class Settings {
 
   ObsPrefs? obsPrefs;
 
-  Future<void> initObsPrefs() async {
-    final prefs = await SharedPreferences.getInstance();
-
+  void _initObsPrefs(SharedPreferences prefs) {
     obsPrefs = ObsPrefs(
         url: prefs.getString(_kObsWsUrl) ?? 'ws://127.0.0.1:4455',
         password: prefs.getString(_kObsWsPassword));
   }
 
-  Future<void> initRewards() async {
-    final prefs = await SharedPreferences.getInstance();
+  void _initRewards(SharedPreferences prefs) {
     final json = prefs.getString(_kRewards);
 
     rewards = json != null
@@ -91,11 +125,35 @@ class Settings {
 
   final _twitchAuthSubject = StreamController<TwitchCreds?>.broadcast();
 
-  Future<void> initTwitchCreds() async {
-    final prefs = await SharedPreferences.getInstance();
+  void _initTwitchCreds(SharedPreferences prefs) {
     final json = prefs.getString(_kTwitchAuth);
 
     twitchAuth = json != null ? TwitchCreds.fromJson(jsonDecode(json)) : null;
+  }
+
+  final _appearanceSubject = StreamController<Appearance>.broadcast();
+
+  late Appearance appearance;
+
+  Stream<Appearance> get appearanceChanges => _appearanceSubject.stream;
+
+  static Appearance _extractAppearance(SharedPreferences prefs) {
+    return Appearance(
+        brightness: AppBrightness.findByName(prefs.getString(_kBrightness)));
+  }
+
+  void toggleBrightness(AppBrightness current) {
+    final all = [...AppBrightness.values, ...AppBrightness.values];
+    final next = all[all.indexOf(current) + 1];
+    setBrightness(next);
+  }
+
+  void setBrightness(AppBrightness brightness) {
+    appearance = appearance.copy(brightness: brightness);
+    _appearanceSubject.add(appearance);
+
+    SharedPreferences.getInstance()
+        .then((prefs) => prefs.setString(_kBrightness, brightness.name));
   }
 }
 
@@ -115,4 +173,30 @@ class ObsPrefs {
 
   @override
   int get hashCode => url.hashCode ^ password.hashCode;
+}
+
+class Appearance {
+  final AppBrightness brightness;
+
+  Appearance({required this.brightness});
+
+  Appearance copy({AppBrightness? brightness}) {
+    return Appearance(brightness: brightness ?? this.brightness);
+  }
+}
+
+enum AppBrightness {
+  system('system'),
+  dark('dark'),
+  light('light');
+
+  const AppBrightness(this.value);
+
+  final String value;
+
+  static AppBrightness findByName(String? name) {
+    return AppBrightness.values
+            .firstWhereOrNull((element) => element.value == name) ??
+        AppBrightness.system;
+  }
 }
