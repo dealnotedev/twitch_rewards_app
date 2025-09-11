@@ -39,7 +39,9 @@ void main() async {
   final locator = AppServiceLocator.init(
       settings: settings, audioplayer: Audioplayer(soloud: soloud));
 
-  final dropdownManager = DropdownManager();
+  final dropdownManager =
+      DropdownManager(offset: const Offset(0, 40) // Window toolbar height
+          );
 
   final router =
       ApplicationRouter(locator: locator, dropdownManager: dropdownManager);
@@ -80,8 +82,6 @@ class _RebornPageState extends State<MyApp> {
   late final RewardExecutor _executor;
   late final ApplicationRouter _router;
 
-  final _dropdownmanager = DropdownManager();
-
   @override
   void initState() {
     _settings = widget.locator.provide();
@@ -99,14 +99,14 @@ class _RebornPageState extends State<MyApp> {
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         navigatorObservers: [_router],
         home: DropdownScope(
-            manager: _dropdownmanager,
+            manager: _router.dropdownManager,
             child: Builder(builder: (context) {
               final theme = Theme.of(context);
               return Scaffold(
                   backgroundColor: theme.surfacePrimary,
                   body: GestureDetector(
                     behavior: HitTestBehavior.opaque,
-                    onTap: () => _dropdownmanager.clear(),
+                    onTap: () => _router.dropdownManager.clear(),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [

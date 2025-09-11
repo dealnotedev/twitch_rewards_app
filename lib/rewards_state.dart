@@ -1,6 +1,7 @@
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
+import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
@@ -192,6 +193,11 @@ class _State extends State<RewardsStateWidget> {
   }
 
   void _openConfigureDialog(BuildContext context, Reward reward) async {
+    if (true) {
+      ApplicationRouter.openRewardConfig(context, reward: reward);
+      return;
+    }
+
     final manager = DropdownScope.of(context);
     await showDialog(
         routeSettings: const RouteSettings(name: '/reward_configurator'),

@@ -40,7 +40,9 @@ class DropdownNavigationObserver extends NavigatorObserver {
 class DropdownManager {
   _Handle? _current;
 
-  DropdownManager();
+  final Offset offset;
+
+  DropdownManager({this.offset = Offset.zero});
 
   void show(BuildContext context,
       {required WidgetBuilder builder, required GlobalKey key}) {
@@ -61,8 +63,8 @@ class DropdownManager {
             return Stack(
               children: [
                 Positioned(
-                  top: position.dy,
-                  left: position.dx,
+                  top: position.dy + offset.dy,
+                  left: position.dx + offset.dx,
                   width: size.width,
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
