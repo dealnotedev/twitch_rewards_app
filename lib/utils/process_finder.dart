@@ -15,7 +15,7 @@ class ProcessFinder {
   /// Initializes the class.
   static void initialize() {
     // Initialize COM
-    var hr = CoInitializeEx(nullptr, COINIT.COINIT_MULTITHREADED);
+    var hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
     if (FAILED(hr)) {
       throw COMException(hr);
     }
@@ -29,13 +29,13 @@ class ProcessFinder {
         // Authentication services
         nullptr,
         // Reserved
-        RPC_C_AUTHN_LEVEL.RPC_C_AUTHN_LEVEL_DEFAULT,
+        RPC_C_AUTHN_LEVEL_DEFAULT,
         // authentication
-        RPC_C_IMP_LEVEL.RPC_C_IMP_LEVEL_IMPERSONATE,
+        RPC_C_IMP_LEVEL_IMPERSONATE,
         // Impersonation
         nullptr,
         // Authentication info
-        EOLE_AUTHENTICATION_CAPABILITIES.EOAC_NONE,
+        EOAC_NONE,
         // Additional capabilities
         nullptr // Reserved
         );
@@ -103,13 +103,13 @@ class ProcessFinder {
         // authorization service
         nullptr,
         // Server principal name
-        RPC_C_AUTHN_LEVEL.RPC_C_AUTHN_LEVEL_CALL,
+        RPC_C_AUTHN_LEVEL_CALL,
         // authentication level
-        RPC_C_IMP_LEVEL.RPC_C_IMP_LEVEL_IMPERSONATE,
+        RPC_C_IMP_LEVEL_IMPERSONATE,
         // impersonation level
         nullptr,
         // client identity
-        EOLE_AUTHENTICATION_CAPABILITIES.EOAC_NONE // proxy capabilities
+        EOAC_NONE // proxy capabilities
         );
 
     if (FAILED(hr)) {
@@ -140,8 +140,7 @@ class ProcessFinder {
         TEXT('WQL'),
         TEXT('SELECT * FROM Win32_Process'), // OLD WHERE Priority = $priority
         // ExecutablePath IS NOT NULL removed because apex legends
-        WBEM_GENERIC_FLAG_TYPE.WBEM_FLAG_FORWARD_ONLY |
-            WBEM_GENERIC_FLAG_TYPE.WBEM_FLAG_RETURN_IMMEDIATELY,
+        WBEM_FLAG_FORWARD_ONLY | WBEM_FLAG_RETURN_IMMEDIATELY,
         nullptr,
         pEnumerator);
 
