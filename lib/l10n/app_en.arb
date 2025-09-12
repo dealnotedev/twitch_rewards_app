@@ -151,5 +151,11 @@
   "action_toggle": "Toggle",
   "reaction_delay_title": "Delay (seconds)",
   "reaction_delay_seconds_hint": "Enter duration in seconds",
-  "reaction_set_scene_name_hint": "Enter scene name and press \"Enter\""
+  "reaction_set_scene_name_hint": "Enter scene name and press \"Enter\"",
+  "reaction_crash_process_name_title": "Process Name",
+  "reaction_crash_process_name_hint": "e.g. explorer.exe",
+  "reaction_crash_process_button_select": "Select From List",
+  "reaction_crash_process_search_title": "Select Process to Crash",
+  "reaction_crash_process_search_summary": "Choose a process from the list below. Be careful as this will terminate the selected process.",
+  "reaction_crash_process_search_hint": "Type to filter processes..."
 }

@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:lottie/lottie.dart';
+import 'package:twitch_listener/actions/crash_process.dart';
 import 'package:twitch_listener/actions/delay.dart';
 import 'package:twitch_listener/actions/enable_input.dart';
-import 'package:twitch_listener/actions/enable_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
 import 'package:twitch_listener/actions/set_scene.dart';
 import 'package:twitch_listener/actions/toggle_filter.dart';
+import 'package:twitch_listener/actions/toggle_source.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/buttons.dart';
@@ -505,6 +506,9 @@ class _ActionState extends State<_ActionWidget> {
       case RewardAction.typePlayAudio:
         return PlayAudioWidget(
             action: _action, audioplayer: widget.audioplayer);
+
+      case RewardAction.typeCrashProcess:
+        return CrashProcessWidget(action: _action);
 
       case RewardAction.typeToggleSource:
         return ToggleSourceWidget(action: _action);
