@@ -157,5 +157,7 @@
   "reaction_crash_process_button_select": "Select From List",
   "reaction_crash_process_search_title": "Select Process to Crash",
   "reaction_crash_process_search_summary": "Choose a process from the list below. Be careful as this will terminate the selected process.",
-  "reaction_crash_process_search_hint": "Type to filter processes..."
+  "reaction_crash_process_search_hint": "Type to filter processes...",
+  "reaction_flip_source_x": "Flip X",
+  "reaction_flip_source_y": "Flip Y"
 }

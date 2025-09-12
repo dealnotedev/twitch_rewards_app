@@ -4,6 +4,7 @@ import 'package:lottie/lottie.dart';
 import 'package:twitch_listener/actions/crash_process.dart';
 import 'package:twitch_listener/actions/delay.dart';
 import 'package:twitch_listener/actions/enable_input.dart';
+import 'package:twitch_listener/actions/flip_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
 import 'package:twitch_listener/actions/set_scene.dart';
@@ -512,6 +513,9 @@ class _ActionState extends State<_ActionWidget> {
 
       case RewardAction.typeToggleSource:
         return ToggleSourceWidget(action: _action);
+
+      case RewardAction.typeFlipSource:
+        return FlipSourceWidget(action: _action);
 
       case RewardAction.typeEnableInput:
         return EnableInputWidget(action: _action);
