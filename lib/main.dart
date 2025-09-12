@@ -74,14 +74,50 @@ class MyApp extends StatefulWidget {
 }
 
 class _RebornPageState extends State<MyApp> {
+  late final WebSocketManager _webSocketManager;
   late final ApplicationRouter _router;
   late final Settings _settings;
+  late final RewardExecutor _executor;
+
+  late final StreamSubscription<WsMessage> _wsSubscription;
 
   @override
   void initState() {
     _router = widget.router;
     _settings = widget.locator.provide();
+    _webSocketManager = widget.locator.provide();
+    _executor = widget.locator.provide();
+    _wsSubscription =
+        _webSocketManager.messages.listen(_handleWebSocketMessage);
     super.initState();
+  }
+
+  static final _handledMessages = <String>{};
+
+  void _handleWebSocketMessage(WsMessage json) {
+    final eventId = json.payload.event?.id;
+    final rewardTitle = json.payload.event?.reward?.title;
+
+    if (rewardTitle != null &&
+        eventId != null &&
+        _handledMessages.add(eventId)) {
+      _handleReward(rewardTitle);
+    }
+  }
+
+  void _handleReward(String rewardTitle) {
+    final rewards = _settings.rewards.rewards
+        .where((element) => element.name == rewardTitle);
+
+    for (var reward in rewards) {
+      _executor.execute(reward);
+    }
+  }
+
+  @override
+  void dispose() {
+    _wsSubscription.cancel();
+    super.dispose();
   }
 
   final _dropdownManager =
