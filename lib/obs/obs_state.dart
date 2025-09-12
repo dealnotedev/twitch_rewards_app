@@ -73,11 +73,12 @@ class _State extends State<ObsStateWidget> {
       {required ObsState state}) {
     switch (state) {
       case ObsState.failed:
+      case ObsState.connected:
         return CustomButton(
           text: context.localizations.button_apply,
           style: CustomButtonStyle.primary,
           theme: theme,
-          onTap: () {},
+          onTap: _handleApplyClick,
         );
 
       case ObsState.connecting:
@@ -85,14 +86,6 @@ class _State extends State<ObsStateWidget> {
           text: context.localizations.button_connecting,
           style: CustomButtonStyle.primary,
           theme: theme,
-        );
-
-      case ObsState.connected:
-        return CustomButton(
-          text: context.localizations.button_disconnect,
-          style: CustomButtonStyle.secondary,
-          theme: theme,
-          onTap: () {},
         );
     }
   }
@@ -213,5 +206,12 @@ class _State extends State<ObsStateWidget> {
                     )
                   ]));
         });
+  }
+
+  void _handleApplyClick() {
+    final url = _urlController.text.trim();
+    final pass = _passwordController.text.trim();
+
+    _settings.saveObsPrefs(url: url, password: pass);
   }
 }
