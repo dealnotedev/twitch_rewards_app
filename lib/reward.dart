@@ -111,6 +111,10 @@ class RewardAction {
       case typeToggleFilter:
         action.action = 'enable';
         break;
+
+      case typeToggleSource:
+        action.action = 'enable';
+        break;
     }
 
     return action;
