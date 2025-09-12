@@ -7,6 +7,7 @@ import 'package:twitch_listener/actions/enable_input.dart';
 import 'package:twitch_listener/actions/flip_source.dart';
 import 'package:twitch_listener/actions/play_audio.dart';
 import 'package:twitch_listener/actions/play_audios.dart';
+import 'package:twitch_listener/actions/send_input.dart';
 import 'package:twitch_listener/actions/set_scene.dart';
 import 'package:twitch_listener/actions/toggle_filter.dart';
 import 'package:twitch_listener/actions/toggle_source.dart';
@@ -476,7 +477,8 @@ class _ActionState extends State<_ActionWidget> {
   }
 
   List<Widget> _createCustomWidgets(BuildContext context, ThemeData theme) {
-    if (_action.type == RewardAction.typeDelay) {
+    if ([RewardAction.typeDelay, RewardAction.typeSendInput]
+        .contains(_action.type)) {
       return [];
     }
     return [
@@ -489,13 +491,22 @@ class _ActionState extends State<_ActionWidget> {
   }
 
   Widget _createAdditionalHeaderWidget(BuildContext context, ThemeData theme) {
-    if (_action.type != RewardAction.typeDelay) {
-      return const SizedBox.shrink();
+    switch (_action.type) {
+      case RewardAction.typeDelay:
+        return Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+          child: DelayWidget(action: _action),
+        );
+
+      case RewardAction.typeSendInput:
+        return Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+          child: SendInputWidget(action: _action),
+        );
+
+      default:
+        return const SizedBox.shrink();
     }
-    return Padding(
-      padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-      child: DelayWidget(action: _action),
-    );
   }
 
   Widget _createInternal(BuildContext context, ThemeData theme) {

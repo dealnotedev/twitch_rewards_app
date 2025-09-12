@@ -161,5 +161,8 @@
   "reaction_flip_source_x": "Flip X",
   "reaction_flip_source_y": "Flip Y",
   "reaction_crash_process_warning_title": "Warning:",
-  "reaction_crash_process_warning_summary": "This will forcefully terminate the specified process. Use with caution."
+  "reaction_crash_process_warning_summary": "This will forcefully terminate the specified process. Use with caution.",
+  "reaction_send_input_hint_default": "Click \"Setup\" to configure",
+  "reaction_send_input_hint_recording": "Press the combination...",
+  "button_setup": "Setup"
 }
