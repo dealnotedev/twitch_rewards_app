@@ -114,8 +114,21 @@ class RewardExecutor {
               sourceName.isNotEmpty &&
               sceneName != null &&
               sceneName.isNotEmpty) {
-            await obs.toggleSource(
-                sceneName: sceneName, sourceName: sourceName);
+            switch (action.action) {
+              case 'enable':
+              case 'disable':
+                await obs.enableSource(
+                    sceneName: sceneName,
+                    sourceName: sourceName,
+                    enabled: action.action == 'enable');
+                break;
+
+              case 'toggle':
+              default:
+                await obs.toggleSource(
+                    sceneName: sceneName, sourceName: sourceName);
+                break;
+            }
           }
           break;
 
@@ -133,12 +146,7 @@ class RewardExecutor {
           if (sourceName != null &&
               sourceName.isNotEmpty &&
               sceneName != null &&
-              sceneName.isNotEmpty) {
-            await obs.enableSource(
-                sceneName: sceneName,
-                sourceName: sourceName,
-                enabled: action.enable);
-          }
+              sceneName.isNotEmpty) {}
           break;
 
         case RewardAction.typePlayAudio:

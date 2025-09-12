@@ -506,8 +506,8 @@ class _ActionState extends State<_ActionWidget> {
         return PlayAudioWidget(
             action: _action, audioplayer: widget.audioplayer);
 
-      case RewardAction.typeEnableSource:
-        return EnableSourceWidget(action: _action);
+      case RewardAction.typeToggleSource:
+        return ToggleSourceWidget(action: _action);
 
       case RewardAction.typeEnableInput:
         return EnableInputWidget(action: _action);

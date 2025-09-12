@@ -48,6 +48,20 @@ class Settings {
             ..action = 'toggle';
           changes++;
         }
+
+        if (action.type == RewardAction.typeToggleSource &&
+            action.action == null) {
+          reward.handlers[i].action = 'toggle';
+          changes++;
+        }
+
+        if (action.type == RewardAction.typeEnableSource) {
+          reward.handlers[i] = RewardAction(type: RewardAction.typeToggleSource)
+            ..sceneName = action.sceneName
+            ..sourceName = action.sourceName
+            ..action = action.enable ? 'enable' : 'disable';
+          changes++;
+        }
       }
     }
 

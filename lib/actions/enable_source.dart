@@ -7,16 +7,16 @@ import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
 
-class EnableSourceWidget extends StatefulWidget {
+class ToggleSourceWidget extends StatefulWidget {
   final RewardAction action;
 
-  const EnableSourceWidget({super.key, required this.action});
+  const ToggleSourceWidget({super.key, required this.action});
 
   @override
   State<StatefulWidget> createState() => _State();
 }
 
-class _State extends State<EnableSourceWidget> {
+class _State extends State<ToggleSourceWidget> {
   late final RewardAction _action;
 
   late final TextEditingController _sourceNameController;
@@ -116,17 +116,22 @@ class _State extends State<EnableSourceWidget> {
         )),
         const Gap(8),
         Expanded(
-            child: SimpleDropdown<bool>(
+            child: SimpleDropdown<String>(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 theme: theme,
                 title: context.localizations.action_title,
                 available: [
-                  Item(id: true, title: context.localizations.action_enable),
-                  Item(id: false, title: context.localizations.action_disable),
+                  Item(
+                      id: 'enable', title: context.localizations.action_enable),
+                  Item(
+                      id: 'disable',
+                      title: context.localizations.action_disable),
+                  Item(
+                      id: 'toggle', title: context.localizations.action_toggle),
                 ],
                 globalKey: _actionKey,
-                selected: _action.enable,
+                selected: _action.action,
                 onSelected: _handleActionSelected))
       ],
     );
@@ -142,9 +147,9 @@ class _State extends State<EnableSourceWidget> {
     _action.sceneName = _sceneNameController.text.trim();
   }
 
-  void _handleActionSelected(bool enabled) {
+  void _handleActionSelected(String action) {
     setState(() {
-      _action.enable = enabled;
+      _action.action = action;
     });
   }
 }

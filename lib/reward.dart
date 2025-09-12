@@ -56,9 +56,8 @@ class RewardAction {
     typePlayAudio,
     typePlayAudios,
     typeToggleFilter,
-    typeFlipSource,
-    typeEnableSource,
     typeToggleSource,
+    typeFlipSource,
     typeSetScene,
     typeCrashProcess,
     typeSendInput
