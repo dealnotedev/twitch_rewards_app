@@ -73,6 +73,8 @@ class _State extends State<RewardConfiguratorWidget> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final actions = _reward.handlers;
+
     return Container(
       color: theme.surfacePrimary,
       child: Column(
@@ -221,7 +223,7 @@ class _State extends State<RewardConfiguratorWidget> {
                           ),
                         ],
                       ),
-                      if (_reward.handlers.isEmpty) ...[
+                      if (actions.isEmpty) ...[
                         const Gap(8),
                         EmptyWidget(
                             text:
@@ -229,12 +231,28 @@ class _State extends State<RewardConfiguratorWidget> {
                             theme: theme),
                       ] else ...[
                         const Gap(4),
-                        ..._reward.handlers.map((a) => _ActionWidget(
-                            audioplayer: widget.audioplayer,
-                            onDelete: () => _handleActionDelete(a),
-                            key: ValueKey(a.id),
-                            action: a,
-                            theme: theme)),
+                        ReorderableList(
+                            shrinkWrap: true,
+                            itemBuilder: (context, index) {
+                              final action = actions[index];
+                              return _ActionWidget(
+                                  index: index,
+                                  audioplayer: widget.audioplayer,
+                                  onDelete: () => _handleActionDelete(action),
+                                  key: ValueKey(action.id),
+                                  action: action,
+                                  theme: theme);
+                            },
+                            itemCount: actions.length,
+                            onReorder: (oldIndex, newIndex) {
+                              setState(() {
+                                if (oldIndex < newIndex) {
+                                  newIndex -= 1;
+                                }
+                                final item = actions.removeAt(oldIndex);
+                                actions.insert(newIndex, item);
+                              });
+                            })
                       ]
                     ],
                   ),
@@ -363,7 +381,8 @@ class _State extends State<RewardConfiguratorWidget> {
   }
 }
 
-class _ActionWidget extends StatefulWidget {
+class _ActionWidget extends StatelessWidget {
+  final int index;
   final Audioplayer audioplayer;
   final ThemeData theme;
   final RewardAction action;
@@ -374,25 +393,12 @@ class _ActionWidget extends StatefulWidget {
       required this.action,
       required this.theme,
       this.onDelete,
-      required this.audioplayer});
-
-  @override
-  State<StatefulWidget> createState() => _ActionState();
-}
-
-class _ActionState extends State<_ActionWidget> {
-  late final RewardAction _action;
-
-  @override
-  void initState() {
-    _action = widget.action;
-    super.initState();
-  }
+      required this.audioplayer,
+      required this.index});
 
   @override
   Widget build(BuildContext context) {
-    final theme = widget.theme;
-    final attrs = RewardActionAtts.forType(context, _action.type);
+    final attrs = RewardActionAtts.forType(context, action.type);
 
     final borderDefault = BorderSide(
       color: theme.dividerColor,
@@ -402,6 +408,7 @@ class _ActionState extends State<_ActionWidget> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
       decoration: BoxDecoration(
+          color: theme.surfaceSecondary,
           borderRadius: BorderRadius.circular(8),
           border: Border(
             left: BorderSide(
@@ -420,10 +427,12 @@ class _ActionState extends State<_ActionWidget> {
           Row(
             children: [
               const Gap(8),
-              RippleIcon(
-                  icon: Assets.assetsIcReorderWhite16dp,
-                  size: 16,
-                  color: theme.textColorSecondary),
+              ReorderableDragStartListener(
+                  index: index,
+                  child: RippleIcon(
+                      icon: Assets.assetsIcReorderWhite16dp,
+                      size: 16,
+                      color: theme.textColorSecondary)),
               const Gap(4),
               SimpleIcon.simpleSquare(attrs.icon,
                   size: 16, color: theme.textColorPrimary),
@@ -435,17 +444,10 @@ class _ActionState extends State<_ActionWidget> {
                 style: TextStyle(fontSize: 13, color: theme.textColorPrimary),
               ),
               Expanded(child: _createAdditionalHeaderWidget(context, theme)),
-              if (_enableDisableAvailable) ...[
-                CustomSwitch(
-                    onToggle: _handleToggle,
-                    value: !_action.disabled,
-                    theme: theme),
-                const Gap(8),
-              ],
               RippleIcon(
                   borderRadius: BorderRadius.circular(8),
                   icon: Assets.assetsIcDeleteWhite16dp,
-                  onTap: widget.onDelete,
+                  onTap: onDelete,
                   size: 16,
                   color: theme.textColorPrimary),
               const Gap(8),
@@ -456,14 +458,6 @@ class _ActionState extends State<_ActionWidget> {
         ],
       ),
     );
-  }
-
-  static const _enableDisableAvailable = false;
-
-  void _handleToggle(bool checked) {
-    setState(() {
-      _action.disabled = !checked;
-    });
   }
 
   static String _getActionTitle(BuildContext context,
@@ -478,7 +472,7 @@ class _ActionState extends State<_ActionWidget> {
 
   List<Widget> _createCustomWidgets(BuildContext context, ThemeData theme) {
     if ([RewardAction.typeDelay, RewardAction.typeSendInput]
-        .contains(_action.type)) {
+        .contains(action.type)) {
       return [];
     }
     return [
@@ -491,17 +485,17 @@ class _ActionState extends State<_ActionWidget> {
   }
 
   Widget _createAdditionalHeaderWidget(BuildContext context, ThemeData theme) {
-    switch (_action.type) {
+    switch (action.type) {
       case RewardAction.typeDelay:
         return Padding(
           padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-          child: DelayWidget(action: _action),
+          child: DelayWidget(action: action),
         );
 
       case RewardAction.typeSendInput:
         return Padding(
           padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-          child: SendInputWidget(action: _action),
+          child: SendInputWidget(action: action),
         );
 
       default:
@@ -510,32 +504,30 @@ class _ActionState extends State<_ActionWidget> {
   }
 
   Widget _createInternal(BuildContext context, ThemeData theme) {
-    switch (_action.type) {
+    switch (action.type) {
       case RewardAction.typePlayAudios:
-        return PlayAudiosWidget(
-            action: _action, audioplayer: widget.audioplayer);
+        return PlayAudiosWidget(action: action, audioplayer: audioplayer);
 
       case RewardAction.typePlayAudio:
-        return PlayAudioWidget(
-            action: _action, audioplayer: widget.audioplayer);
+        return PlayAudioWidget(action: action, audioplayer: audioplayer);
 
       case RewardAction.typeCrashProcess:
-        return CrashProcessWidget(action: _action);
+        return CrashProcessWidget(action: action);
 
       case RewardAction.typeToggleSource:
-        return ToggleSourceWidget(action: _action);
+        return ToggleSourceWidget(action: action);
 
       case RewardAction.typeFlipSource:
-        return FlipSourceWidget(action: _action);
+        return FlipSourceWidget(action: action);
 
       case RewardAction.typeEnableInput:
-        return EnableInputWidget(action: _action);
+        return EnableInputWidget(action: action);
 
       case RewardAction.typeToggleFilter:
-        return ToggleFilterWidget(action: _action);
+        return ToggleFilterWidget(action: action);
 
       case RewardAction.typeSetScene:
-        return SetSceneWidget(action: _action);
+        return SetSceneWidget(action: action);
     }
 
     return Container(
