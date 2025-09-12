@@ -5,8 +5,8 @@ import 'package:hid_listener/hid_listener.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/rewards/keys_logger.dart';
 import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/utils/keys_logger.dart';
 
 class SendInputWidget extends StatefulWidget {
   final RewardAction action;

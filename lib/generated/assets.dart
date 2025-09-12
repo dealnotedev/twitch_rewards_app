@@ -44,7 +44,6 @@ class Assets {
   static const String assetsIcMusicNoteWhite16dp =
       'assets/ic_music_note_white_16dp.png';
   static const String assetsIcNextWhite16dp = 'assets/ic_next_white_16dp.png';
-  static const String assetsIcObs32dp = 'assets/ic_obs_32dp.png';
   static const String assetsIcObsWhite16dp = 'assets/ic_obs_white_16dp.png';
   static const String assetsIcPlayWhite12dp = 'assets/ic_play_white_12dp.png';
   static const String assetsIcPlayWhite16dp = 'assets/ic_play_white_16dp.png';
@@ -68,7 +67,6 @@ class Assets {
   static const String assetsIcToggleWhite16dp =
       'assets/ic_toggle_white_16dp.png';
   static const String assetsIcTwitch16dp = 'assets/ic_twitch_16dp.png';
-  static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp =
       'assets/ic_twitch_white_24dp.png';
   static const String assetsIcWarningWhite16dp =

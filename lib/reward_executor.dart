@@ -1,9 +1,9 @@
 import 'package:flutter/foundation.dart';
 import 'package:twitch_listener/audioplayer.dart';
-import 'package:twitch_listener/input_sender.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
-import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/utils/input_sender.dart';
+import 'package:twitch_listener/utils/process_finder.dart';
 import 'package:win32/win32.dart' as win32;
 
 class RewardExecutor {

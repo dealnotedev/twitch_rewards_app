@@ -4,11 +4,11 @@ import 'package:gap/gap.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/process_finder.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/simple_icon.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
 import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/utils/process_finder.dart';
 
 class CrashProcessWidget extends StatefulWidget {
   final RewardAction action;
