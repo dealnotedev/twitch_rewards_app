@@ -71,6 +71,8 @@ class Assets {
   static const String assetsIcTwitch32dp = 'assets/ic_twitch_32dp.png';
   static const String assetsIcTwitchWhite24dp =
       'assets/ic_twitch_white_24dp.png';
+  static const String assetsIcWarningWhite16dp =
+      'assets/ic_warning_white_16dp.png';
   static const String assetsLogo = 'assets/logo.png';
   static const String assetsRex = 'assets/rex.json';
 }

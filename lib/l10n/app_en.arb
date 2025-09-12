@@ -159,5 +159,7 @@
   "reaction_crash_process_search_summary": "Choose a process from the list below. Be careful as this will terminate the selected process.",
   "reaction_crash_process_search_hint": "Type to filter processes...",
   "reaction_flip_source_x": "Flip X",
-  "reaction_flip_source_y": "Flip Y"
+  "reaction_flip_source_y": "Flip Y",
+  "reaction_crash_process_warning_title": "Warning:",
+  "reaction_crash_process_warning_summary": "This will forcefully terminate the specified process. Use with caution."
 }

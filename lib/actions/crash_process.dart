@@ -88,7 +88,43 @@ class _State extends State<CrashProcessWidget> {
                 style: CustomButtonStyle.secondary,
                 theme: theme)
           ],
-        )
+        ),
+        const Gap(12),
+        Container(
+          decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: theme.dividerColor, width: 0.5)),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SimpleIcon.simpleSquare(Assets.assetsIcWarningWhite16dp,
+                  size: 16, color: theme.textColorPrimary),
+              const Gap(12),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    context.localizations.reaction_crash_process_warning_title,
+                    style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w500,
+                        color: theme.textColorPrimary,
+                        height: 1),
+                  ),
+                  const Gap(4),
+                  Text(
+                    context
+                        .localizations.reaction_crash_process_warning_summary,
+                    style: TextStyle(
+                        fontSize: 12, color: theme.textColorSecondary),
+                  ),
+                ],
+              ))
+            ],
+          ),
+        ),
       ],
     );
   }
