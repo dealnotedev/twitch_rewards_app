@@ -3,8 +3,8 @@ import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_soloud/flutter_soloud.dart';
 import 'package:gap/gap.dart';
+import 'package:minisound/engine.dart' as minisound;
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
@@ -23,15 +23,16 @@ import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 
 void main() async {
-  final soloud = SoLoud.instance;
-  await soloud.init();
+  final engine = minisound.Engine();
+  await engine.init();
+  await engine.start();
 
   final settings = Settings();
   await settings.init();
   await settings.makeRequiredMigrations();
 
   final locator = AppServiceLocator.init(
-      settings: settings, audioplayer: Audioplayer(soloud: soloud));
+      settings: settings, audioplayer: Audioplayer(engine: engine));
 
   final router = ApplicationRouter(locator: locator);
 
@@ -51,7 +52,6 @@ void main() async {
   AppLifecycleListener(
       binding: WidgetsBinding.instance,
       onExitRequested: () async {
-        soloud.deinit();
         return AppExitResponse.exit;
       });
 }

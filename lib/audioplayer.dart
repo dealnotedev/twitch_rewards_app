@@ -1,51 +1,55 @@
 import 'dart:async';
 
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:minisound/engine.dart' as minisound;
+import 'package:minisound/engine_flutter.dart';
 import 'package:twitch_listener/observable_value.dart';
 
 class Audioplayer {
-  final SoLoud soloud;
+  final minisound.Engine engine;
 
-  Audioplayer({required this.soloud});
+  Audioplayer({required this.engine});
 
   Future<void> playFileWaitCompletion(String filePath,
       {required ObservableValue<double> volume}) async {
-    final source = await soloud.loadFile(filePath);
+    final source = await engine.loadSoundFile(filePath);
 
-    final duration = soloud.getLength(source);
-    final handle = await soloud.play(source, volume: volume.current);
+    final duration = source.duration;
 
     final volumeSub = volume.changes.listen((v) {
-      soloud.setVolume(handle, v);
+      source.volume = v;
     });
+
+    source.volume = volume.current;
+    source.play();
 
     await Future.delayed(duration);
 
     volumeSub.cancel();
-    await soloud.stop(handle);
+    source.stop();
   }
 
   Future<PlayToken> playFileInfinitely(String filePath,
       {required ObservableValue<double> volume}) async {
-    final source = await soloud.loadFile(filePath);
-    final handle =
-        await soloud.play(source, volume: volume.current, looping: true);
+    final source = await engine.loadSoundFile(filePath);
+
+    source.volume = volume.current;
+    source.playLooped();
 
     final volumeSub = volume.changes.listen((v) {
-      soloud.setVolume(handle, v);
+      source.volume = v;
     });
 
-    return PlayToken(handle: handle, volumeSub: volumeSub);
+    return PlayToken(handle: source, volumeSub: volumeSub);
   }
 
-  Future<void> cancelByToken(PlayToken token) {
+  Future<void> cancelByToken(PlayToken token) async {
     token.volumeSub.cancel();
-    return soloud.stop(token.handle);
+    token.handle.stop();
   }
 }
 
 class PlayToken {
-  final SoundHandle handle;
+  final LoadedSound handle;
   final StreamSubscription<double> volumeSub;
 
   PlayToken({required this.handle, required this.volumeSub});
