@@ -272,10 +272,11 @@ packages:
   hid_listener:
     dependency: "direct main"
     description:
-      name: hid_listener
-      sha256: "056472f6f4df29c9d040948740c71fa7fc346feda2c209b65f628e0749f3adfc"
-      url: "https://pub.dev"
-    source: hosted
+      path: "."
+      ref: main
+      resolved-ref: "0f587006c53a88c0d6e04f3879738c28ccb04eb8"
+      url: "https://github.com/dealnotedev/hid_listener.git"
+    source: git
     version: "2.0.1"
   http:
     dependency: transitive

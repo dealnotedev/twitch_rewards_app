@@ -72,7 +72,10 @@ dependencies:
 
   gap: ^3.0.1
 
-  hid_listener: ^2.0.1
+  hid_listener:
+    git:
+      url: https://github.com/dealnotedev/hid_listener.git
+      ref: main
 
   minisound: ^2.0.2
 
