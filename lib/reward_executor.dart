@@ -153,15 +153,16 @@ class RewardExecutor {
           final filePath = action.filePath;
 
           if (filePath != null && filePath.isNotEmpty) {
-            audioplayer.playFileWaitCompletion(filePath, volume: action.volume);
+            audioplayer.playFileWaitCompletion(filePath,
+                volume: action.volume, title: reward.name);
           }
           break;
 
         case RewardAction.typePlayAudios:
           if (action.awaitCompletion) {
-            await _playAudios(action);
+            await _playAudios(action, title: reward.name);
           } else {
-            _playAudios(action);
+            _playAudios(action, title: reward.name);
           }
           break;
       }
@@ -189,7 +190,7 @@ class RewardExecutor {
     ProcessFinder.uninitialize();
   }
 
-  Future<void> _playAudios(RewardAction action) async {
+  Future<void> _playAudios(RewardAction action, {required String title}) async {
     final all = List.of(action.audios);
     final count = action.count;
 
@@ -215,7 +216,8 @@ class RewardExecutor {
       if (i > 0) {
         await Future.delayed(const Duration(milliseconds: 250));
       }
-      await audioplayer.playFileWaitCompletion(file.path, volume: file.volume);
+      await audioplayer.playFileWaitCompletion(file.path,
+          volume: file.volume, title: title);
     }
   }
 }

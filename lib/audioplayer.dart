@@ -1,51 +1,58 @@
 import 'dart:async';
 
-import 'package:flutter_soloud/flutter_soloud.dart';
+import 'package:media_kit/media_kit.dart';
 import 'package:twitch_listener/observable_value.dart';
 
 class Audioplayer {
-  final SoLoud soloud;
-
-  Audioplayer({required this.soloud});
+  Audioplayer();
 
   Future<void> playFileWaitCompletion(String filePath,
-      {required ObservableValue<double> volume}) async {
-    final source = await soloud.loadFile(filePath);
+      {required ObservableValue<double> volume,
+      String title = 'Twitch Listener'}) async {
+    final player = Player(configuration: PlayerConfiguration(title: title));
+    final media = Media(filePath);
 
-    final duration = soloud.getLength(source);
-    final handle = await soloud.play(source, volume: volume.current);
+    await player.setPlaylistMode(PlaylistMode.none);
+    await player.setVolume(volume.current * 100.0);
+    await player.open(media);
 
     final volumeSub = volume.changes.listen((v) {
-      soloud.setVolume(handle, v);
+      player.setVolume(volume.current * 100.0);
     });
 
-    await Future.delayed(duration);
+    await player.stream.completed.where((t) => t).first;
 
     volumeSub.cancel();
-    await soloud.stop(handle);
+    await player.stop();
+    await player.dispose();
   }
 
   Future<PlayToken> playFileInfinitely(String filePath,
-      {required ObservableValue<double> volume}) async {
-    final source = await soloud.loadFile(filePath);
-    final handle =
-        await soloud.play(source, volume: volume.current, looping: true);
+      {required ObservableValue<double> volume,
+      String title = 'Twitch Listener'}) async {
+    final player = Player(configuration: PlayerConfiguration(title: title));
+    final media = Media(filePath);
+
+    await player.setPlaylistMode(PlaylistMode.single);
+    await player.setVolume(volume.current * 100.0);
+    await player.open(media);
 
     final volumeSub = volume.changes.listen((v) {
-      soloud.setVolume(handle, v);
+      player.setVolume(volume.current * 100.0);
     });
 
-    return PlayToken(handle: handle, volumeSub: volumeSub);
+    return PlayToken(handle: player, volumeSub: volumeSub);
   }
 
-  Future<void> cancelByToken(PlayToken token) {
+  Future<void> cancelByToken(PlayToken token) async {
     token.volumeSub.cancel();
-    return soloud.stop(token.handle);
+    token.handle.stop();
+    token.handle.dispose();
   }
 }
 
 class PlayToken {
-  final SoundHandle handle;
+  final Player handle;
   final StreamSubscription<double> volumeSub;
 
   PlayToken({required this.handle, required this.volumeSub});
