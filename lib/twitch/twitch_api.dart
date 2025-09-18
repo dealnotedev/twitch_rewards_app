@@ -25,6 +25,28 @@ class TwitchApi {
     dio.interceptors.add(interceptor);
   }
 
+  Future<int> cleanupInactiveEventSubs() async {
+    final resp = await dio.get('/eventsub/subscriptions');
+    final data = (resp.data['data'] as List).cast<Map<String, dynamic>>();
+
+    int count = 0;
+
+    for (final sub in data) {
+      final status = sub['status'];
+      final id = sub['id'];
+
+      if (status == 'websocket_disconnected') {
+        await dio.delete(
+          '/eventsub/subscriptions',
+          queryParameters: {'id': id},
+        );
+        count++;
+      }
+    }
+
+    return count;
+  }
+
   Future<void> subscribeCustomRewards(
       {required String? broadcasterUserId, required String sessionId}) {
     final data = {

@@ -201,6 +201,11 @@ class WebSocketManager {
     );
 
     try {
+      final cleaned = await api.cleanupInactiveEventSubs();
+      print(cleaned);
+    } catch (_) {}
+
+    try {
       await _registerInternal(
         api,
         _Registration(
