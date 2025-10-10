@@ -9,8 +9,10 @@ import 'package:twitch_listener/themes.dart';
 
 class ToggleFilterWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const ToggleFilterWidget({super.key, required this.action});
+  const ToggleFilterWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -142,15 +144,18 @@ class _State extends State<ToggleFilterWidget> {
 
   void _handleSourceNameEdit() {
     _action.sourceName = _sourceNameController.text.trim();
+    widget.changesCallback();
   }
 
   void _handleActionSelected(String action) {
     setState(() {
       _action.action = action;
+      widget.changesCallback();
     });
   }
 
   void _handleFilterNameEdit() {
     _action.filterName = _filterNameController.text.trim();
+    widget.changesCallback();
   }
 }

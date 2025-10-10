@@ -8,8 +8,10 @@ import 'package:twitch_listener/themes.dart';
 
 class FlipSourceWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const FlipSourceWidget({super.key, required this.action});
+  const FlipSourceWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -155,21 +157,25 @@ class _State extends State<FlipSourceWidget> {
 
   void _handleSourceNameEdit() {
     _action.sourceName = _sourceNameController.text.trim();
+    widget.changesCallback();
   }
 
   void _handleSceneNameEdit() {
     _action.sceneName = _sceneNameController.text.trim();
+    widget.changesCallback();
   }
 
   void _handleXToggled(bool checked) {
     setState(() {
       _action.horizontal = checked;
+      widget.changesCallback();
     });
   }
 
   void _handleYToggled(bool checked) {
     setState(() {
       _action.vertical = checked;
+      widget.changesCallback();
     });
   }
 }

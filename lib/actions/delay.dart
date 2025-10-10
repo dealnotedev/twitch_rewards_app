@@ -6,8 +6,10 @@ import 'package:twitch_listener/text_field_decoration.dart';
 
 class DelayWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const DelayWidget({super.key, required this.action});
+  const DelayWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -66,6 +68,7 @@ class _State extends State<DelayWidget> {
   void _handleSecondsEdit() {
     try {
       _action.duration = int.parse(_secondsController.text.trim());
+      widget.changesCallback();
     } catch (_) {}
   }
 }

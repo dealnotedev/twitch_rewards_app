@@ -36,13 +36,15 @@ class RewardConfiguratorWidget extends StatefulWidget {
   final Audioplayer audioplayer;
   final RewardExecutor executor;
   final Reward reward;
+  final VoidCallback changesCallback;
 
   const RewardConfiguratorWidget(
       {super.key,
       required this.reward,
       required this.audioplayer,
       required this.twitchShared,
-      required this.executor});
+      required this.executor,
+      required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -238,6 +240,7 @@ class _State extends State<RewardConfiguratorWidget> {
                               return _ActionWidget(
                                   index: index,
                                   audioplayer: widget.audioplayer,
+                                  changesCallback: widget.changesCallback,
                                   onDelete: () => _handleActionDelete(action),
                                   key: ValueKey(action.id),
                                   action: action,
@@ -386,15 +389,17 @@ class _ActionWidget extends StatelessWidget {
   final Audioplayer audioplayer;
   final ThemeData theme;
   final RewardAction action;
-  final VoidCallback? onDelete;
+  final VoidCallback onDelete;
+  final VoidCallback changesCallback;
 
   const _ActionWidget(
       {super.key,
       required this.action,
       required this.theme,
-      this.onDelete,
+      required this.onDelete,
       required this.audioplayer,
-      required this.index});
+      required this.index,
+      required this.changesCallback});
 
   @override
   Widget build(BuildContext context) {
@@ -489,13 +494,14 @@ class _ActionWidget extends StatelessWidget {
       case RewardAction.typeDelay:
         return Padding(
           padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-          child: DelayWidget(action: action),
+          child: DelayWidget(action: action, changesCallback: changesCallback),
         );
 
       case RewardAction.typeSendInput:
         return Padding(
           padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
-          child: SendInputWidget(action: action),
+          child:
+              SendInputWidget(action: action, changesCallback: changesCallback),
         );
 
       default:
@@ -506,28 +512,39 @@ class _ActionWidget extends StatelessWidget {
   Widget _createInternal(BuildContext context, ThemeData theme) {
     switch (action.type) {
       case RewardAction.typePlayAudios:
-        return PlayAudiosWidget(action: action, audioplayer: audioplayer);
+        return PlayAudiosWidget(
+            action: action,
+            audioplayer: audioplayer,
+            changesCallback: changesCallback);
 
       case RewardAction.typePlayAudio:
-        return PlayAudioWidget(action: action, audioplayer: audioplayer);
+        return PlayAudioWidget(
+            action: action,
+            audioplayer: audioplayer,
+            changesCallback: changesCallback);
 
       case RewardAction.typeCrashProcess:
-        return CrashProcessWidget(action: action);
+        return CrashProcessWidget(
+            action: action, changesCallback: changesCallback);
 
       case RewardAction.typeToggleSource:
-        return ToggleSourceWidget(action: action);
+        return ToggleSourceWidget(
+            action: action, changesCallback: changesCallback);
 
       case RewardAction.typeFlipSource:
-        return FlipSourceWidget(action: action);
+        return FlipSourceWidget(
+            action: action, changesCallback: changesCallback);
 
       case RewardAction.typeEnableInput:
-        return EnableInputWidget(action: action);
+        return EnableInputWidget(
+            action: action, changesCallback: changesCallback);
 
       case RewardAction.typeToggleFilter:
-        return ToggleFilterWidget(action: action);
+        return ToggleFilterWidget(
+            action: action, changesCallback: changesCallback);
 
       case RewardAction.typeSetScene:
-        return SetSceneWidget(action: action);
+        return SetSceneWidget(action: action, changesCallback: changesCallback);
     }
 
     return Container(

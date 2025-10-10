@@ -16,9 +16,13 @@ import 'package:twitch_listener/themes.dart';
 class PlayAudioWidget extends StatefulWidget {
   final RewardAction action;
   final Audioplayer audioplayer;
+  final VoidCallback changesCallback;
 
   const PlayAudioWidget(
-      {super.key, required this.action, required this.audioplayer});
+      {super.key,
+      required this.action,
+      required this.audioplayer,
+      required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -103,6 +107,11 @@ class _State extends State<PlayAudioWidget> {
 
   void _onVolumeEnd(double value) {
     _stopVolumePlaying();
+
+    setState(() {
+      _action.volume.set(value);
+      widget.changesCallback();
+    });
   }
 
   void _stopVolumePlaying() {
@@ -148,5 +157,6 @@ class _State extends State<PlayAudioWidget> {
 
   void _handlePathEdit() {
     _action.filePath = _controller.text.trim();
+    widget.changesCallback();
   }
 }

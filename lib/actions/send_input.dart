@@ -10,8 +10,10 @@ import 'package:twitch_listener/utils/keys_logger.dart';
 
 class SendInputWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const SendInputWidget({super.key, required this.action});
+  const SendInputWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -46,8 +48,6 @@ class _State extends State<SendInputWidget> {
   }
 
   Widget _createConbinationState(BuildContext context, ThemeData theme) {
-    const radius = Radius.circular(4);
-
     final entries = _action.inputs;
 
     final TextSpan text;
@@ -86,6 +86,7 @@ class _State extends State<SendInputWidget> {
     setState(() {
       _recording = false;
       _action.inputs = List.of(entries);
+      widget.changesCallback();
     });
   }
 }

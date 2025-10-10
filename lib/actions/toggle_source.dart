@@ -9,8 +9,10 @@ import 'package:twitch_listener/themes.dart';
 
 class ToggleSourceWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const ToggleSourceWidget({super.key, required this.action});
+  const ToggleSourceWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -141,15 +143,18 @@ class _State extends State<ToggleSourceWidget> {
 
   void _handleSourceNameEdit() {
     _action.sourceName = _sourceNameController.text.trim();
+    widget.changesCallback();
   }
 
   void _handleSceneNameEdit() {
     _action.sceneName = _sceneNameController.text.trim();
+    widget.changesCallback();
   }
 
   void _handleActionSelected(String action) {
     setState(() {
       _action.action = action;
+      widget.changesCallback();
     });
   }
 }

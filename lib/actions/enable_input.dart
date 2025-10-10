@@ -9,8 +9,10 @@ import 'package:twitch_listener/themes.dart';
 
 class EnableInputWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const EnableInputWidget({super.key, required this.action});
+  const EnableInputWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -98,10 +100,12 @@ class _State extends State<EnableInputWidget> {
   void _handleActionSelected(bool enabled) {
     setState(() {
       _action.enable = enabled;
+      widget.changesCallback();
     });
   }
 
   void _handleInputNameEdit() {
     _action.inputName = _inputNameController.text.trim();
+    widget.changesCallback();
   }
 }

@@ -19,9 +19,12 @@ import 'package:twitch_listener/themes.dart';
 class PlayAudiosWidget extends StatefulWidget {
   final RewardAction action;
   final Audioplayer audioplayer;
+  final VoidCallback changesCallback;
 
-  const PlayAudiosWidget(
-      {super.key, required this.action, required this.audioplayer});
+  const PlayAudiosWidget({super.key,
+    required this.action,
+    required this.audioplayer,
+    required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -130,11 +133,14 @@ class _State extends State<PlayAudiosWidget> {
         ],
         globalKey: _waitCompletionKey,
         selected: _action.awaitCompletion,
-        onSelected: (value) {
-          setState(() {
-            _action.awaitCompletion = value;
-          });
-        });
+        onSelected: _handleAwaitCompletion);
+  }
+
+  void _handleAwaitCompletion(bool value) {
+    setState(() {
+      _action.awaitCompletion = value;
+      widget.changesCallback();
+    });
   }
 
   Widget _createNumberOfTracks(BuildContext context, ThemeData theme) {
@@ -162,11 +168,7 @@ class _State extends State<PlayAudiosWidget> {
         available: items,
         globalKey: _countKey,
         selected: _action.count ?? -1,
-        onSelected: (value) {
-          setState(() {
-            _action.count = value == -1 ? null : value;
-          });
-        });
+        onSelected: _handleCountEdited);
   }
 
   Widget _createShuffle(BuildContext context, ThemeData theme) {
@@ -245,6 +247,11 @@ class _State extends State<PlayAudiosWidget> {
 
   void _onVolumeEnd(AudioEntry entry, double value) {
     _stopVolumePlaying();
+
+    setState(() {
+      entry.volume.set(value);
+      widget.changesCallback();
+    });
   }
 
   void _stopVolumePlaying() {
@@ -283,6 +290,7 @@ class _State extends State<PlayAudiosWidget> {
 
     setState(() {
       _action.audios.addAll(paths.map((p) => AudioEntry(path: p)));
+      widget.changesCallback();
     });
   }
 
@@ -295,6 +303,14 @@ class _State extends State<PlayAudiosWidget> {
   void _handleDeleteClick(AudioEntry entry) {
     setState(() {
       _action.audios.remove(entry);
+      widget.changesCallback();
+    });
+  }
+
+  void _handleCountEdited(int value) {
+    setState(() {
+      _action.count = value == -1 ? null : value;
+      widget.changesCallback();
     });
   }
 }

@@ -12,8 +12,10 @@ import 'package:twitch_listener/utils/process_finder.dart';
 
 class CrashProcessWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const CrashProcessWidget({super.key, required this.action});
+  const CrashProcessWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -131,6 +133,7 @@ class _State extends State<CrashProcessWidget> {
 
   void _handleInputNameEdit() {
     _action.target = _processNameController.text.trim();
+    widget.changesCallback();
   }
 
   Future<void> _selectProcess(BuildContext context, ThemeData theme) async {

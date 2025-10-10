@@ -10,8 +10,10 @@ import 'package:twitch_listener/themes.dart';
 
 class SetSceneWidget extends StatefulWidget {
   final RewardAction action;
+  final VoidCallback changesCallback;
 
-  const SetSceneWidget({super.key, required this.action});
+  const SetSceneWidget(
+      {super.key, required this.action, required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -165,12 +167,14 @@ class _State extends State<SetSceneWidget> {
     setState(() {
       _sceneNameController.text = '';
       _action.targets.add(sceneName);
+      widget.changesCallback();
     });
   }
 
   void _handleTargetDeleteClick(String target) {
     setState(() {
       _action.targets.remove(target);
+      widget.changesCallback();
     });
   }
 }
