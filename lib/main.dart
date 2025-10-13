@@ -7,6 +7,7 @@ import 'package:gap/gap.dart';
 import 'package:media_kit/media_kit.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/di/app_service_locator.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
@@ -31,7 +32,8 @@ void main() async {
   await settings.init();
   await settings.makeRequiredMigrations();
 
-  final locator = AppServiceLocator.init(settings: settings, audioplayer: Audioplayer());
+  final locator =
+      AppServiceLocator.init(settings: settings, audioplayer: Audioplayer());
 
   final router = ApplicationRouter(locator: locator);
 
@@ -61,6 +63,8 @@ class MyApp extends StatefulWidget {
 
   const MyApp({super.key, required this.locator, required this.router});
 
+  Autosaver get autosaver => locator.provide();
+
   @override
   State<StatefulWidget> createState() => _RebornPageState();
 }
@@ -81,7 +85,30 @@ class _RebornPageState extends State<MyApp> {
     _executor = widget.locator.provide();
     _wsSubscription =
         _webSocketManager.messages.listen(_handleWebSocketMessage);
+
+    widget.autosaver.registerSaveCallback(_handleAutosaving);
     super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.autosaver.unregisterSaveCallback(_handleAutosaving);
+    _wsSubscription.cancel();
+    super.dispose();
+  }
+
+  bool _autosaved = false;
+
+  Future<void> _handleAutosaving() async {
+    setState(() {
+      _autosaved = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    setState(() {
+      _autosaved = false;
+    });
   }
 
   static final _handledMessages = <String>{};
@@ -104,12 +131,6 @@ class _RebornPageState extends State<MyApp> {
     for (var reward in rewards) {
       _executor.execute(reward);
     }
-  }
-
-  @override
-  void dispose() {
-    _wsSubscription.cancel();
-    super.dispose();
   }
 
   final _dropdownManager =
@@ -222,6 +243,15 @@ class _RebornPageState extends State<MyApp> {
               ],
             ),
           ))),
+          AnimatedOpacity(
+              opacity: _autosaved ? 1.0 : 0.0,
+              duration: const Duration(milliseconds: 250),
+              child: RippleIcon(
+                size: 16,
+                icon: Assets.assetsIcSaveWhite16dp,
+                borderRadius: BorderRadius.circular(8),
+                color: theme.textColorPrimary,
+              )),
           RippleIcon(
             size: 16,
             icon: brigthessIcon,
@@ -261,5 +291,14 @@ class _RebornPageState extends State<MyApp> {
           ),
           const Gap(8)
         ]));
+  }
+
+  @override
+  void didUpdateWidget(covariant MyApp oldWidget) {
+    if (widget.autosaver != oldWidget.autosaver) {
+      oldWidget.autosaver.unregisterSaveCallback(_handleAutosaving);
+      widget.autosaver.registerSaveCallback(_handleAutosaving);
+    }
+    super.didUpdateWidget(oldWidget);
   }
 }

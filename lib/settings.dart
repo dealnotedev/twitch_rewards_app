@@ -82,8 +82,6 @@ class Settings {
 
     this.rewards = rewards;
     _rewardsSubject.add(rewards);
-
-    print('Saved');
   }
 
   Stream<TwitchCreds?> get twitchAuthStream =>
