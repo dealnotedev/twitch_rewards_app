@@ -74,6 +74,7 @@ class ApplicationRouter extends NavigatorObserver {
               builder: (context) {
                 final args = settings.arguments as _RewardConfigArgs;
                 return RewardConfiguratorWidget(
+                  autosaver: locator.provide(),
                   audioplayer: locator.provide(),
                   twitchShared: locator.provide(),
                   executor: locator.provide(),
@@ -111,6 +112,7 @@ class ApplicationRouter extends NavigatorObserver {
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: RewardsStateWidget(
+                      autosaver: locator.provide(),
                       audioplayer: locator.provide(),
                       twitchShared: locator.provide(),
                       executor: locator.provide(),

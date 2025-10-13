@@ -13,6 +13,7 @@ import 'package:twitch_listener/actions/toggle_filter.dart';
 import 'package:twitch_listener/actions/toggle_source.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/custom_switch.dart';
 import 'package:twitch_listener/dropdown/dropdown_menu.dart';
@@ -36,7 +37,7 @@ class RewardConfiguratorWidget extends StatefulWidget {
   final Audioplayer audioplayer;
   final RewardExecutor executor;
   final Reward reward;
-  final VoidCallback changesCallback;
+  final Autosaver autosaver;
 
   const RewardConfiguratorWidget(
       {super.key,
@@ -44,7 +45,7 @@ class RewardConfiguratorWidget extends StatefulWidget {
       required this.audioplayer,
       required this.twitchShared,
       required this.executor,
-      required this.changesCallback});
+      required this.autosaver});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -240,7 +241,7 @@ class _State extends State<RewardConfiguratorWidget> {
                               return _ActionWidget(
                                   index: index,
                                   audioplayer: widget.audioplayer,
-                                  changesCallback: widget.changesCallback,
+                                  changesCallback: _notifyActionsChanges,
                                   onDelete: () => _handleActionDelete(action),
                                   key: ValueKey(action.id),
                                   action: action,
@@ -266,6 +267,10 @@ class _State extends State<RewardConfiguratorWidget> {
         ],
       ),
     );
+  }
+
+  void _notifyActionsChanges() {
+    widget.autosaver.notifyChanges();
   }
 
   Widget _createBackButton(BuildContext context, ThemeData theme) {
@@ -363,23 +368,28 @@ class _State extends State<RewardConfiguratorWidget> {
   void _handleStatusChange(bool value) {
     setState(() {
       _reward.disabled = !value;
+      _notifyActionsChanges();
     });
   }
 
   void _handleNameEdit() {
     _reward.name = _nameController.text;
+    _notifyActionsChanges();
   }
 
   void _handleAddActionClick(String type) {
     final action = RewardAction.create(type);
+
     setState(() {
       _reward.handlers.add(action);
+      _notifyActionsChanges();
     });
   }
 
   void _handleActionDelete(RewardAction action) {
     setState(() {
       _reward.handlers.remove(action);
+      _notifyActionsChanges();
     });
   }
 }

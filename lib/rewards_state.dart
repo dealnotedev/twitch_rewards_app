@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
@@ -21,13 +22,15 @@ class RewardsStateWidget extends StatefulWidget {
   final Settings settings;
   final TwitchShared twitchShared;
   final Audioplayer audioplayer;
+  final Autosaver autosaver;
 
   const RewardsStateWidget(
       {super.key,
       required this.settings,
       required this.twitchShared,
       required this.audioplayer,
-      required this.executor});
+      required this.executor,
+      required this.autosaver});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -41,27 +44,49 @@ class _State extends State<RewardsStateWidget> {
   late final TwitchShared _twitchShared;
   late final RewardExecutor _executor;
 
+  late final Rewards _rewards;
+
   @override
   void initState() {
     _settings = widget.settings;
     _executor = widget.executor;
     _twitchShared = widget.twitchShared;
+
+    _rewards = _settings.rewards;
     _searchControler.addListener(_handleSearchQuery);
+
+    widget.autosaver.registerSaveCallback(_saveRewards);
     super.initState();
   }
 
   @override
+  void didUpdateWidget(covariant RewardsStateWidget oldWidget) {
+    if (widget.autosaver != oldWidget.autosaver) {
+      oldWidget.autosaver.unregisterSaveCallback(_saveRewards);
+      widget.autosaver.registerSaveCallback(_saveRewards);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+
+  @override
   void dispose() {
+    widget.autosaver.unregisterSaveCallback(_saveRewards);
+
     _focusNode.dispose();
     _searchControler.removeListener(_handleSearchQuery);
     _searchControler.dispose();
     super.dispose();
   }
 
+  Future<void> _saveRewards() {
+    return _settings.saveRewards(_rewards);
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final all = _settings.rewards.rewards;
+
+    final all = _rewards.rewards;
     final q = _searchControler.text.trim().toLowerCase();
     final displayed =
         all.where((r) => q.isEmpty || r.name.toLowerCase().contains(q));
@@ -200,7 +225,8 @@ class _State extends State<RewardsStateWidget> {
     final reward = Reward(name: '', handlers: []);
 
     setState(() {
-      _settings.rewards.rewards.insert(0, reward);
+      _rewards.rewards.insert(0, reward);
+      _notifyChanges();
     });
 
     _openConfigureDialog(context, reward);
@@ -212,12 +238,19 @@ class _State extends State<RewardsStateWidget> {
 
   void _handleDelete(Reward reward) {
     setState(() {
-      _settings.rewards.rewards.remove(reward);
+      _rewards.rewards.remove(reward);
+      _notifyChanges();
     });
   }
 
-  void _handleSaveChangesClick() {
-    _settings.saveRewards(_settings.rewards);
+  void _notifyChanges() {
+    widget.autosaver.notifyChanges();
+  }
+
+  void _handleSaveChangesClick() async {
+    await widget.autosaver.saving;
+
+    _settings.saveRewards(_rewards);
   }
 
   void _handleExecuteClick(Reward reward) {
