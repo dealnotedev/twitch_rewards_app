@@ -255,6 +255,8 @@ class _State extends State<RewardConfiguratorWidget> {
                                 }
                                 final item = actions.removeAt(oldIndex);
                                 actions.insert(newIndex, item);
+
+                                _notifyActionsChanges();
                               });
                             })
                       ]
