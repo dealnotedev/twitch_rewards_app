@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
+import 'package:obs_websocket/event.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/observable_value.dart';

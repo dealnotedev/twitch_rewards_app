@@ -50,7 +50,7 @@ dependencies:
 
   bitsdojo_window: ^0.1.6
 
-  win32: ^5.5.1
+  win32: ^5.15.0
 
   ffi: ^2.1.2
 
@@ -58,15 +58,15 @@ dependencies:
 
   path_provider: ^2.1.2
 
-  obs_websocket: ^5.1.0+8
+  obs_websocket: ^5.2.3+2
 
   collection: ^1.18.0
 
-  cached_network_image: ^3.3.1
+  cached_network_image: ^3.4.1
 
-  rxdart: ^0.27.7
+  rxdart: ^0.28.0
 
-  file_picker: ^10.3.1
+  file_picker: ^10.3.3
 
   uuid: ^4.3.3
 
@@ -74,12 +74,12 @@ dependencies:
 
   hid_listener: ^2.0.1
 
-  media_kit: ^1.2.0
-  media_kit_libs_audio: ^1.0.6
+  media_kit: ^1.2.1
+  media_kit_libs_audio: ^1.0.7
 
-  flutter_svg: ^2.2.0
+  flutter_svg: ^2.2.1
 
-  lottie: ^3.3.0
+  lottie: ^3.3.2
 
 dev_dependencies:
   flutter_test:
