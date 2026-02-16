@@ -15,6 +15,6 @@ void RegisterPlugins(flutter::PluginRegistry* registry) {
       registry->GetRegistrarForPlugin("BitsdojoWindowPlugin"));
   HidListenerPluginWindowsRegisterWithRegistrar(
       registry->GetRegistrarForPlugin("HidListenerPluginWindows"));
-    MediaKitLibsWindowsAudioPluginCApiRegisterWithRegistrar(
-            registry->GetRegistrarForPlugin("MediaKitLibsWindowsAudioPluginCApi"));
+  MediaKitLibsWindowsAudioPluginCApiRegisterWithRegistrar(
+      registry->GetRegistrarForPlugin("MediaKitLibsWindowsAudioPluginCApi"));
 }

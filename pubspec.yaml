@@ -36,11 +36,11 @@ dependencies:
 
   intl: ^0.20.2
 
-  dio: ^5.3.3
+  dio: ^5.9.1
 
-  fresh_dio: ^0.4.1
+  fresh_dio: ^0.4.5
 
-  shared_preferences: ^2.2.2
+  shared_preferences: ^2.5.4
 
   web_socket_channel: ^3.0.3
 
@@ -52,23 +52,23 @@ dependencies:
 
   win32: ^5.15.0
 
-  ffi: ^2.1.2
+  ffi: ^2.2.0
 
-  path: ^1.8.3
+  path: ^1.9.1
 
-  path_provider: ^2.1.2
+  path_provider: ^2.1.5
 
   obs_websocket: ^5.2.3+2
 
-  collection: ^1.18.0
+  collection: ^1.19.1
 
   cached_network_image: ^3.4.1
 
   rxdart: ^0.28.0
 
-  file_picker: ^10.3.3
+  file_picker: ^10.3.10
 
-  uuid: ^4.3.3
+  uuid: ^4.5.2
 
   gap: ^3.0.1
 
@@ -77,7 +77,7 @@ dependencies:
   media_kit: ^1.2.6
   media_kit_libs_audio: ^1.0.7
 
-  flutter_svg: ^2.2.1
+  flutter_svg: ^2.2.3
 
   lottie: ^3.3.2
 
