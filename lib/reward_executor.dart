@@ -12,7 +12,7 @@ class RewardExecutor {
 
   RewardExecutor({required this.audioplayer, required this.obs});
 
-  Future<void> execute(Reward reward) async {
+  Future<void> execute(Reward reward, {String? userInput}) async {
     for (var action in reward.handlers) {
       switch (action.type) {
         case RewardAction.typeDelay:
@@ -160,9 +160,9 @@ class RewardExecutor {
 
         case RewardAction.typePlayAudios:
           if (action.awaitCompletion) {
-            await _playAudios(action, title: reward.name);
+            await _playAudios(action, title: reward.name, userInput: userInput);
           } else {
-            _playAudios(action, title: reward.name);
+            _playAudios(action, title: reward.name, userInput: userInput);
           }
           break;
       }
@@ -190,7 +190,31 @@ class RewardExecutor {
     ProcessFinder.uninitialize();
   }
 
-  Future<void> _playAudios(RewardAction action, {required String title}) async {
+  static int _stableRandomFromText(String text, int max) {
+    if (max <= 0) {
+      throw ArgumentError('max must be > 0');
+    }
+
+    final hash = _fnv1a32(text);
+
+    final positive = hash & 0x7fffffff;
+    return positive % max;
+  }
+
+  static int _fnv1a32(String input) {
+    const int fnvPrime = 0x01000193;
+    int hash = 0x811c9dc5;
+
+    for (final codeUnit in input.codeUnits) {
+      hash ^= codeUnit;
+      hash = (hash * fnvPrime) & 0xffffffff;
+    }
+
+    return hash;
+  }
+
+  Future<void> _playAudios(RewardAction action,
+      {required String title, required String? userInput}) async {
     final all = List.of(action.audios);
     final count = action.count;
 
@@ -198,7 +222,13 @@ class RewardExecutor {
 
     final List<AudioEntry> audios;
 
-    if (action.randomize) {
+    if (action.randomize &&
+        count == 1 &&
+        userInput != null &&
+        userInput.isNotEmpty) {
+      final index = _stableRandomFromText(userInput, all.length);
+      audios = [all[index]];
+    } else if (action.randomize) {
       all.shuffle();
 
       if (count != null) {

@@ -116,20 +116,21 @@ class _RebornPageState extends State<MyApp> {
   void _handleWebSocketMessage(WsMessage json) {
     final eventId = json.payload.event?.id;
     final rewardTitle = json.payload.event?.reward?.title;
+    final userInput = json.payload.event?.userInput;
 
     if (rewardTitle != null &&
         eventId != null &&
         _handledMessages.add(eventId)) {
-      _handleReward(rewardTitle);
+      _handleReward(rewardTitle, userInput: userInput);
     }
   }
 
-  void _handleReward(String rewardTitle) {
+  void _handleReward(String rewardTitle, {required String? userInput}) {
     final rewards = _settings.rewards.rewards
         .where((element) => element.name == rewardTitle);
 
     for (var reward in rewards) {
-      _executor.execute(reward);
+      _executor.execute(reward, userInput: userInput);
     }
   }
 

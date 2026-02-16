@@ -74,7 +74,7 @@ dependencies:
 
   hid_listener: ^2.0.1
 
-  media_kit: ^1.2.1
+  media_kit: ^1.2.6
   media_kit_libs_audio: ^1.0.7
 
   flutter_svg: ^2.2.1

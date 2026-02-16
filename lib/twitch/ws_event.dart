@@ -41,6 +41,7 @@ class WsMessageEvent {
   final String? id;
   final String? userName;
   final String? userId;
+  final String? userInput;
 
   final WsReward? reward;
   final WsChatMessage? message;
@@ -58,6 +59,7 @@ class WsMessageEvent {
       {required this.id,
       required this.userName,
       required this.userId,
+      required this.userInput,
       required this.reward,
       required this.message,
       required this.messageType,
@@ -73,6 +75,7 @@ class WsMessageEvent {
         id: json['id'] as String?,
         userName: json['user_name'] as String?,
         userId: json['user_id'] as String?,
+        userInput: json['user_input'] as String?,
         message:
             messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
         reward: rewardJson != null ? WsReward.fromJson(rewardJson) : null,
