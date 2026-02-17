@@ -59,6 +59,15 @@ class TwitchApi {
     return dio.post('/eventsub/subscriptions', data: data);
   }
 
+  Future<void> deleteChatMessage(
+      {required String broadcasterUserId, required String messageId}) {
+    return dio.delete('/moderation/chat', queryParameters: {
+      'broadcaster_id': broadcasterUserId,
+      'moderator_id': broadcasterUserId,
+      'message_id': messageId
+    });
+  }
+
   Future<List<RedemptionDto>> getCustomRewards() {
     return dio
         .get('/channel_points/custom_rewards',

@@ -24,7 +24,7 @@ class AppServiceLocator extends ServiceLocator {
     final wsManager = WebSocketManager(
         'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30',
         settings,
-        listenChat: false,
+        listenChat: true,
         listenFollow: false);
 
     final obs = ObsConnect(settings: settings);

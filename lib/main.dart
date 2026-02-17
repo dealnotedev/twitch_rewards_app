@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:media_kit/media_kit.dart';
@@ -113,7 +114,31 @@ class _RebornPageState extends State<MyApp> {
 
   static final _handledMessages = <String>{};
 
+  final _chatMessages = <WsMessage>[];
+
   void _handleWebSocketMessage(WsMessage json) {
+    final chatMessageId = json.payload.event?.messageId;
+    final chatterId = json.payload.event?.chatterUserId;
+
+    if (json.payload.event?.message?.text == '!удолі' && chatterId != null) {
+      final previous = _chatMessages
+          .lastWhereOrNull((m) => m.payload.event?.chatterUserId == chatterId);
+
+      if (previous != null) {
+        _chatMessages.remove(previous);
+        _webSocketManager.removeChatMessage(previous.payload.event?.messageId);
+      }
+
+      _webSocketManager.removeChatMessage(chatMessageId);
+      return;
+    }
+
+    if (json.payload.subscription?.type == 'channel.chat.message' &&
+        chatMessageId != null &&
+        chatterId != null) {
+      _chatMessages.add(json);
+    }
+
     final eventId = json.payload.event?.id;
     final rewardTitle = json.payload.event?.reward?.title;
     final userInput = json.payload.event?.userInput;

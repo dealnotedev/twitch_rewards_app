@@ -275,6 +275,20 @@ class WebSocketManager {
 
     _registrations.add(registration);
   }
+
+  void removeChatMessage(String? messageId) {
+    final broadcasterId = _settings.twitchAuth?.broadcasterId;
+
+    if (messageId != null && broadcasterId != null) {
+      final api = TwitchApi(
+        broadcasterId: broadcasterId,
+        settings: _settings,
+        clientSecret: twitchClientSecret,
+      );
+      api.deleteChatMessage(
+          broadcasterUserId: broadcasterId, messageId: messageId);
+    }
+  }
 }
 
 class _Channel {

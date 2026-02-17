@@ -10,8 +10,8 @@ class TwitchAuthenticator {
   final String clientSecret;
   final String oauthRedirectUrl;
 
-  static const _scope = 'channel:read:redemptions';
-  static const _scopeEncoded = 'channel%3Aread%3Aredemptions';
+  static const _scope =
+      'channel:read:redemptions user:read:chat moderator:manage:chat_messages';
 
   TwitchAuthenticator(
       {required this.clientId,
@@ -61,7 +61,7 @@ class TwitchAuthenticator {
 
     try {
       final url =
-          'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=$_scopeEncoded';
+          'https://id.twitch.tv/oauth2/authorize?client_id=$clientId&redirect_uri=http%3A%2F%2Flocalhost%3A3000&response_type=code&scope=${Uri.encodeComponent(_scope)}';
       openUrl(url);
 
       final request = await server.first;
