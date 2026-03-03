@@ -73,7 +73,9 @@ class RewardAction {
 
   bool enable;
 
-  int duration;
+  int? duration;
+
+  int millis;
 
   String? filePath;
 
@@ -140,7 +142,8 @@ class RewardAction {
       List<String>? targets,
       List<AudioEntry>? audios,
       this.inputs = const [],
-      this.duration = 0})
+      this.duration,
+      this.millis = 0})
       : id = const Uuid().v4(),
         targets = targets ?? <String>[],
         audios = audios ?? <AudioEntry>[],
@@ -162,6 +165,7 @@ class RewardAction {
       'filterName': filterName,
       'sceneName': sceneName,
       'duration': duration,
+      'millis': millis,
       'target': target,
       'horizontal': horizontal,
       'vertical': vertical,
@@ -189,7 +193,8 @@ class RewardAction {
         type: json['type'] as String,
         horizontal: json['horizontal'] as bool? ?? false,
         vertical: json['vertical'] as bool? ?? false,
-        duration: json['duration'] as int? ?? 0,
+        duration: json['duration'] as int?,
+        millis: json['millis'] as int? ?? 0,
         enable: json['enable'] as bool? ?? false,
         filePath: json['filePath'] as String?,
         target: json['target'] as String?,

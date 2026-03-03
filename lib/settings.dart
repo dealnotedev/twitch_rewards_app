@@ -33,6 +33,12 @@ class Settings {
       for (int i = 0; i < reward.handlers.length; i++) {
         final action = reward.handlers[i];
 
+        if (action.type == RewardAction.typeDelay && action.duration != null) {
+          action.millis = (action.duration ?? 0) * 1000;
+          action.duration = null;
+          changes++;
+        }
+
         if (action.type == RewardAction.typeEnableFilter) {
           reward.handlers[i] = RewardAction(type: RewardAction.typeToggleFilter)
             ..filterName = action.filterName

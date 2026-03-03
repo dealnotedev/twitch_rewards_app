@@ -26,7 +26,7 @@ class _State extends State<DelayWidget> {
   void initState() {
     _action = widget.action;
     _secondsController =
-        TextEditingController(text: widget.action.duration.toString());
+        TextEditingController(text: widget.action.millis.toString());
     _secondsController.addListener(_handleSecondsEdit);
     super.initState();
   }
@@ -67,7 +67,7 @@ class _State extends State<DelayWidget> {
 
   void _handleSecondsEdit() {
     try {
-      _action.duration = int.parse(_secondsController.text.trim());
+      _action.millis = int.parse(_secondsController.text.trim());
       widget.changesCallback();
     } catch (_) {}
   }

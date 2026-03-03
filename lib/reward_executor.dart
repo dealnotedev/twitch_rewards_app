@@ -16,7 +16,7 @@ class RewardExecutor {
     for (var action in reward.handlers) {
       switch (action.type) {
         case RewardAction.typeDelay:
-          await Future.delayed(Duration(seconds: action.duration));
+          await Future.delayed(Duration(milliseconds: action.millis));
           break;
 
         case RewardAction.typeEnableInput:
@@ -180,9 +180,7 @@ class RewardExecutor {
         ?.processId;
 
     if (processId != null) {
-      final handle = win32.OpenProcess(
-          win32.PROCESS_ACCESS_RIGHTS.PROCESS_TERMINATE, 0, processId);
-
+      final handle = win32.OpenProcess(win32.PROCESS_TERMINATE, 0, processId);
       win32.TerminateProcess(handle, 0);
       win32.CloseHandle(handle);
     }
