@@ -21,10 +21,11 @@ class PlayAudiosWidget extends StatefulWidget {
   final Audioplayer audioplayer;
   final VoidCallback changesCallback;
 
-  const PlayAudiosWidget({super.key,
-    required this.action,
-    required this.audioplayer,
-    required this.changesCallback});
+  const PlayAudiosWidget(
+      {super.key,
+      required this.action,
+      required this.audioplayer,
+      required this.changesCallback});
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -93,8 +94,9 @@ class _State extends State<PlayAudiosWidget> {
         ] else ...[
           Container(
             decoration: BoxDecoration(
+                color: theme.inputBackground,
                 borderRadius: BorderRadius.circular(8),
-                border: Border.all(color: theme.dividerColor, width: 0.5)),
+                border: Border.all(color: theme.border, width: 0.5)),
             padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
             child: Column(
               spacing: 4,
@@ -209,7 +211,7 @@ class _State extends State<PlayAudiosWidget> {
           padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(4),
-            color: theme.inputBackground,
+            color: theme.surfaceSecondary,
           ),
           child: Text(
             entry.path,

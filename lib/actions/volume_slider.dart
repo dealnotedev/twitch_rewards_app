@@ -72,12 +72,12 @@ class VolumeSlider extends StatelessWidget {
     final Color inactiveColor;
 
     if (theme.dark) {
-      activeColor = const Color(0xFFEEEEEE);
-      inactiveColor = const Color(0xFF252525);
-      thumbColor = const Color(0xFF121212);
+      activeColor = theme.accentColor;
+      inactiveColor = theme.buttonColorAlternative;
+      thumbColor = const Color(0xFF111419);
     } else {
-      activeColor = const Color(0xFF030213);
-      inactiveColor = const Color(0xFFCBCED4);
+      activeColor = theme.accentColor;
+      inactiveColor = const Color(0xFFD8DEE8);
       thumbColor = Colors.white;
     }
 

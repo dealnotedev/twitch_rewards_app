@@ -77,10 +77,10 @@ class _State extends State<TextFieldDecoration> {
       decoration: BoxDecoration(
         border: Border.all(
           strokeAlign: BorderSide.strokeAlignOutside,
-          color: theme.borderActive.withValues(alpha: _focused ? 0.35 : 0.0),
-          width: _focused ? 4.0 : 0.0,
+          color: theme.borderActive.withValues(alpha: _focused ? 0.18 : 0.0),
+          width: _focused ? 3.0 : 0.0,
         ),
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(7),
       ),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 4),
@@ -90,7 +90,7 @@ class _State extends State<TextFieldDecoration> {
                 strokeAlign: BorderSide.strokeAlignOutside,
                 color: _focused ? theme.borderActive : theme.border,
                 width: 0.5),
-            borderRadius: BorderRadius.circular(8)),
+            borderRadius: BorderRadius.circular(7)),
         child: Row(
           children: [
             if (prefix != null) ...[

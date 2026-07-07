@@ -94,13 +94,7 @@ class _State extends State<TwitchStateWidget> {
     final viewers = _stream?.viewerCount;
     return Container(
       width: double.infinity,
-      decoration: BoxDecoration(
-          color: theme.surfaceSecondary,
-          border: Border.all(
-              color: theme.dividerColor,
-              width: 0.5,
-              strokeAlign: BorderSide.strokeAlignOutside),
-          borderRadius: BorderRadius.circular(12)),
+      decoration: theme.cardDecoration,
       padding: const EdgeInsets.all(16),
       child: Column(
         mainAxisSize: MainAxisSize.min,

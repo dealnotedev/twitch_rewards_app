@@ -15,9 +15,10 @@ class ViewersCounter extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.only(left: 6, right: 8, top: 3, bottom: 3),
       decoration: BoxDecoration(
+          color: theme.surfaceTertiary,
           borderRadius: BorderRadius.circular(6),
           border: Border.all(
-              color: theme.dividerColor,
+              color: theme.border,
               strokeAlign: BorderSide.strokeAlignOutside,
               width: 0.5)),
       child: Row(

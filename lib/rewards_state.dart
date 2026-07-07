@@ -97,13 +97,7 @@ class _State extends State<RewardsStateWidget> {
 
     return Container(
         width: double.infinity,
-        decoration: BoxDecoration(
-            color: theme.surfaceSecondary,
-            border: Border.all(
-                color: theme.dividerColor,
-                width: 0.5,
-                strokeAlign: BorderSide.strokeAlignOutside),
-            borderRadius: BorderRadius.circular(12)),
+        decoration: theme.cardDecoration,
         padding: const EdgeInsets.all(16),
         child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -301,12 +295,12 @@ class _RewardState extends State<_RewardWidget> {
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
       decoration: BoxDecoration(
-          color: theme.surfaceSecondary,
+          color: theme.surfaceTertiary,
           border: Border.all(
-              color: theme.dividerColor,
+              color: theme.border,
               width: 0.5,
               strokeAlign: BorderSide.strokeAlignOutside),
-          borderRadius: BorderRadius.circular(12)),
+          borderRadius: BorderRadius.circular(8)),
       padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
       child: Row(
         children: [

@@ -36,15 +36,18 @@ class SimpleIndicator extends StatelessWidget {
         textColor = theme.textColorPrimary;
         color = theme.buttonColorSecondary;
         border = Border.all(
-            color: theme.dividerColor,
+            color: theme.border,
             width: 0.5,
             strokeAlign: BorderSide.strokeAlignOutside);
         break;
 
       case IndicatorStyle.neutral:
-        color = theme.buttonColorAlternative;
+        color = theme.surfaceTertiary;
         textColor = theme.textColorPrimary;
-        border = null;
+        border = Border.all(
+            color: theme.border,
+            width: 0.5,
+            strokeAlign: BorderSide.strokeAlignOutside);
         break;
     }
 

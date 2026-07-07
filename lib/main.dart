@@ -226,7 +226,7 @@ class _RebornPageState extends State<MyApp> {
         });
   }
 
-  static const _toolbarHeight = 40.0;
+  static const _toolbarHeight = 42.0;
 
   Widget _createWindowTitleBarBox(BuildContext context, ThemeData theme,
       {required Appearance appearance}) {
@@ -243,7 +243,12 @@ class _RebornPageState extends State<MyApp> {
         break;
     }
     return Container(
-        color: theme.surfaceSecondary,
+        decoration: BoxDecoration(color: theme.surfaceSecondary, boxShadow: [
+          BoxShadow(
+              color: Colors.black.withValues(alpha: theme.dark ? 0.16 : 0.04),
+              offset: const Offset(0, 1),
+              blurRadius: 8)
+        ]),
         height: _toolbarHeight,
         child: Row(children: [
           Expanded(
@@ -264,7 +269,7 @@ class _RebornPageState extends State<MyApp> {
                   style: TextStyle(
                       color: theme.textColorPrimary,
                       fontSize: 14,
-                      fontWeight: FontWeight.w500),
+                      fontWeight: FontWeight.w600),
                 )),
               ],
             ),
@@ -276,7 +281,8 @@ class _RebornPageState extends State<MyApp> {
                 size: 16,
                 icon: Assets.assetsIcSaveWhite16dp,
                 borderRadius: BorderRadius.circular(8),
-                color: theme.textColorPrimary,
+                background: theme.accentSubtle,
+                color: theme.accentColor,
               )),
           RippleIcon(
             size: 16,

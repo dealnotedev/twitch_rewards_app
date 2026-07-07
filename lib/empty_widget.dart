@@ -19,8 +19,9 @@ class EmptyWidget extends StatelessWidget {
       margin: margin,
       width: double.infinity,
       decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
+          color: theme.surfaceTertiary,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.border, width: 0.5)),
       padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 24),
       child: Text(
         text,

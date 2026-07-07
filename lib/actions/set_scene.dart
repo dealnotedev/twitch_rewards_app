@@ -116,7 +116,7 @@ class _State extends State<SetSceneWidget> {
       decoration: BoxDecoration(
         color: theme.inputBackground,
         border: Border.all(
-            color: theme.dividerColor,
+            color: theme.border,
             width: 0.5,
             strokeAlign: BorderSide.strokeAlignOutside),
         borderRadius: BorderRadius.circular(8),

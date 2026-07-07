@@ -94,8 +94,9 @@ class _State extends State<CrashProcessWidget> {
         const Gap(12),
         Container(
           decoration: BoxDecoration(
+              color: theme.inputBackground,
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.dividerColor, width: 0.5)),
+              border: Border.all(color: theme.border, width: 0.5)),
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,

@@ -42,7 +42,7 @@ class CustomButton extends StatelessWidget {
         color = theme.buttonColorSecondary;
         textColor = theme.textColorPrimary;
         border = Border.all(
-            color: theme.dividerColor,
+            color: theme.border,
             strokeAlign: BorderSide.strokeAlignOutside,
             width: 0.5);
         break;
@@ -52,7 +52,7 @@ class CustomButton extends StatelessWidget {
     final prefixIcon = this.prefixIcon;
     final suffixIcon = this.suffixIcon;
     return Material(
-      color: color.withValues(alpha: onTap != null ? 1.0 : 0.5),
+      color: color.withValues(alpha: onTap != null ? 1.0 : 0.56),
       borderRadius: radius,
       child: InkWell(
         borderRadius: radius,
@@ -63,7 +63,7 @@ class CustomButton extends StatelessWidget {
             borderRadius: radius,
           ),
           padding: padding ??
-              const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+              const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [

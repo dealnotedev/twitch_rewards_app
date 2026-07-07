@@ -68,8 +68,9 @@ class _State extends State<SendInputWidget> {
       alignment: Alignment.center,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
+          color: theme.inputBackground,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
+          border: Border.all(color: theme.border, width: 0.5)),
       child: RichText(text: text),
     );
   }
@@ -179,8 +180,9 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       decoration: BoxDecoration(
+          color: theme.inputBackground,
           borderRadius: BorderRadius.circular(8),
-          border: Border.all(color: theme.dividerColor, width: 0.5)),
+          border: Border.all(color: theme.accentColor, width: 0.5)),
       child: Row(
         children: [
           Expanded(
@@ -193,7 +195,7 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
             width: 16,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              color: Colors.green,
+              color: theme.accentColor,
               value: _controller?.value,
             ),
           )

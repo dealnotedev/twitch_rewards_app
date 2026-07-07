@@ -28,12 +28,12 @@ class DropdownPopupMenu<T> extends StatelessWidget {
     return Material(
       color: theme.surfaceSecondary,
       borderRadius: BorderRadius.circular(8),
-      elevation: 1,
-      shadowColor: theme.dividerColor.withValues(alpha: 0.5),
+      elevation: 6,
+      shadowColor: Colors.black.withValues(alpha: theme.dark ? 0.42 : 0.12),
       child: DecoratedBox(
           decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.dividerColor, width: 0.5)),
+              border: Border.all(color: theme.border, width: 0.5)),
           child: SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(4),

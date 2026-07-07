@@ -97,13 +97,7 @@ class _State extends State<RewardConfiguratorWidget> {
                 const Gap(16),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                      color: theme.surfaceSecondary,
-                      border: Border.all(
-                          color: theme.dividerColor,
-                          width: 0.5,
-                          strokeAlign: BorderSide.strokeAlignOutside),
-                      borderRadius: BorderRadius.circular(12)),
+                  decoration: theme.cardDecoration,
                   padding: const EdgeInsets.all(16),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -182,13 +176,7 @@ class _State extends State<RewardConfiguratorWidget> {
                 const Gap(16),
                 Container(
                   margin: const EdgeInsets.symmetric(horizontal: 16),
-                  decoration: BoxDecoration(
-                      color: theme.surfaceSecondary,
-                      border: Border.all(
-                          color: theme.dividerColor,
-                          width: 0.5,
-                          strokeAlign: BorderSide.strokeAlignOutside),
-                      borderRadius: BorderRadius.circular(12)),
+                  decoration: theme.cardDecoration,
                   padding: const EdgeInsets.only(
                       top: 16, left: 16, right: 16, bottom: 12),
                   child: Column(
@@ -417,61 +405,69 @@ class _ActionWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final attrs = RewardActionAtts.forType(context, action.type);
 
-    final borderDefault = BorderSide(
-      color: theme.dividerColor,
-      width: 0.5,
-    );
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
+      clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
-          color: theme.surfaceSecondary,
+          color: theme.surfaceTertiary,
           borderRadius: BorderRadius.circular(8),
-          border: Border(
-            left: BorderSide(
-              color: theme.dividerColor,
-              strokeAlign: BorderSide.strokeAlignOutside,
-              width: 4,
-            ),
-            top: borderDefault,
-            right: borderDefault,
-            bottom: borderDefault,
-          )),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+          border: Border.all(
+              color: theme.border,
+              width: 0.5,
+              strokeAlign: BorderSide.strokeAlignOutside)),
+      child: Stack(
         children: [
-          const Gap(8),
-          Row(
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Gap(8),
-              ReorderableDragStartListener(
-                  index: index,
-                  child: RippleIcon(
-                      icon: Assets.assetsIcReorderWhite16dp,
+              Row(
+                children: [
+                  const Gap(8),
+                  ReorderableDragStartListener(
+                      index: index,
+                      child: RippleIcon(
+                          icon: Assets.assetsIcReorderWhite16dp,
+                          size: 16,
+                          color: theme.textColorSecondary)),
+                  const Gap(4),
+                  SimpleIcon.simpleSquare(attrs.icon,
+                      size: 16, color: theme.textColorPrimary),
+                  const Gap(12),
+                  Text(
+                    _getActionTitle(context, attrs: attrs),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style:
+                        TextStyle(fontSize: 13, color: theme.textColorPrimary),
+                  ),
+                  Expanded(
+                      child: _createAdditionalHeaderWidget(context, theme)),
+                  RippleIcon(
+                      borderRadius: BorderRadius.circular(8),
+                      icon: Assets.assetsIcDeleteWhite16dp,
+                      onTap: onDelete,
                       size: 16,
-                      color: theme.textColorSecondary)),
-              const Gap(4),
-              SimpleIcon.simpleSquare(attrs.icon,
-                  size: 16, color: theme.textColorPrimary),
-              const Gap(12),
-              Text(
-                _getActionTitle(context, attrs: attrs),
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(fontSize: 13, color: theme.textColorPrimary),
+                      color: theme.textColorPrimary),
+                  const Gap(8),
+                ],
               ),
-              Expanded(child: _createAdditionalHeaderWidget(context, theme)),
-              RippleIcon(
-                  borderRadius: BorderRadius.circular(8),
-                  icon: Assets.assetsIcDeleteWhite16dp,
-                  onTap: onDelete,
-                  size: 16,
-                  color: theme.textColorPrimary),
               const Gap(8),
+              ..._createCustomWidgets(context, theme)
             ],
           ),
-          const Gap(8),
-          ..._createCustomWidgets(context, theme)
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _ActionAccentPainter(
+                  color: theme.accentColor.withValues(alpha: 0.58),
+                  radius: 8,
+                  width: 4,
+                ),
+              ),
+            ),
+          )
         ],
       ),
     );
@@ -568,5 +564,40 @@ class _ActionWidget extends StatelessWidget {
         style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
       ),
     );
+  }
+}
+
+class _ActionAccentPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  final double width;
+
+  const _ActionAccentPainter({
+    required this.color,
+    required this.radius,
+    required this.width,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+
+    canvas
+      ..save()
+      ..clipRRect(rrect)
+      ..drawRect(Rect.fromLTWH(0, 0, width, size.height), paint)
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ActionAccentPainter oldDelegate) {
+    return color != oldDelegate.color ||
+        radius != oldDelegate.radius ||
+        width != oldDelegate.width;
   }
 }
