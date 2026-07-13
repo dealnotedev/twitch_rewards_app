@@ -1,10 +1,14 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:collection/collection.dart';
+import 'package:path/path.dart' as path;
+import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards_store.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
 class Settings {
@@ -15,15 +19,37 @@ class Settings {
   static const _kBrightness = 'brightness';
 
   late Rewards rewards;
+  late final SharedPreferences _prefs;
+  late final RewardsStore _rewardsStore;
 
   Future<void> init() async {
-    final prefs = await SharedPreferences.getInstance();
+    final prefs = _prefs = await _loadPreferences();
 
     _initTwitchCreds(prefs);
     _initObsPrefs(prefs);
-    _initRewards(prefs);
+    await _initRewards(prefs);
 
     appearance = _extractAppearance(prefs);
+  }
+
+  static Future<SharedPreferences> _loadPreferences() async {
+    try {
+      return await SharedPreferences.getInstance();
+    } catch (_) {
+      if (!Platform.isWindows && !Platform.isLinux) {
+        rethrow;
+      }
+      await _resetPreferencesFile();
+      return SharedPreferences.getInstance();
+    }
+  }
+
+  static Future<void> _resetPreferencesFile() async {
+    final directory = await getApplicationSupportDirectory();
+    final file = File(path.join(directory.path, 'shared_preferences.json'));
+    if (await file.exists()) {
+      await file.delete();
+    }
   }
 
   Future<void> makeRequiredMigrations() async {
@@ -72,8 +98,7 @@ class Settings {
     }
 
     if (changes > 0) {
-      final prefs = await SharedPreferences.getInstance();
-      prefs.setString(_kRewards, jsonEncode(rewards.toJson()));
+      await _rewardsStore.save(rewards);
     }
   }
 
@@ -82,9 +107,7 @@ class Settings {
   Stream<Rewards> get rewardsStream => _rewardsSubject.stream;
 
   Future<void> saveRewards(Rewards rewards) async {
-    final prefs = await SharedPreferences.getInstance();
-
-    prefs.setString(_kRewards, jsonEncode(rewards.toJson()));
+    await _rewardsStore.save(rewards);
 
     this.rewards = rewards;
     _rewardsSubject.add(rewards);
@@ -101,12 +124,14 @@ class Settings {
         password: prefs.getString(_kObsWsPassword));
   }
 
-  void _initRewards(SharedPreferences prefs) {
-    final json = prefs.getString(_kRewards);
+  Future<void> _initRewards(SharedPreferences prefs) async {
+    final legacyJson = prefs.getString(_kRewards);
+    _rewardsStore = await RewardsStore.open();
+    rewards = await _rewardsStore.loadAndMigrate(legacyJson);
 
-    rewards = json != null
-        ? Rewards.fromJson(jsonDecode(json))
-        : Rewards(rewards: []);
+    if (legacyJson != null) {
+      await prefs.remove(_kRewards);
+    }
   }
 
   Stream<ObsPrefs?> get obsPrefsChanges => _obsPrefsSubject.stream;
@@ -121,18 +146,15 @@ class Settings {
     final updated = obsPrefs = ObsPrefs(url: url, password: password);
     _obsPrefsSubject.add(updated);
 
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString(_kObsWsUrl, url);
-    prefs.setString(_kObsWsPassword, password);
+    await _prefs.setString(_kObsWsUrl, url);
+    await _prefs.setString(_kObsWsPassword, password);
   }
 
   Future<void> saveTwitchAuth(TwitchCreds? creds) async {
-    final prefs = await SharedPreferences.getInstance();
-
     if (creds != null) {
-      prefs.setString(_kTwitchAuth, jsonEncode(creds.toJson()));
+      await _prefs.setString(_kTwitchAuth, jsonEncode(creds.toJson()));
     } else {
-      prefs.remove(_kTwitchAuth);
+      await _prefs.remove(_kTwitchAuth);
     }
 
     twitchAuth = creds;
@@ -168,12 +190,11 @@ class Settings {
     setBrightness(next);
   }
 
-  void setBrightness(AppBrightness brightness) {
+  Future<void> setBrightness(AppBrightness brightness) async {
     appearance = appearance.copy(brightness: brightness);
     _appearanceSubject.add(appearance);
 
-    SharedPreferences.getInstance()
-        .then((prefs) => prefs.setString(_kBrightness, brightness.name));
+    await _prefs.setString(_kBrightness, brightness.name);
   }
 }
 
