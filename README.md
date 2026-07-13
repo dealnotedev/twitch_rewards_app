@@ -17,7 +17,7 @@
 
 ---
 
-![Twitch Listener interface showing Twitch and OBS connection controls](images/main_empty.jpg)
+![Twitch Listener dashboard with demo Channel Point rewards](images/app_overview.png)
 
 ## What it does
 
@@ -78,16 +78,40 @@ Twitch Listener uses **OBS WebSocket v5**, which is built into OBS Studio 28 and
 > [!TIP]
 > OBS scene, source, input, and filter names must also match exactly. Test each chain with OBS connected before relying on it during a stream.
 
-## Example: temporary voice filter
+## Example reward chains
+
+### Cinematic entrance
+
+Cycle from **Starting Soon** to **Main Camera**, then randomly play one of several intro sounds. The audio reaction can also control per-file volume, shuffle mode, track count, and whether the chain waits for playback to finish.
+
+![Cinematic Entrance reward combining scene switching and randomized audio playback](images/example_cinematic_entrance.png)
+
+### Temporary voice filter
+
+Enable an OBS microphone filter, keep it active for 30 seconds, and disable it automatically:
 
 1. Add a voice filter to your microphone in OBS and leave it disabled.
-2. Create a Twitch reward with the same title in Twitch Listener.
-3. Add **Toggle filter → Enable** for the microphone and filter.
-4. Add a **Delay** (for example, `120000` ms for two minutes).
-5. Add **Toggle filter → Disable** for the same filter.
-6. Save and test the chain.
+2. Add **Toggle filter → Enable** for the microphone and filter.
+3. Add a **Delay** of `30000` ms.
+4. Add **Toggle filter → Disable** for the same filter.
+5. Save and test the chain.
 
-![Example reaction chain for a temporary voice filter](images/main_helium_example_actual.jpg)
+![Robot Voice reward configured as an enable, delay, and disable reaction chain](images/reward_chain.png)
+
+### Camera chaos
+
+Toggle a glitch overlay and mirror the face camera horizontally. Sources inside OBS groups are supported, so the visible scene can stay neatly organized.
+
+![Chaos Camera reward toggling an overlay and flipping a camera source](images/example_chaos_camera.png)
+
+### More ideas
+
+| Reward idea | Suggested reaction chain |
+| --- | --- |
+| **Instant Replay** | Show replay overlay → delay 10 seconds → hide replay overlay |
+| **Hydration Break** | Play reminder audio → delay → switch to a short break scene |
+| **Jumpscare** | Play randomized audio → briefly show an overlay → hide it again |
+| **Chat controls the camera** | Send a keyboard shortcut → delay → send the shortcut again |
 
 ## Safety notes
 
