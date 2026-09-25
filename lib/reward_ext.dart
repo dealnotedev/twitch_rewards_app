@@ -13,6 +13,11 @@ class RewardActionAtts {
 
   static RewardActionAtts forType(BuildContext context, String type) {
     switch (type) {
+      case RewardAction.typeQueueTrack:
+        return RewardActionAtts(
+            type: type,
+            title: context.localizations.reaction_queue_track,
+            icon: 'assets/ic_youtube_white_16dp.svg');
       case RewardAction.typeEnableInput:
         return RewardActionAtts(
             type: type,

@@ -12,7 +12,7 @@
   [![Twitch](https://img.shields.io/badge/Twitch-Channel_Points-9146FF?logo=twitch&logoColor=white)](https://www.twitch.tv/)
   [![OBS Studio](https://img.shields.io/badge/OBS-WebSocket_v5-302E31?logo=obsstudio&logoColor=white)](https://obsproject.com/)
 
-  [Download the latest release](https://github.com/dealnotedev/twitch_rewards_app/releases) · [Українська інструкція](README_uk.md)
+  [Download the latest release](https://github.com/dealnotedev/twitch_rewards_app/releases) · [Changelog](CHANGELOG.md) · [Українська інструкція](README_uk.md)
 </div>
 
 ---
@@ -32,6 +32,7 @@ For example, a **Helium voice** reward can enable an OBS microphone filter, wait
 | **Toggle input** | Mutes or unmutes an OBS audio input, such as a microphone. |
 | **Delay** | Waits for a configurable number of milliseconds before the next reaction. |
 | **Play audio files** | Plays one or more local audio files, with volume, shuffle, track-count, and wait-for-completion options. |
+| **Play YouTube Track** | Adds the YouTube link from the viewer's reward message to the shared music queue, then immediately continues the reaction chain. |
 | **Toggle filter** | Enables, disables, or toggles an OBS source filter. |
 | **Toggle source** | Shows, hides, or toggles a source, including sources inside OBS groups. |
 | **Flip source** | Mirrors an OBS source horizontally, vertically, or both. |
@@ -40,6 +41,31 @@ For example, a **Helium voice** reward can enable an OBS microphone filter, wait
 | **Crash process** | Force-terminates a selected Windows process. Use with care. |
 
 Reaction chains and connection settings are stored locally. Reward configurations use SQLite, and older configurations are migrated automatically.
+
+### Music requests
+
+Add **Play YouTube Track** to a reward and enable text input for that reward on
+Twitch. Viewers enter a link to a single YouTube video. The queue starts playback
+when idle and preserves the current track when a new request arrives. Manual
+reward tests ask for a YouTube link before running the chain.
+
+A global bottom panel shows the current track and requester on every page,
+including the reward editor. It provides pause/resume, seek, next track, an
+expandable queue with removal, and a separate music volume slider. Music volume
+is saved between launches and does not change sound-effect volumes. Loading and
+errors also appear in the panel; failed tracks do not stop later requests.
+
+The queue accepts up to 10 requests including the active track, with a maximum
+duration of 10 minutes per track. Live streams and playlists are not supported;
+a video URL containing playlist parameters adds only that video. Queue state is
+session-only. Downloaded audio is cached under
+`%LOCALAPPDATA%/twitch_listener/music-cache`, with a 2 GiB cleanup target; files
+used during the current session are protected from cleanup.
+
+The app does not automatically fulfill, cancel, refund, or otherwise settle
+music redemptions on Twitch. Playback uses the existing `media_kit` backend and
+does not require OBS. See [YouTube tool setup](tools/README.md) for yt-dlp and Deno.
+A separate FFmpeg executable is not required.
 
 ## Quick start
 

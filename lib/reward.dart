@@ -40,6 +40,7 @@ class RewardAction {
   static const typeDelay = 'delay';
   static const typePlayAudio = 'play_audio';
   static const typePlayAudios = 'play_audios';
+  static const typeQueueTrack = 'queue_track';
   static const typeEnableFilter = 'enable_filter';
   static const typeToggleFilter = 'toggle_filter';
   static const typeInvertFilter = 'invert_filter';
@@ -55,6 +56,7 @@ class RewardAction {
     typeDelay,
     typePlayAudio,
     typePlayAudios,
+    typeQueueTrack,
     typeToggleFilter,
     typeToggleSource,
     typeFlipSource,

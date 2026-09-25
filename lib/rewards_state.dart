@@ -9,6 +9,7 @@ import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_executor.dart';
+import 'package:twitch_listener/reward_test.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -248,7 +249,7 @@ class _State extends State<RewardsStateWidget> {
   }
 
   void _handleExecuteClick(Reward reward) {
-    _executor.execute(reward);
+    testReward(context, reward, _executor);
   }
 }
 

@@ -17,6 +17,16 @@ class Settings {
   static const _kObsWsPassword = 'obs_ws_password';
   static const _kRewards = 'rewards';
   static const _kBrightness = 'brightness';
+  static const _kMusicVolume = 'music_volume';
+
+  double get musicVolume {
+    final value = _prefs.getDouble(_kMusicVolume) ?? 1;
+    return value.isFinite ? value.clamp(0, 1).toDouble() : 1;
+  }
+
+  Future<void> saveMusicVolume(double volume) async {
+    await _prefs.setDouble(_kMusicVolume, volume.clamp(0, 1).toDouble());
+  }
 
   late Rewards rewards;
   late final SharedPreferences _prefs;

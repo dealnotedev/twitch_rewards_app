@@ -11,12 +11,16 @@ class VolumeSlider extends StatelessWidget {
   final ValueChanged<double>? onChangeChange;
 
   final double width;
+  final double max;
+  final int divisions;
 
   const VolumeSlider(
       {super.key,
       required this.theme,
       required this.volume,
       this.width = 84,
+      this.max = 3.0,
+      this.divisions = 60,
       this.onChangeStart,
       this.onChangeEnd,
       this.onChangeChange});
@@ -45,7 +49,7 @@ class VolumeSlider extends StatelessWidget {
         children: [
           Expanded(
               child: Visibility(
-                  visible: value > 1.5,
+                  visible: value > max / 2,
                   child: Text(
                     percentage,
                     textAlign: TextAlign.center,
@@ -54,7 +58,7 @@ class VolumeSlider extends StatelessWidget {
                   ))),
           Expanded(
               child: Visibility(
-                  visible: value <= 1.5,
+                  visible: value <= max / 2,
                   child: Text(
                     percentage,
                     textAlign: TextAlign.center,
@@ -95,8 +99,8 @@ class VolumeSlider extends StatelessWidget {
                 pressedElevation: 0,
                 disabledThumbRadius: 6)),
         child: Slider(
-            max: 3.0,
-            divisions: 60,
+            max: max,
+            divisions: divisions,
             value: volume.current,
             onChangeStart: onChangeStart,
             onChangeEnd: onChangeEnd,

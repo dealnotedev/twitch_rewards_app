@@ -23,6 +23,7 @@ import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_executor.dart';
+import 'package:twitch_listener/reward_test.dart';
 import 'package:twitch_listener/reward_ext.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -197,7 +198,7 @@ class _State extends State<RewardConfiguratorWidget> {
                             style: CustomButtonStyle.secondary,
                             theme: theme,
                             onTap: () {
-                              widget.executor.execute(_reward);
+                              testReward(context, _reward, widget.executor);
                             },
                           ),
                           const Gap(8),
@@ -519,6 +520,10 @@ class _ActionWidget extends StatelessWidget {
 
   Widget _createInternal(BuildContext context, ThemeData theme) {
     switch (action.type) {
+      case RewardAction.typeQueueTrack:
+        return Text(context.localizations.reaction_queue_track_description,
+            style: TextStyle(fontSize: 13, color: theme.textColorSecondary));
+
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(
             action: action,

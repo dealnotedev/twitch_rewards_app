@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/utils/input_sender.dart';
@@ -9,12 +10,22 @@ import 'package:win32/win32.dart' as win32;
 class RewardExecutor {
   final Audioplayer audioplayer;
   final ObsConnect obs;
+  final MusicRequestManager musicRequests;
 
-  RewardExecutor({required this.audioplayer, required this.obs});
+  RewardExecutor(
+      {required this.audioplayer,
+      required this.obs,
+      required this.musicRequests});
 
-  Future<void> execute(Reward reward, {String? userInput}) async {
+  Future<void> execute(Reward reward,
+      {String? userInput, String requester = ''}) async {
     for (var action in reward.handlers) {
+      if (action.disabled) continue;
       switch (action.type) {
+        case RewardAction.typeQueueTrack:
+          musicRequests.enqueue(userInput, requester: requester);
+          break;
+
         case RewardAction.typeDelay:
           await Future.delayed(Duration(milliseconds: action.millis));
           break;

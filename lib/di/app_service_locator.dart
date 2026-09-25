@@ -1,7 +1,14 @@
+import 'dart:io';
+
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/music/media_kit_music_track_player.dart';
+import 'package:twitch_listener/music/music_file_cache.dart';
+import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/music_tool_paths.dart';
+import 'package:twitch_listener/music/yt_dlp_music_track_fetcher.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
@@ -28,7 +35,22 @@ class AppServiceLocator extends ServiceLocator {
         listenFollow: false);
 
     final obs = ObsConnect(settings: settings);
-    final executor = RewardExecutor(audioplayer: audioplayer, obs: obs);
+    final tools = MusicToolPaths.resolve(
+        executableDirectory: File(Platform.resolvedExecutable).parent);
+    final musicRequests = MusicRequestManager(
+      fetcher: YtDlpMusicTrackFetcher(
+        executable: tools.ytDlpExecutable,
+        denoPath: tools.denoPath,
+        cache: MusicFileCache(
+            rootDirectory: defaultMusicCacheDirectory(),
+            maxBytes: 2 * 1024 * 1024 * 1024),
+      ),
+      player: MediaKitMusicTrackPlayer(),
+      volume: settings.musicVolume,
+      saveVolume: settings.saveMusicVolume,
+    );
+    final executor = RewardExecutor(
+        audioplayer: audioplayer, obs: obs, musicRequests: musicRequests);
 
     final autosaver = Autosaver(delay: const Duration(seconds: 2));
 
@@ -37,6 +59,7 @@ class AppServiceLocator extends ServiceLocator {
     map[WebSocketManager] = wsManager;
     map[ObsConnect] = obs;
     map[RewardExecutor] = executor;
+    map[MusicRequestManager] = musicRequests;
     map[Audioplayer] = audioplayer;
     map[TwitchShared] = TwitchShared();
     map[Autosaver] = autosaver;

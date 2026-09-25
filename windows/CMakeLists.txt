@@ -76,6 +76,17 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
 
+# YouTube requests download native audio; no standalone FFmpeg is needed.
+foreach(MUSIC_TOOL yt-dlp.exe deno.exe)
+  set(MUSIC_TOOL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tools/${MUSIC_TOOL}")
+  if(EXISTS "${MUSIC_TOOL_PATH}")
+    install(FILES "${MUSIC_TOOL_PATH}"
+      DESTINATION "${CMAKE_INSTALL_PREFIX}/tools" COMPONENT Runtime)
+  else()
+    message(WARNING "Music requests: ${MUSIC_TOOL} is missing. See tools/README.md.")
+  endif()
+endforeach()
+
 install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)
 

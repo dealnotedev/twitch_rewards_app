@@ -15,6 +15,8 @@ import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
+import 'package:twitch_listener/music/music_player_panel.dart';
+import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
@@ -54,6 +56,7 @@ void main() async {
   AppLifecycleListener(
       binding: WidgetsBinding.instance,
       onExitRequested: () async {
+        await locator.provide<MusicRequestManager>().close();
         return AppExitResponse.exit;
       });
 }
@@ -95,6 +98,7 @@ class _RebornPageState extends State<MyApp> {
   void dispose() {
     widget.autosaver.unregisterSaveCallback(_handleAutosaving);
     _wsSubscription.cancel();
+    unawaited(widget.locator.provide<MusicRequestManager>().close());
     super.dispose();
   }
 
@@ -146,16 +150,18 @@ class _RebornPageState extends State<MyApp> {
     if (rewardTitle != null &&
         eventId != null &&
         _handledMessages.add(eventId)) {
-      _handleReward(rewardTitle, userInput: userInput);
+      _handleReward(rewardTitle,
+          userInput: userInput, requester: json.payload.event?.userName ?? '');
     }
   }
 
-  void _handleReward(String rewardTitle, {required String? userInput}) {
+  void _handleReward(String rewardTitle,
+      {required String? userInput, required String requester}) {
     final rewards = _settings.rewards.rewards
-        .where((element) => element.name == rewardTitle);
+        .where((element) => element.name == rewardTitle && !element.disabled);
 
     for (var reward in rewards) {
-      _executor.execute(reward, userInput: userInput);
+      _executor.execute(reward, userInput: userInput, requester: requester);
     }
   }
 
@@ -218,7 +224,9 @@ class _RebornPageState extends State<MyApp> {
                                 ],
                                 onGenerateRoute: _router.routerFactory,
                                 initialRoute: ApplicationRouter.routeRoot,
-                              ))
+                              )),
+                              MusicPlayerPanel(
+                                  requests: widget.locator.provide()),
                             ],
                           ),
                         ));

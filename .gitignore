@@ -30,6 +30,8 @@ migrate_working_dir/
 .pub-cache/
 .pub/
 /build/
+/tools/*.exe
+/tools/.download-*/
 /lib/secrets.dart
 /lib/l10n/app_localizations.dart
 /lib/l10n/app_localizations_*.dart
