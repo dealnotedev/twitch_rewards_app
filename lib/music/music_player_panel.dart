@@ -66,6 +66,7 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
                             mainAxisSize: MainAxisSize.min,
                             children: [
                               _trackRow(context, state),
+                              const Gap(8),
                               _timeline(context, state),
                             ],
                           )),
@@ -211,6 +212,7 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
           child: SliderTheme(
         data: SliderTheme.of(context).copyWith(
             trackHeight: 2,
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 4),
             thumbShape: const RoundSliderThumbShape(enabledThumbRadius: 5)),
         child: Slider(
           value: position.clamp(0, total),
