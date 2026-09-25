@@ -99,6 +99,44 @@ void main() {
       throwsArgumentError,
     );
   });
+
+  test(
+      'processing profiles never reuse the original or differently encoded file',
+      () async {
+    final native = MusicFileCache(rootDirectory: root, maxBytes: 0);
+    final normalized = MusicFileCache(
+        rootDirectory: root, maxBytes: 0, profileName: 'loudnorm-v1-i-16');
+    final changed = MusicFileCache(
+        rootDirectory: root, maxBytes: 0, profileName: 'loudnorm-v1-i-18');
+    final original = await native.obtain(
+        videoId: 'video', produce: (d) => _writeFile(d, [1]));
+    final first = await normalized.obtain(
+        videoId: 'video', produce: (d) => _writeFile(d, [2]));
+    final second = await changed.obtain(
+        videoId: 'video', produce: (d) => _writeFile(d, [3]));
+    expect({original, first, second}, hasLength(3));
+    expect(await File(first).readAsBytes(), [2]);
+  });
+
+  test('cancellation after production prevents publishing and cleans staging',
+      () async {
+    var canceled = false;
+    final cache = MusicFileCache(rootDirectory: root, maxBytes: 0);
+    await expectLater(
+        cache.obtain(
+            videoId: 'canceled',
+            checkCanceled: () {
+              if (canceled) throw StateError('Canceled');
+            },
+            produce: (d) async {
+              final file = await _writeFile(d, [1]);
+              canceled = true;
+              return file;
+            }),
+        throwsStateError);
+    expect(await root.list(recursive: true).where((e) => e is File).toList(),
+        isEmpty);
+  });
 }
 
 Future<File> _writeFile(Directory directory, List<int> bytes) async {

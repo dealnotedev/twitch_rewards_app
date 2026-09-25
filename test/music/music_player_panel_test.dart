@@ -142,4 +142,30 @@ void main() {
     expect(player.played, isEmpty);
     await closeInWidgetZone(tester);
   });
+
+  testWidgets('analysis and normalization display their own progress',
+      (tester) async {
+    final fetcher = FakeFetcher()..downloadGate = Completer();
+    initialize(fetcher: fetcher);
+    manager.enqueue(firstUrl);
+    await tester.pumpWidget(app());
+    await tester.pump();
+    fetcher.reportProgress!(const MusicPreparationProgress(
+        phase: MusicQueueItemPhase.analyzing, fraction: .4));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Analyzing loudness… 40%'), findsOneWidget);
+    fetcher.reportProgress!(const MusicPreparationProgress(
+        phase: MusicQueueItemPhase.normalizing, fraction: .2));
+    await tester.pump();
+    await tester.pump();
+    expect(find.text('Normalizing audio… 20%'), findsOneWidget);
+    expect(
+        tester
+            .widget<LinearProgressIndicator>(
+                find.byType(LinearProgressIndicator))
+            .value,
+        .2);
+    await closeInWidgetZone(tester);
+  });
 }

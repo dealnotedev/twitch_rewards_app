@@ -1,5 +1,40 @@
 # Changelog
 
+## 2.1.1
+
+Changes since [2.1.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.1.0).
+
+### Added
+
+- Two-pass loudness normalization for YouTube music requests, targeting
+  **-16 LUFS** with a **-2 dBTP** true-peak ceiling before MP3 encoding. Tracks are
+  encoded once from the downloaded source into stereo, 48 kHz MP3 audio.
+- Separate download, loudness-analysis, and normalization progress in the music
+  player and queue.
+- A compact, audio-only **FFmpeg 9.0.2** build with the codecs and filters needed
+  for YouTube audio. The bundled FFmpeg executable is approximately **3.84 MB**;
+  FFprobe is not required or bundled.
+- A Docker-based FFmpeg build script with pinned source checksums, build
+  metadata, and bundled license notices. See [tool setup](tools/README.md).
+- Automated coverage for normalization, cancellation, supported input formats,
+  and playback of normalized audio.
+
+### Changed
+
+- Normalized tracks use a separate cache profile, so previously downloaded audio
+  is prepared again with the current loudness settings when requested.
+- Refined music-player seek-bar spacing and aligned the music-request test
+  dialog with the shared application components.
+- Synchronized Flutter and Windows application version metadata at **2.1.1**
+  (build **1**).
+
+### Fixed
+
+- Cancellation now stops active download and encoding processes before cleaning
+  up temporary files, preventing canceled tracks from entering the cache.
+- Loudness normalization adapts its loudness-range setting to the measured
+  source, preserving linear normalization for a wider range of music.
+
 ## 2.1.0
 
 Changes since [2.0.4](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.0.4).

@@ -199,7 +199,7 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
       return Padding(
           padding: const EdgeInsets.only(top: 4),
           child: LinearProgressIndicator(
-              value: state.queue.first.downloadProgress, minHeight: 3));
+              value: state.queue.first.preparationProgress, minHeight: 3));
     }
     final duration = active.item.duration ?? Duration.zero;
     final total = duration.inMilliseconds.toDouble();
@@ -320,10 +320,15 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
       case MusicQueueItemPhase.resolving:
         return l.music_resolving;
       case MusicQueueItemPhase.downloading:
-        final progress = item.downloadProgress;
-        return progress == null
-            ? l.music_downloading
-            : '${l.music_downloading} ${(progress * 100).round()}%';
+      case MusicQueueItemPhase.analyzing:
+      case MusicQueueItemPhase.normalizing:
+        final label = switch (item.phase) {
+          MusicQueueItemPhase.analyzing => l.music_analyzing,
+          MusicQueueItemPhase.normalizing => l.music_normalizing,
+          _ => l.music_downloading,
+        };
+        final progress = item.preparationProgress;
+        return progress == null ? label : '$label ${(progress * 100).round()}%';
       case MusicQueueItemPhase.ready:
         return l.music_ready;
     }

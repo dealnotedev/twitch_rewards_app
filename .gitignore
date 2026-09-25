@@ -32,6 +32,8 @@ migrate_working_dir/
 /build/
 /tools/*.exe
 /tools/.download-*/
+/tools/ffmpeg-build.json
+/tools/ffmpeg-notices/
 /lib/secrets.dart
 /lib/l10n/app_localizations.dart
 /lib/l10n/app_localizations_*.dart

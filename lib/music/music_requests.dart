@@ -143,6 +143,7 @@ class MusicRequestManager {
               metadata: metadata,
               onProgress: (p) {
                 if (_closed || !_queue.contains(request)) return;
+                request.phase = p.phase;
                 request.progress = p.fraction;
                 _emit();
               });
@@ -363,5 +364,5 @@ class _Request {
       author: metadata?.author,
       duration: metadata?.duration,
       thumbnail: metadata?.thumbnail,
-      downloadProgress: progress);
+      preparationProgress: progress);
 }

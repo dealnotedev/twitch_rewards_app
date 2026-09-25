@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param()
+param([switch]$RebuildFfmpeg)
 
 $ErrorActionPreference = 'Stop'
 $ProgressPreference = 'SilentlyContinue'
@@ -84,6 +84,21 @@ try {
     -LiteralPath (Join-Path $denoExtractDirectory 'deno.exe') `
     -Destination (Join-Path $toolDirectory 'deno.exe') `
     -Force
+
+  $ffmpegPath = Join-Path $toolDirectory 'ffmpeg.exe'
+  $manifestPath = Join-Path $toolDirectory 'ffmpeg-build.json'
+  $minimalFfmpegInstalled = $false
+  if ((Test-Path -LiteralPath $ffmpegPath) -and (Test-Path -LiteralPath $manifestPath)) {
+    $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
+    $minimalFfmpegInstalled = $manifest.profile -eq 'twitch-listener-audio-v1' -and `
+      (Get-FileHash -LiteralPath $ffmpegPath -Algorithm SHA256).Hash -eq $manifest.sha256 -and `
+      (Get-FileHash -LiteralPath (Join-Path $toolDirectory 'ffmpeg/Dockerfile') -Algorithm SHA256).Hash -eq $manifest.recipeSha256
+  }
+  if ($RebuildFfmpeg -or -not $minimalFfmpegInstalled) {
+    & (Join-Path $toolDirectory 'build_ffmpeg.ps1')
+  } else {
+    Write-Host 'Keeping the verified minimal FFmpeg build.'
+  }
 
   Write-Host 'Tools downloaded and checksums verified.'
 }

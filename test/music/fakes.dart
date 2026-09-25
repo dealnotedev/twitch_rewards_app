@@ -25,6 +25,7 @@ class FakeFetcher implements MusicTrackFetcher {
   Object? downloadError;
   Duration duration = const Duration(minutes: 3);
   int cancellations = 0;
+  void Function(MusicPreparationProgress)? reportProgress;
 
   @override
   Future<MusicTrackMetadata> inspect(Uri url) async {
@@ -46,10 +47,11 @@ class FakeFetcher implements MusicTrackFetcher {
   @override
   Future<String> obtain(
       {required MusicTrackMetadata metadata,
-      required void Function(MusicDownloadProgress) onProgress}) async {
+      required void Function(MusicPreparationProgress) onProgress}) async {
     downloaded.add(metadata.videoId);
-    onProgress(const MusicDownloadProgress(
-        downloadedBytes: 25, totalBytes: 100, eta: null));
+    reportProgress = onProgress;
+    onProgress(const MusicPreparationProgress(
+        phase: MusicQueueItemPhase.downloading, fraction: .25));
     final error = downloadError;
     downloadError = null;
     if (error != null) throw error;

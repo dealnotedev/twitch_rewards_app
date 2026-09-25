@@ -172,6 +172,8 @@
   "music_youtube_url": "YouTube link",
   "music_resolving": "Looking up track…",
   "music_downloading": "Downloading…",
+  "music_analyzing": "Analyzing loudness…",
+  "music_normalizing": "Normalizing audio…",
   "music_ready": "Ready to play",
   "music_pause": "Pause",
   "music_resume": "Resume",

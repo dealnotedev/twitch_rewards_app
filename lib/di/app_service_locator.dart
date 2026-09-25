@@ -5,6 +5,7 @@ import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/music/media_kit_music_track_player.dart';
+import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/music_tool_paths.dart';
@@ -37,12 +38,16 @@ class AppServiceLocator extends ServiceLocator {
     final obs = ObsConnect(settings: settings);
     final tools = MusicToolPaths.resolve(
         executableDirectory: File(Platform.resolvedExecutable).parent);
+    final audioProcessor =
+        FfmpegAudioProcessor(executable: tools.ffmpegExecutable);
     final musicRequests = MusicRequestManager(
       fetcher: YtDlpMusicTrackFetcher(
         executable: tools.ytDlpExecutable,
         denoPath: tools.denoPath,
+        audioProcessor: audioProcessor,
         cache: MusicFileCache(
             rootDirectory: defaultMusicCacheDirectory(),
+            profileName: audioProcessor.cacheProfile,
             maxBytes: 2 * 1024 * 1024 * 1024),
       ),
       player: MediaKitMusicTrackPlayer(),

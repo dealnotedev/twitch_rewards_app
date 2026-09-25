@@ -5,7 +5,7 @@ import 'package:path/path.dart' as p;
 typedef MusicFileProducer = Future<File> Function(Directory stagingDirectory);
 
 class MusicFileCache {
-  static const profileName = 'youtube-native-audio-v1';
+  final String profileName;
   static const _stagingDirectoryName = '.staging';
   static const _stagingMaxAge = Duration(days: 1);
 
@@ -15,18 +15,32 @@ class MusicFileCache {
   final Set<String> _usedThisSession = {};
   Future<void>? _initialization;
 
-  MusicFileCache({required this.rootDirectory, required this.maxBytes});
+  MusicFileCache({
+    required this.rootDirectory,
+    required this.maxBytes,
+    this.profileName = 'youtube-native-audio-v1',
+  }) {
+    if (!RegExp(r'^[A-Za-z0-9_.-]+$').hasMatch(profileName) ||
+        profileName == '.' ||
+        profileName == '..') {
+      throw ArgumentError.value(
+          profileName, 'profileName', 'Invalid cache profile');
+    }
+  }
 
   Future<String> obtain({
     required String videoId,
     required MusicFileProducer produce,
+    void Function()? checkCanceled,
   }) async {
     _validateVideoId(videoId);
     await _ensureInitialized();
+    checkCanceled?.call();
 
     final target = _fileFor(videoId);
     if (await _isValid(target)) {
       await _touch(target);
+      checkCanceled?.call();
       _usedThisSession.add(_normalize(target.path));
       return target.path;
     }
@@ -38,6 +52,7 @@ class MusicFileCache {
     final stagingDirectory = await stagingRoot.createTemp('download-');
 
     try {
+      checkCanceled?.call();
       final produced = await produce(stagingDirectory);
       if (!_isInside(produced, stagingDirectory)) {
         throw StateError('Music producer returned a file outside staging');
@@ -47,6 +62,7 @@ class MusicFileCache {
       }
 
       await target.parent.create(recursive: true);
+      checkCanceled?.call();
       try {
         await produced.rename(target.path);
       } on FileSystemException {

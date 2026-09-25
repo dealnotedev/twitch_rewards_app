@@ -156,7 +156,7 @@ void main() {
     await flush();
     final first = manager.current.queue.first;
     expect(first.phase, MusicQueueItemPhase.downloading);
-    expect(first.downloadProgress, .25);
+    expect(first.preparationProgress, .25);
     await manager.remove(first.id);
     await flush();
     expect(fetcher.cancellations, 1);
@@ -175,6 +175,30 @@ void main() {
     await manager.seek(const Duration(seconds: -1));
     expect(player.sought, Duration.zero);
   });
+
+  for (final phase in [
+    MusicQueueItemPhase.analyzing,
+    MusicQueueItemPhase.normalizing
+  ]) {
+    test('removing a $phase request cancels preparation and advances the queue',
+        () async {
+      fetcher.downloadGate = Completer();
+      manager.enqueue(firstUrl);
+      manager.enqueue(secondUrl);
+      await flush();
+      fetcher.reportProgress!(
+          MusicPreparationProgress(phase: phase, fraction: .6));
+      final preparing = manager.current.queue.first;
+      expect(preparing.phase, phase);
+      expect(preparing.preparationProgress, .6);
+      expect(player.played, isEmpty);
+      await manager.remove(preparing.id);
+      await flush();
+      expect(fetcher.cancellations, 1);
+      expect(player.played.single.metadata.videoId, 'bbbbbbbbbbb');
+      expect(manager.current.lastError, isNull);
+    });
+  }
 
   test('music volume is clamped, persisted and inherited by later tracks',
       () async {

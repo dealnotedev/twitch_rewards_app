@@ -64,8 +64,9 @@ used during the current session are protected from cleanup.
 
 The app does not automatically fulfill, cancel, refund, or otherwise settle
 music redemptions on Twitch. Playback uses the existing `media_kit` backend and
-does not require OBS. See [YouTube tool setup](tools/README.md) for yt-dlp and Deno.
-A separate FFmpeg executable is not required.
+does not require OBS. Downloaded tracks are normalized to -16 LUFS with FFmpeg
+before playback and cached as MP3. See [YouTube tool setup](tools/README.md) for
+yt-dlp, Deno and the minimal FFmpeg audio build.
 
 ## Quick start
 

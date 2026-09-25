@@ -76,8 +76,8 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
 
-# YouTube requests download native audio; no standalone FFmpeg is needed.
-foreach(MUSIC_TOOL yt-dlp.exe deno.exe)
+# Prepare and normalize YouTube audio before it enters the playback cache.
+foreach(MUSIC_TOOL yt-dlp.exe deno.exe ffmpeg.exe)
   set(MUSIC_TOOL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tools/${MUSIC_TOOL}")
   if(EXISTS "${MUSIC_TOOL_PATH}")
     install(FILES "${MUSIC_TOOL_PATH}"
@@ -86,6 +86,17 @@ foreach(MUSIC_TOOL yt-dlp.exe deno.exe)
     message(WARNING "Music requests: ${MUSIC_TOOL} is missing. See tools/README.md.")
   endif()
 endforeach()
+
+# Incremental installs must not retain the previously bundled, unused FFprobe.
+install(CODE "file(REMOVE \"${CMAKE_INSTALL_PREFIX}/tools/ffprobe.exe\")" COMPONENT Runtime)
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-build.json")
+  install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-build.json"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/tools" COMPONENT Runtime)
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-notices")
+  install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-notices"
+    DESTINATION "${CMAKE_INSTALL_PREFIX}/tools" COMPONENT Runtime)
+endif()
 
 install(FILES "${FLUTTER_ICU_DATA_FILE}" DESTINATION "${INSTALL_BUNDLE_DATA_DIR}"
   COMPONENT Runtime)

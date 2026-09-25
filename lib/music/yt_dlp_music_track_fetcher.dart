@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as p;
+import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
 import 'package:twitch_listener/music/music_models.dart';
 
@@ -26,6 +27,7 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
   final String executable;
   final String? denoPath;
   final MusicFileCache cache;
+  final FfmpegAudioProcessor audioProcessor;
   final Duration inspectTimeout;
   final Duration downloadTimeout;
   final MusicProcessStarter _processStarter;
@@ -37,10 +39,15 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
     required this.executable,
     required this.denoPath,
     required this.cache,
+    required this.audioProcessor,
     this.inspectTimeout = const Duration(seconds: 20),
     this.downloadTimeout = const Duration(minutes: 15),
     MusicProcessStarter? processStarter,
-  }) : _processStarter = processStarter ?? _startProcess;
+  }) : _processStarter = processStarter ?? _startProcess {
+    if (cache.profileName != audioProcessor.cacheProfile) {
+      throw ArgumentError('Music cache must use the audio processor profile');
+    }
+  }
 
   @override
   Future<MusicTrackMetadata> inspect(Uri sourceUrl) async {
@@ -106,21 +113,42 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
   @override
   Future<String> obtain({
     required MusicTrackMetadata metadata,
-    required void Function(MusicDownloadProgress progress) onProgress,
-  }) =>
-      cache.obtain(
-        videoId: metadata.videoId,
-        produce: (stagingDirectory) => _download(
+    required void Function(MusicPreparationProgress progress) onProgress,
+  }) {
+    final generation = _generation;
+    void checkCanceled() {
+      if (generation != _generation) {
+        throw const YtDlpException('Music preparation canceled');
+      }
+    }
+
+    return cache.obtain(
+      videoId: metadata.videoId,
+      checkCanceled: checkCanceled,
+      produce: (stagingDirectory) async {
+        checkCanceled();
+        final downloaded = await _download(
           sourceUrl: metadata.sourceUrl,
           stagingDirectory: stagingDirectory,
           onProgress: onProgress,
-        ),
-      );
+        );
+        checkCanceled();
+        final normalized = await audioProcessor.normalize(
+          input: downloaded,
+          stagingDirectory: stagingDirectory,
+          duration: metadata.duration,
+          onProgress: onProgress,
+        );
+        checkCanceled();
+        return normalized;
+      },
+    );
+  }
 
   Future<File> _download({
     required Uri sourceUrl,
     required Directory stagingDirectory,
-    required void Function(MusicDownloadProgress progress) onProgress,
+    required void Function(MusicPreparationProgress progress) onProgress,
   }) async {
     final args = <String>[
       '--ignore-config',
@@ -130,8 +158,7 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
       '--no-playlist',
       '--format',
       'bestaudio/best',
-      // Download a single original stream. media_kit decodes its container;
-      // neither transcoding, merging nor FFmpeg fixups are necessary.
+      // Keep the original stream for measurement and a single final encode.
       '--fixup',
       'never',
       '--paths',
@@ -162,12 +189,12 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
         if (values.length >= 4) {
           final downloaded = _parseInt(values[0]) ?? 0;
           final total = _parseInt(values[1]) ?? _parseInt(values[2]);
-          final etaSeconds = _parseInt(values[3]);
           onProgress(
-            MusicDownloadProgress(
-              downloadedBytes: downloaded,
-              totalBytes: total,
-              eta: etaSeconds == null ? null : Duration(seconds: etaSeconds),
+            MusicPreparationProgress(
+              phase: MusicQueueItemPhase.downloading,
+              fraction: total == null || total <= 0
+                  ? null
+                  : (downloaded / total).clamp(0.0, 1.0).toDouble(),
             ),
           );
         }
@@ -227,8 +254,12 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
 
       return file;
     } finally {
-      if (identical(_activeProcess, process)) {
-        _activeProcess = null;
+      try {
+        process.kill();
+        await process.exitCode;
+        await Future.wait([stdoutDone, stderrDone]);
+      } finally {
+        if (identical(_activeProcess, process)) _activeProcess = null;
       }
     }
   }
@@ -261,8 +292,12 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
         stderr: await stderrFuture,
       );
     } finally {
-      if (identical(_activeProcess, process)) {
-        _activeProcess = null;
+      try {
+        process.kill();
+        await process.exitCode;
+        await Future.wait([stdoutFuture, stderrFuture]);
+      } finally {
+        if (identical(_activeProcess, process)) _activeProcess = null;
       }
     }
   }
@@ -277,6 +312,11 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
       final process = await _processStarter(executable, args);
       if (generation != _generation) {
         process.kill();
+        await Future.wait([
+          process.stdout.drain<void>(),
+          process.stderr.drain<void>(),
+          process.exitCode,
+        ]);
         throw const YtDlpException('Download canceled');
       }
       _activeProcess = process;
@@ -324,6 +364,8 @@ class YtDlpMusicTrackFetcher implements MusicTrackFetcher {
     _generation++;
     final process = _activeProcess;
     process?.kill();
+    await audioProcessor.cancel();
+    if (process != null) await process.exitCode;
   }
 }
 

@@ -1,4 +1,10 @@
-enum MusicQueueItemPhase { resolving, downloading, ready }
+enum MusicQueueItemPhase {
+  resolving,
+  downloading,
+  analyzing,
+  normalizing,
+  ready
+}
 
 enum MusicQueueErrorType {
   missingYoutubeUrl,
@@ -63,7 +69,7 @@ class MusicQueueItem {
   final String? author;
   final Duration? duration;
   final Uri? thumbnail;
-  final double? downloadProgress;
+  final double? preparationProgress;
 
   const MusicQueueItem({
     required this.id,
@@ -74,7 +80,7 @@ class MusicQueueItem {
     required this.author,
     required this.duration,
     required this.thumbnail,
-    required this.downloadProgress,
+    required this.preparationProgress,
   });
 }
 
@@ -117,22 +123,11 @@ class MusicQueueSnapshot {
   );
 }
 
-class MusicDownloadProgress {
-  final int downloadedBytes;
-  final int? totalBytes;
-  final Duration? eta;
+class MusicPreparationProgress {
+  final MusicQueueItemPhase phase;
+  final double? fraction;
 
-  const MusicDownloadProgress({
-    required this.downloadedBytes,
-    required this.totalBytes,
-    required this.eta,
-  });
-
-  double? get fraction {
-    final total = totalBytes;
-    if (total == null || total <= 0) return null;
-    return (downloadedBytes / total).clamp(0.0, 1.0).toDouble();
-  }
+  const MusicPreparationProgress({required this.phase, this.fraction});
 }
 
 abstract interface class MusicTrackFetcher {
@@ -141,7 +136,7 @@ abstract interface class MusicTrackFetcher {
   /// Returns a fetcher-owned local file. Callers must not delete it.
   Future<String> obtain({
     required MusicTrackMetadata metadata,
-    required void Function(MusicDownloadProgress progress) onProgress,
+    required void Function(MusicPreparationProgress progress) onProgress,
   });
 
   Future<void> cancel();
