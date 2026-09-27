@@ -163,6 +163,9 @@ flutter pub get
 flutter run -d windows
 ```
 
+The Windows runner selects the Skia renderer by disabling Impeller in
+`windows/runner/main.cpp`. This applies to debug, profile, and release builds.
+
 ### Quality checks
 
 ```powershell

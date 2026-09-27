@@ -23,6 +23,9 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
 
   flutter::DartProject project(L"data");
 
+  // Use the Skia renderer for Windows builds.
+  project.set_impeller_switch(flutter::ImpellerSwitch::Disabled);
+
   // TODO: dealnotedev, Remove this after engine fix.
   // This forces Flutter to use a separate thread for Dart.
   // This mode will be removed in a future version of Flutter.
