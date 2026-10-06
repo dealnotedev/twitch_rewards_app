@@ -40,9 +40,7 @@ class WebSocketManager {
   Stream<WsMessage> get messages => _messagesSubject.stream;
 
   WebSocketManager(this._url, this._settings,
-      {required bool listenChat, required bool listenFollow})
-      : _listenChat = listenChat,
-        _listenFollow = listenFollow {
+      {required this._listenChat, required this._listenFollow}) {
     _settings.twitchAuthStream.listen(_handleAuth);
   }
 

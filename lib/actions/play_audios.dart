@@ -277,7 +277,7 @@ class _State extends State<PlayAudiosWidget> {
   }
 
   void _selectFile(BuildContext context) async {
-    final result = await FilePicker.platform.pickFiles(
+    final result = await FilePicker.pickFiles(
         dialogTitle:
             context.localizations.reaction_play_audios_select_files_dialog,
         type: FileType.custom,

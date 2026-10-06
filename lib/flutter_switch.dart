@@ -1,5 +1,3 @@
-library flutter_switch;
-
 import 'package:flutter/material.dart';
 
 class FlutterSwitch extends StatefulWidget {
@@ -12,7 +10,7 @@ class FlutterSwitch extends StatefulWidget {
   ///
 
   const FlutterSwitch({
-    Key? key,
+    super.key,
     required this.value,
     required this.onToggle,
     this.activeColor = Colors.blue,
@@ -52,8 +50,7 @@ class FlutterSwitch extends StatefulWidget {
             (toggleBorder == null || activeToggleBorder == null) &&
                 (toggleBorder == null || inactiveToggleBorder == null),
             'Cannot provide toggleBorder when an activeToggleBorder or inactiveToggleBorder was given\n'
-            'To give the toggle a border, use "activeToggleBorder: color" or "inactiveToggleBorder: color".'),
-        super(key: key);
+            'To give the toggle a border, use "activeToggleBorder: color" or "inactiveToggleBorder: color".');
 
   /// Determines if the switch is on or off.
   ///

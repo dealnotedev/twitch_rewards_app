@@ -370,9 +370,9 @@ class _MusicTrackCover extends StatelessWidget {
               : Image.network(
                   url.toString(),
                   fit: BoxFit.cover,
-                  frameBuilder: (_, child, frame, __) =>
+                  frameBuilder: (_, child, frame, _) =>
                       frame == null ? placeholder : child,
-                  errorBuilder: (_, __, ___) => placeholder,
+                  errorBuilder: (_, _, _) => placeholder,
                 ),
         ),
       ),

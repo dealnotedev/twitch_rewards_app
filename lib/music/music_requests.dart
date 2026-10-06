@@ -29,16 +29,13 @@ class MusicRequestManager {
   late MusicQueueSnapshot _current;
 
   MusicRequestManager({
-    required MusicTrackFetcher fetcher,
-    required MusicTrackPlayer player,
+    required this._fetcher,
+    required this._player,
     double volume = 1,
-    Future<void> Function(double)? saveVolume,
+    this._saveVolume,
     this.maxQueueLength = 10,
     this.maxDuration = const Duration(minutes: 10),
-  })  : _fetcher = fetcher,
-        _player = player,
-        _volume = volume.isFinite ? volume.clamp(0, 1).toDouble() : 1,
-        _saveVolume = saveVolume {
+  })  : _volume = volume.isFinite ? volume.clamp(0, 1).toDouble() : 1 {
     _current = MusicQueueSnapshot(
         revision: 0,
         nowPlaying: null,

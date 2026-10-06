@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 
 class DefaultInputDecoration extends InputDecoration {
-  const DefaultInputDecoration({String? hintText})
+  const DefaultInputDecoration({super.hintText})
       : super(
-          hintText: hintText,
           hintStyle: const TextStyle(fontSize: 14),
           contentPadding:
               const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

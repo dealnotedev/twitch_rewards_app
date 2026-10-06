@@ -46,7 +46,7 @@ class _State extends State<GlobalKeyObserver> {
     super.dispose();
   }
 
-  void _tick(_) {
+  void _tick(Duration _) {
     if (_disposed) return;
 
     final box =

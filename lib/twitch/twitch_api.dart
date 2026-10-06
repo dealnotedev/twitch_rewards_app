@@ -141,7 +141,7 @@ class TwitchApi {
           'broadcaster_id': broadcasterId,
           'id': id,
           'status': status,
-          if (winningOutcomeId != null) 'winning_outcome_id': winningOutcomeId
+          'winning_outcome_id': ?winningOutcomeId
         })
         .then((value) => value.data)
         .then(_parseResponse)
@@ -172,9 +172,9 @@ class TwitchApi {
       String? predictionId}) {
     return dio
         .get('/predictions', queryParameters: {
-          if (count != null) 'first': count,
-          if (after != null) 'after': after,
-          if (predictionId != null) 'id': predictionId,
+          'first': ?count,
+          'after': ?after,
+          'id': ?predictionId,
           'broadcaster_id': broadcasterId
         })
         .then((value) => value.data)

@@ -58,6 +58,14 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
+# hid_listener 2.0.1 includes dart_api_dl.c in its Windows .cpp file and also
+# lists it as a separate source. Compile it only through the .cpp to avoid
+# duplicate Dart API symbols when linking the plugin.
+if(TARGET hid_listener_plugin)
+  get_target_property(HID_LISTENER_SOURCES hid_listener_plugin SOURCES)
+  list(FILTER HID_LISTENER_SOURCES EXCLUDE REGEX "dart_api_dl\\.c$")
+  set_property(TARGET hid_listener_plugin PROPERTY SOURCES "${HID_LISTENER_SOURCES}")
+endif()
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can

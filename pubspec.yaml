@@ -19,7 +19,8 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 2.1.1+1
 
 environment:
-  sdk: '>=3.2.5 <4.0.0'
+  sdk: '>=3.13.0 <4.0.0'
+  flutter: '>=3.47.0'
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -34,17 +35,17 @@ dependencies:
   flutter_localizations:
     sdk: flutter
 
-  intl: ^0.20.2
+  intl: ^0.20.3
 
-  dio: ^5.9.1
+  dio: ^5.11.1
 
-  fresh_dio: ^0.4.5
+  fresh_dio: ^0.6.0
 
-  shared_preferences: ^2.5.4
+  shared_preferences: ^2.5.6
 
-  sqflite: ^2.4.2
+  sqflite: ^2.4.4+1
 
-  sqflite_common_ffi: ^2.4.0+2
+  sqflite_common_ffi: ^2.4.3
 
   web_socket_channel: ^3.0.3
 
@@ -54,25 +55,27 @@ dependencies:
 
   bitsdojo_window: ^0.1.6
 
+  # bitsdojo_window_windows 0.1.6 requires win32 5.x.
   win32: ^5.15.0
 
   ffi: ^2.2.0
 
   path: ^1.9.1
 
-  path_provider: ^2.1.5
+  path_provider: ^2.1.6
 
-  obs_websocket: ^5.2.3+2
+  obs_websocket: ^5.7.0+4
 
   collection: ^1.19.1
 
-  cached_network_image: ^3.4.1
+  cached_network_image: ^4.0.4
 
   rxdart: ^0.28.0
 
-  file_picker: ^10.3.10
+  # file_picker 12+ requires win32 6.x, incompatible with bitsdojo_window.
+  file_picker: ^11.0.3
 
-  uuid: ^4.5.2
+  uuid: ^4.6.0
 
   gap: ^3.0.1
 
@@ -81,9 +84,9 @@ dependencies:
   media_kit: ^1.2.6
   media_kit_libs_audio: ^1.0.7
 
-  flutter_svg: ^2.2.3
+  flutter_svg: ^2.3.0
 
-  lottie: ^3.3.2
+  lottie: ^3.6.1
 
 dev_dependencies:
   flutter_test:
@@ -94,7 +97,7 @@ dev_dependencies:
   # activated in the `analysis_options.yaml` file located at the root of your
   # package. See that file for information about deactivating specific lint
   # rules and activating additional ones.
-  flutter_lints: ^2.0.0
+  flutter_lints: ^6.0.0
 
 # For information on the generic Dart part of this file, see the
 # following page: https://dart.dev/tools/pub/pubspec

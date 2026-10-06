@@ -75,7 +75,7 @@ void main() {
       var starts = 0;
       final processor = FfmpegAudioProcessor(
           executable: 'ffmpeg',
-          processStarter: (_, __) async {
+          processStarter: (_, _) async {
             starts++;
             return TestAudioProcess.completed(stderr: stats);
           });
@@ -92,7 +92,7 @@ void main() {
     late FfmpegAudioProcessor processor;
     processor = FfmpegAudioProcessor(
         executable: 'ffmpeg',
-        processStarter: (_, __) async {
+        processStarter: (_, _) async {
           starts++;
           return TestAudioProcess.completed(stderr: measurements);
         });
@@ -114,7 +114,7 @@ void main() {
     final started = Completer<void>();
     final processor = FfmpegAudioProcessor(
         executable: 'ffmpeg',
-        processStarter: (_, __) {
+        processStarter: (_, _) {
           started.complete();
           return starting.future;
         });

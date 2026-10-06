@@ -152,7 +152,7 @@ Toggle a glitch overlay and mirror the face camera horizontally. Sources inside 
 ### Requirements
 
 - Windows 10 or 11
-- Flutter stable with Dart `>=3.2.5 <4.0.0`
+- Flutter stable `>=3.47.0` with Dart `>=3.13.0 <4.0.0`
 - Visual Studio with the **Desktop development with C++** workload
 - OBS Studio 28+ for integration testing
 

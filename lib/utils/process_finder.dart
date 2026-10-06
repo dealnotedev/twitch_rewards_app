@@ -52,7 +52,7 @@ class ProcessFinder {
     }
   }
 
-  static uninitialize() {
+  static void uninitialize() {
     CoUninitialize();
   }
 

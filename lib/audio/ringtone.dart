@@ -89,7 +89,7 @@ class RingtoneUtils {
   }
 
   /// Get file for caching asset media with proper extension
-  static Future<File> _getCacheFile(final String assetPath) async =>
+  static Future<File> _getCacheFile(String assetPath) async =>
       File(p.joinAll([
         (await _getCacheDir()).path,
         'assets',
