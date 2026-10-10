@@ -42,7 +42,9 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
   Process? _process;
   Uri? _endpoint;
   String? _browserSocketPath;
-  bool _exited = false;
+  // The launcher can exit after handing the window to another browser process.
+  // Its exit status is only useful when waiting for or terminating the launcher.
+  bool _launcherExited = false;
 
   ManagedYoutubeBrowserSession({
     required this.profileDirectory,
@@ -90,7 +92,7 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
       );
     }
     await profileDirectory.create(recursive: true);
-    _exited = false;
+    _launcherExited = false;
     try {
       final port = await _allocatePort();
       _endpoint = Uri.parse('http://127.0.0.1:$port');
@@ -110,11 +112,11 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
       unawaited(process.stderr.drain<void>());
       unawaited(
         process.exitCode.then((_) {
-          if (identical(_process, process)) _exited = true;
+          if (identical(_process, process)) _launcherExited = true;
         }),
       );
       final deadline = DateTime.now().add(const Duration(seconds: 15));
-      while (DateTime.now().isBefore(deadline) && !_exited) {
+      while (DateTime.now().isBefore(deadline)) {
         try {
           final version = await _readJson('/json/version') as Map;
           final socket = Uri.tryParse(
@@ -174,7 +176,7 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
 
   Future<dynamic> _readJson(String path) async {
     final endpoint = _endpoint;
-    if (endpoint == null || _exited) {
+    if (endpoint == null) {
       throw const YoutubeConnectionException(
         YoutubeConnectionIssue.browserClosed,
       );
@@ -272,14 +274,14 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
     final process = _process;
     if (process == null) return;
     try {
-      if (!_exited && _endpoint != null && _browserSocketPath != null) {
+      if (_endpoint != null && _browserSocketPath != null) {
         try {
           await _command(_browserSocketPath!, 'Browser.close');
         } catch (_) {
           // Closing the browser can close the socket before its reply arrives.
         }
       }
-      if (!_exited) {
+      if (!_launcherExited) {
         try {
           await process.exitCode.timeout(const Duration(seconds: 3));
         } on TimeoutException {

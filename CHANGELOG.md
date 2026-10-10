@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased
+
+- Fixed YouTube connection checks reporting an open browser window as closed
+  after the browser launcher exits. Startup, verification and closing now use
+  the dedicated browser's control endpoint independently of the launcher.
+
 ## 2.2.0
 
 Changes since [2.1.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.1.1).

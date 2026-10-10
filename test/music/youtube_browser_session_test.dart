@@ -4,6 +4,7 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
+import 'package:twitch_listener/music/youtube_connection_controller.dart';
 
 void main() {
   test(
@@ -145,6 +146,117 @@ void main() {
       expect(process.killed, isFalse);
     },
   );
+
+  for (final exitDuringStartup in [false, true]) {
+    test(
+      exitDuringStartup
+          ? 'waits for browser control after the launcher exits during startup'
+          : 'an open browser window remains usable after its launcher exits',
+      () async {
+        final profile = await Directory.systemTemp.createTemp(
+          'youtube_handoff_',
+        );
+        final server = await HttpServer.bind(InternetAddress.loopbackIPv4, 0);
+        final process = _BrowserProcess();
+        final commands = <String>[];
+        var versionRequests = 0;
+        final connections = <WebSocket>[];
+        final video = Uri.parse('https://www.youtube.com/watch?v=4YFu4dvMHHY');
+        server.listen((request) async {
+          if (WebSocketTransformer.isUpgradeRequest(request)) {
+            final socket = await WebSocketTransformer.upgrade(request);
+            connections.add(socket);
+            socket.listen((event) {
+              final command = jsonDecode(event as String) as Map;
+              commands.add(command['method'] as String);
+              socket.add(
+                jsonEncode({
+                  'id': command['id'],
+                  'result': command['method'] == 'Network.getCookies'
+                      ? {
+                          'cookies': [
+                            {
+                              'domain': '.youtube.com',
+                              'name': 'test',
+                              'value': 'fake',
+                            },
+                          ],
+                        }
+                      : {},
+                }),
+              );
+            });
+          } else {
+            request.response.headers.contentType = ContentType.json;
+            if (request.uri.path == '/json/version') {
+              versionRequests++;
+              if (exitDuringStartup && versionRequests == 1) {
+                process.finished.complete(0);
+                // The control endpoint is still starting after the handoff.
+                request.response.write(jsonEncode({'Browser': 'fake'}));
+                await request.response.close();
+                return;
+              }
+            }
+            request.response.write(
+              jsonEncode(
+                request.uri.path == '/json/version'
+                    ? {
+                        'webSocketDebuggerUrl':
+                            'ws://127.0.0.1/devtools/browser/test',
+                      }
+                    : [
+                        {
+                          'type': 'page',
+                          'url': video.toString(),
+                          'webSocketDebuggerUrl':
+                              'ws://127.0.0.1/devtools/page/test',
+                        },
+                      ],
+              ),
+            );
+            await request.response.close();
+          }
+        });
+        final browser = ManagedYoutubeBrowserSession(
+          profileDirectory: profile,
+          findBrowser: () => 'fake-edge',
+          allocatePort: () async => server.port,
+          startProcess: (_, _) async => process,
+        );
+        final controller = YoutubeConnectionController(
+          directory: Directory('${profile.path}/session'),
+          browser: browser,
+          verifyAccess: (_, url, _) async => expect(url, video),
+        );
+        addTearDown(() async {
+          await controller.close();
+          for (final connection in connections) {
+            await connection.close();
+          }
+          await server.close(force: true);
+          await profile.delete(recursive: true);
+        });
+        await controller.connect();
+        expect(controller.status, YoutubeConnectionStatus.awaitingVerification);
+        // The launcher can finish while the browser's CDP window stays open.
+        if (!process.finished.isCompleted) process.finished.complete(0);
+        await Future<void>.delayed(Duration.zero);
+        await controller.verify();
+        expect(
+          controller.issue,
+          isNull,
+          reason: 'The launched window still answers CDP requests.',
+        );
+        expect(controller.status, YoutubeConnectionStatus.connected);
+        expect(controller.checkedVideoUrl, video);
+        expect(commands, contains('Network.getCookies'));
+        expect(commands, contains('Browser.close'));
+        expect(process.killed, isFalse);
+        expect(versionRequests, exitDuringStartup ? 2 : 1);
+      },
+    );
+  }
 
   test('reports a missing browser without starting a process', () async {
     final browser = ManagedYoutubeBrowserSession(
