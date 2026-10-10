@@ -11,6 +11,10 @@ Changes since [2.1.1](https://github.com/dealnotedev/twitch_rewards_app/releases
   Listener process before replacing files.
 - Added `tools/build_release.ps1` to produce a full distribution and update-only
   package, including bundled music tools.
+- Aligned the update banner's background and dismiss button with the other
+  application cards and reward controls.
+- Excluded `kernel_blob.bin` from Windows Release builds of Listener and its
+  updater, and added an archive check to prevent shipping it.
 
 - Added adaptive YouTube connection controls to Play YouTube Track cards, with
   a dedicated Edge/Chrome profile, verified audio access, local session storage,

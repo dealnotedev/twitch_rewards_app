@@ -198,6 +198,10 @@ flutter build windows --release
 
 The release bundle is generated in `build\windows\x64\runner\Release`. Distribute the complete folder, not only the `.exe`, because the application depends on the DLLs and data files beside it.
 
+Release builds use AOT code and must not include `data/flutter_assets/kernel_blob.bin`.
+The Windows build removes this file from both Listener and its updater in Release
+configuration. The packaging script also rejects archives containing it.
+
 To build a full distribution including the standalone updater and the separate
 update package, run `./tools/build_release.ps1`. See [updater setup](updater/README.md).
 Install the full `Release.zip` once; subsequent updates can be opened from the

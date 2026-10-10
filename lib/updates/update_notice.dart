@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/themes.dart';
 
 import 'update_controller.dart';
@@ -24,7 +26,7 @@ class UpdateNotice extends StatelessWidget {
         padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
         child: Container(
           padding: const EdgeInsets.all(12),
-          decoration: theme.cardDecoration.copyWith(color: theme.accentSubtle),
+          decoration: theme.cardDecoration,
           child: Row(
             children: [
               Icon(
@@ -72,17 +74,15 @@ class UpdateNotice extends StatelessWidget {
                       ),
               ),
               const SizedBox(width: 8),
-              IconButton(
-                tooltip: strings.updateDismiss,
-                onPressed: controller.opening ? null : controller.dismiss,
-                color: theme.textColorSecondary,
-                iconSize: 16,
-                padding: EdgeInsets.zero,
-                constraints: const BoxConstraints.tightFor(
-                  width: 24,
-                  height: 28,
+              Tooltip(
+                message: strings.updateDismiss,
+                child: RippleIcon(
+                  borderRadius: BorderRadius.circular(8),
+                  icon: Assets.assetsIcCloseWhite16dp,
+                  onTap: controller.opening ? null : controller.dismiss,
+                  size: 16,
+                  color: theme.textColorPrimary,
                 ),
-                icon: const Icon(Icons.close_rounded),
               ),
             ],
           ),

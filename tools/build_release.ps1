@@ -93,6 +93,9 @@ $releaseZip = Join-Path $output 'Release.zip'
 foreach ($zipPath in @($updateZip, $releaseZip)) {
     $zip = [IO.Compression.ZipFile]::OpenRead($zipPath)
     try {
+        if (@($zip.Entries | Where-Object { $_.Name -ieq 'kernel_blob.bin' }).Count -gt 0) {
+            throw "Release archives must not contain kernel_blob.bin: $zipPath"
+        }
         if (-not $zip.GetEntry('twitch_listener.exe') -or -not $zip.GetEntry('listener-update.json')) {
             throw "Invalid archive root: $zipPath"
         }
