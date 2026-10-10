@@ -1,10 +1,14 @@
 # Changelog
 
-## Unreleased
+## 2.2.1
+
+Changes since [2.2.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.0).
 
 - Fixed YouTube connection checks reporting an open browser window as closed
   after the browser launcher exits. Startup, verification and closing now use
   the dedicated browser's control endpoint independently of the launcher.
+- Synchronized Flutter and Windows application version metadata at **2.2.1**
+  (build **3**).
 
 ## 2.2.0
 
