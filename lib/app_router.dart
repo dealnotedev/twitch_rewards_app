@@ -8,6 +8,7 @@ import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_configurator.dart';
 import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/twitch_state.dart';
+import 'package:twitch_listener/updates/update_notice.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
@@ -111,6 +112,7 @@ class ApplicationRouter extends NavigatorObserver {
                     ],
                   ),
                   const Gap(16),
+                  UpdateNotice(controller: locator.provide()),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 16),
                     child: RewardsStateWidget(

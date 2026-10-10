@@ -1,0 +1,93 @@
+{
+  "@@locale": "uk",
+  "windowTitle": "Twitch Listener — Оновлення",
+  "heading": "Оновлення",
+  "subtitle": "Останні покращення Twitch Listener.",
+  "installedLabel": "ВСТАНОВЛЕНО",
+  "latestLabel": "ОСТАННЯ ВЕРСІЯ",
+  "whatsNew": "Що нового",
+  "stableRelease": "СТАБІЛЬНИЙ РЕЛІЗ",
+  "loadingNotes": "Отримуємо опис останнього релізу з GitHub.",
+  "noNotes": "Автор ще не додав опис цього релізу.",
+  "settingsHeading": "Ваші налаштування залишаються з вами",
+  "settingsDetail": "Збережені налаштування та вхід у Twitch залишаться на цьому комп’ютері.",
+  "cancelDownload": "Скасувати завантаження",
+  "retry": "Спробувати ще",
+  "openListener": "Відкрити Twitch Listener",
+  "updateListener": "Оновити Twitch Listener",
+  "downloadingAction": "Завантажуємо…",
+  "checkingAction": "Перевіряємо…",
+  "preparingAction": "Готуємо оновлення…",
+  "checkingTitle": "Перевіряємо оновлення",
+  "checkingDetail": "Twitch Listener продовжує працювати.",
+  "recoveryTitle": "Відновлюємо попередню версію",
+  "recoveryDetail": "Попереднє встановлення було перервано. Зачекайте, будь ласка.",
+  "availableTitle": "Доступна нова версія",
+  "packageSize": "Пакет: {size} МБ.",
+  "currentTitle": "У вас актуальна версія",
+  "currentDetail": "Можна відкрити Twitch Listener.",
+  "downloadTitle": "Завантажуємо оновлення",
+  "downloadDetail": "Можна скасувати завантаження. Twitch Listener продовжує працювати.",
+  "downloadProgress": "{received} / {total} МБ",
+  "verifyTitle": "Перевіряємо та розпаковуємо",
+  "verifyDetail": "Контрольна сума SHA-256 підтверджена.",
+  "stopTitle": "Закриваємо Twitch Listener",
+  "stopDetail": "Зупиняємо програму перед заміною файлів.",
+  "installTitle": "Встановлюємо оновлення",
+  "installDetail": "Не вимикайте комп’ютер. Попередню версію збережено для відновлення.",
+  "doneTitle": "Оновлення встановлено",
+  "doneDetail": "Усе готово. Відкрийте Twitch Listener, щоб продовжити.",
+  "errorTitle": "Не вдалося завершити оновлення",
+  "cancelled": "Оновлення скасовано. Файли програми не змінено.",
+  "networkError": "Не вдалося підключитися до GitHub. Перевірте інтернет і повторіть спробу.",
+  "fileError": "Не вдалося оновити файли програми. Перевірте доступ до папки та вільне місце.",
+  "unexpectedError": "Сталася помилка під час оновлення. Перезапустіть апдейтер і спробуйте ще раз.",
+  "invalidVersion": "Непідтримуваний формат номера версії.",
+  "invalidUrl": "Реліз містить невірне посилання на оновлення.",
+  "rateLimited": "GitHub тимчасово обмежив запити. Спробуйте пізніше.",
+  "packageUnavailable": "У релізі ще немає пакета оновлення. Спробуйте пізніше.",
+  "invalidMetadata": "У пакета немає коректного розміру або суми SHA-256.",
+  "downloadSizeMismatch": "Розмір завантаження не відповідає релізу.",
+  "checksumMismatch": "Архів пошкоджено. Перевірка SHA-256 не пройдена.",
+  "unsafePath": "Пакет містить шлях поза дозволеною областю встановлення.",
+  "linksUnsupported": "Оновлення містить символічне посилання, або папка встановлення використовує його.",
+  "invalidPackage": "Пакет некоректний або не призначений для Twitch Listener.",
+  "tooManyFiles": "Архів оновлення містить забагато файлів.",
+  "packageTooLarge": "Розпаковане оновлення завелике.",
+  "versionMismatch": "Версія пакета не відповідає вибраному релізу.",
+  "missingRuntime": "У пакеті відсутній необхідний файл програми.",
+  "invalidInstallation": "Twitch Listener не знайдено. Папка updater має лежати поруч із програмою.",
+  "recoveryRequired": "Спочатку потрібно відновити попереднє встановлення. Повторіть спробу.",
+  "invalidJournal": "Журнал відновлення пошкоджено. Резервну копію збережено.",
+  "updateBusy": "Інше оновлення вже виконується.",
+  "closeListener": "Не вдалося зупинити Twitch Listener. Закрийте програму та повторіть спробу.",
+  "@packageSize": {
+    "placeholders": {
+      "size": {
+        "type": "String"
+      }
+    }
+  },
+  "@downloadProgress": {
+    "placeholders": {
+      "received": {
+        "type": "String"
+      },
+      "total": {
+        "type": "String"
+      }
+    }
+  },
+  "linkOpenFailed": "Не вдалося відкрити посилання. Спробуйте ще.",
+  "reinstallListener": "Перевстановити Twitch Listener",
+  "reinstallTitle": "Ця версія вже встановлена",
+  "downgradeListener": "Повернутися до {version}",
+  "downgradeTitle": "Ваша версія новіша за реліз на GitHub",
+  "@downgradeListener": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  }
+}

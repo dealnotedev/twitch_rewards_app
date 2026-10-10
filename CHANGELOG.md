@@ -1,6 +1,16 @@
 # Changelog
 
-## Unreleased
+## 2.2.0
+
+Changes since [2.1.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.1.1).
+
+- Added a standalone Windows updater with the same light/dark themes as Listener,
+  release notes, verified downloads, rollback and interrupted-install recovery.
+- Added an update banner between connection settings and rewards. The updater
+  receives the active locale and displayed theme, and stops this installation's
+  Listener process before replacing files.
+- Added `tools/build_release.ps1` to produce a full distribution and update-only
+  package, including bundled music tools.
 
 - Added adaptive YouTube connection controls to Play YouTube Track cards, with
   a dedicated Edge/Chrome profile, verified audio access, local session storage,
@@ -9,6 +19,8 @@
   limits, then resume preparation after connection or an explicit retry.
 - Pin yt-dlp 2026.08.19 and its SHA-256; every Windows build verifies the binary
   and downloads the pinned release when necessary.
+- Synchronized Flutter and Windows application version metadata at **2.2.0**
+  (build **2**).
 
 ## 2.1.1
 

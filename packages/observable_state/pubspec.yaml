@@ -1,0 +1,12 @@
+name: observable_state
+description: Observable state and ViewModel lifecycle shared by the overlay and updater.
+publish_to: none
+version: 1.0.0
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  meta: ^1.18.3

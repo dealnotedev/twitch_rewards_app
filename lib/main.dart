@@ -26,6 +26,7 @@ import 'package:twitch_listener/simple_widgets.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/updates/update_controller.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -100,6 +101,7 @@ class _RebornPageState extends State<MyApp> {
   void dispose() {
     widget.autosaver.unregisterSaveCallback(_handleAutosaving);
     _wsSubscription.cancel();
+    widget.locator.provide<UpdateController>().dispose();
     unawaited(widget.locator.provide<MusicRequestManager>().close());
     unawaited(widget.locator.provide<YoutubeConnectionController>().close());
     super.dispose();
@@ -201,6 +203,7 @@ class _RebornPageState extends State<MyApp> {
               themeMode: themeMode,
               locale: const Locale('en'),
               localizationsDelegates: AppLocalizations.localizationsDelegates,
+              supportedLocales: AppLocalizations.supportedLocales,
               home: DropdownScope(
                   manager: _dropdownManager,
                   child: Builder(builder: (context) {

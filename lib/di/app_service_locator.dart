@@ -16,6 +16,7 @@ import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/updates/update_controller.dart';
 
 class AppServiceLocator extends ServiceLocator {
   static late final AppServiceLocator instance;
@@ -141,6 +142,7 @@ class AppServiceLocator extends ServiceLocator {
     final autosaver = Autosaver(delay: const Duration(seconds: 2));
 
     map[Settings] = settings;
+    map[UpdateController] = UpdateController();
     map[ServiceLocator] = this;
     map[WebSocketManager] = wsManager;
     map[ObsConnect] = obs;

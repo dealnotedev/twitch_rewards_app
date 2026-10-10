@@ -1,4 +1,10 @@
 {
+  "updateAvailable": "Version {version} is available",
+  "@updateAvailable": {"placeholders": {"version": {"type": "String"}}},
+  "updateNoticeDetail": "See what's new and update Twitch Listener.",
+  "updateOpen": "Open updater",
+  "updateDismiss": "Dismiss update notification",
+  "updateLaunchFailed": "Couldn't open the updater. Extract the complete Release.zip, including the updater folder, and try again.",
   "yes": "Yes",
   "no": "No",
   "app_title": "Twitch Listener",

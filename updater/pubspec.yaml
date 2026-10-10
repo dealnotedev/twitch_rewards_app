@@ -1,0 +1,33 @@
+name: listener_updater
+description: Standalone Windows updater for Twitch Listener.
+publish_to: none
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.1
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  intl: any
+  archive: ^4.2.0
+  crypto: ^3.0.7
+  dio: ^5.11.1
+  path: ^1.9.1
+  flutter_markdown_plus: ^1.0.12
+  open_url: ^2.0.1
+  observable_state:
+    path: ../packages/observable_state
+  listener_ui:
+    path: ../packages/listener_ui
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  generate: true
+  uses-material-design: true

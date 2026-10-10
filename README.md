@@ -198,6 +198,13 @@ flutter build windows --release
 
 The release bundle is generated in `build\windows\x64\runner\Release`. Distribute the complete folder, not only the `.exe`, because the application depends on the DLLs and data files beside it.
 
+To build a full distribution including the standalone updater and the separate
+update package, run `./tools/build_release.ps1`. See [updater setup](updater/README.md).
+Install the full `Release.zip` once; subsequent updates can be opened from the
+banner between Twitch/OBS connection settings and the reward list. Launch updates
+while Listener is idle. The updater retains saved settings and accepts the active
+application language and light/dark theme.
+
 ## Project structure
 
 ```text

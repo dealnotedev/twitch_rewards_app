@@ -11,6 +11,12 @@ auto bdw = bitsdojo_window_configure(BDW_CUSTOM_FRAME | BDW_HIDE_ON_STARTUP);
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
+  HANDLE update_mutex = OpenMutexW(
+      SYNCHRONIZE, FALSE, L"Local\\TwitchListener.UpdateInProgress");
+  if (update_mutex) {
+    CloseHandle(update_mutex);
+    return EXIT_FAILURE;
+  }
   // Attach to console when present (e.g., 'flutter run') or create a
   // new console when running with a debugger.
   if (!::AttachConsole(ATTACH_PARENT_PROCESS) && ::IsDebuggerPresent()) {
