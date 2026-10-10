@@ -3,7 +3,7 @@ enum MusicQueueItemPhase {
   downloading,
   analyzing,
   normalizing,
-  ready
+  ready,
 }
 
 enum MusicQueueErrorType {
@@ -11,7 +11,35 @@ enum MusicQueueErrorType {
   invalidYoutubeUrl,
   queueFull,
   trackTooLongOrLive,
+  youtubeAccessRequired,
+  youtubeDownloadBlocked,
+  youtubeRateLimited,
+  youtubeUnavailable,
+  networkUnavailable,
+  musicToolsUnavailable,
   operationFailed,
+}
+
+/// YouTube-wide blocks. Every following request would fail the same way, so
+/// preparation pauses instead of refunding the queue one request at a time.
+const musicPreparationHoldReasons = {
+  MusicQueueErrorType.youtubeAccessRequired,
+  MusicQueueErrorType.youtubeDownloadBlocked,
+  MusicQueueErrorType.youtubeRateLimited,
+};
+
+/// A preparation failure with a stable, localizable reason for the UI.
+class MusicTrackException implements Exception {
+  final String message;
+  final MusicQueueErrorType errorType;
+
+  const MusicTrackException(
+    this.message, {
+    this.errorType = MusicQueueErrorType.operationFailed,
+  });
+
+  @override
+  String toString() => message;
 }
 
 class MusicQueueError {
@@ -106,6 +134,7 @@ class MusicQueueSnapshot {
   final List<MusicQueueItem> queue;
   final MusicQueueError? lastError;
   final double volume;
+  final MusicQueueErrorType? hold;
 
   const MusicQueueSnapshot({
     required this.revision,
@@ -113,6 +142,7 @@ class MusicQueueSnapshot {
     required this.queue,
     required this.lastError,
     this.volume = 1,
+    this.hold,
   });
 
   static const empty = MusicQueueSnapshot(

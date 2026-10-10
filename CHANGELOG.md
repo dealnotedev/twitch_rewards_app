@@ -1,5 +1,15 @@
 # Changelog
 
+## Unreleased
+
+- Added adaptive YouTube connection controls to Play YouTube Track cards, with
+  a dedicated Edge/Chrome profile, verified audio access, local session storage,
+  cancellation, reconnection and sanitized error details.
+- Retain queued tracks during YouTube verification, download blocks and rate
+  limits, then resume preparation after connection or an explicit retry.
+- Pin yt-dlp 2026.08.19 and its SHA-256; every Windows build verifies the binary
+  and downloads the pinned release when necessary.
+
 ## 2.1.1
 
 Changes since [2.1.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.1.0).

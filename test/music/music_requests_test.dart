@@ -17,6 +17,76 @@ void main() {
   });
   tearDown(() => manager.close());
 
+  for (final reason in musicPreparationHoldReasons) {
+    for (final duringDownload in [false, true]) {
+      test('holds FIFO queue for $reason (download: $duringDownload)', () async {
+        final error = MusicTrackException('YouTube blocked', errorType: reason);
+        if (duringDownload) {
+          fetcher.downloadError = error;
+        } else {
+          fetcher.inspectError = error;
+        }
+        manager.enqueue(firstUrl, requester: 'first');
+        manager.enqueue(secondUrl, requester: 'second');
+        await flush();
+        expect(manager.current.hold, reason);
+        expect(manager.current.lastError!.requester, 'first');
+        expect(manager.current.queue.map((r) => r.requestedBy), ['first', 'second']);
+        expect(manager.current.queue.first.phase, MusicQueueItemPhase.resolving);
+        expect(player.played, isEmpty);
+        manager.dismissError();
+        manager.enqueue('https://youtu.be/ccccccccccc', requester: 'third');
+        await flush();
+        expect(fetcher.inspected, hasLength(1));
+        expect(manager.current.hold, reason);
+        expect(manager.resumePreparation(), isTrue);
+        await flush();
+        expect(manager.current.hold, isNull);
+        expect(player.played.single.requestedBy, 'first');
+        expect(manager.current.queue.map((r) => r.requestedBy), ['second', 'third']);
+        expect(manager.resumePreparation(), isFalse);
+      });
+    }
+  }
+
+  test('reports blocked URL and handles an immediate resume callback', () async {
+    await manager.close();
+    MusicQueueErrorType? reported;
+    Uri? blocked;
+    manager = MusicRequestManager(
+      fetcher: fetcher,
+      player: player,
+      onPreparationHeld: (reason, url) {
+        reported = reason;
+        blocked = url;
+        manager.resumePreparation();
+      },
+    );
+    fetcher.inspectError = const MusicTrackException('bot check',
+        errorType: MusicQueueErrorType.youtubeAccessRequired);
+    manager.enqueue(firstUrl);
+    await flush();
+    expect(reported, MusicQueueErrorType.youtubeAccessRequired);
+    expect(blocked.toString(), firstUrl);
+    expect(player.played, hasLength(1));
+  });
+
+  test('video-specific and network failures do not hold later requests', () async {
+    for (final reason in [MusicQueueErrorType.youtubeUnavailable,
+        MusicQueueErrorType.networkUnavailable]) {
+      fetcher.inspectError = MusicTrackException('unavailable', errorType: reason);
+      manager.enqueue(firstUrl);
+      manager.enqueue(secondUrl);
+      await flush();
+      expect(manager.current.hold, isNull);
+      expect(manager.current.lastError!.type, reason);
+      expect(player.played.last.metadata.sourceUrl.toString(),
+          MusicRequestManager.parseYoutubeUrl(secondUrl).toString());
+      player.finish();
+      await flush();
+    }
+  });
+
   test('normalizes video links and drops playlist and timestamp parameters',
       () {
     for (final url in [

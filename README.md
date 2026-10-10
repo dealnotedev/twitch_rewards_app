@@ -53,7 +53,9 @@ A global bottom panel shows the current track and requester on every page,
 including the reward editor. It provides pause/resume, seek, next track, an
 expandable queue with removal, and a separate music volume slider. Music volume
 is saved between launches and does not change sound-effect volumes. Loading and
-errors also appear in the panel; failed tracks do not stop later requests.
+errors also appear in the panel; video-specific failures do not stop later requests.
+YouTube-wide verification, download blocks and rate limits pause preparation
+and keep waiting tracks in the queue.
 
 The queue accepts up to 10 requests including the active track, with a maximum
 duration of 10 minutes per track. Live streams and playlists are not supported;
@@ -67,6 +69,20 @@ music redemptions on Twitch. Playback uses the existing `media_kit` backend and
 does not require OBS. Downloaded tracks are normalized to -16 LUFS with FFmpeg
 before playback and cached as MP3. See [YouTube tool setup](tools/README.md) for
 yt-dlp, Deno and the minimal FFmpeg audio build.
+
+Open a reward's **Play YouTube Track** card and use **Connect YouTube** when
+YouTube asks for verification. A separate Edge/Chrome window opens with an
+app-owned profile. Play a short public video, complete any verification, leave
+its tab open and return to the card to press **Check connection**. The window
+closes and the app verifies both metadata and an actual audio download before
+saving the session. Waiting requests resume automatically after success; use
+**Resume requests** to retry after a temporary rate limit.
+
+The session is local to `%LOCALAPPDATA%/twitch_listener/youtube-session`.
+Each downloader process uses its own cookie copy; failed or obsolete runs cannot
+overwrite a newer session. **Cancel** keeps the saved session; **Disconnect**
+offers to remove it and the dedicated browser profile. Error details include
+the downloader version with URLs, local paths and credentials removed.
 
 ## Quick start
 

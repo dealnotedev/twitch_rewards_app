@@ -21,6 +21,9 @@ import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/empty_widget.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/youtube_connection_controller.dart';
+import 'package:twitch_listener/music/youtube_connection_panel.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/reward_test.dart';
@@ -39,6 +42,8 @@ class RewardConfiguratorWidget extends StatefulWidget {
   final RewardExecutor executor;
   final Reward reward;
   final Autosaver autosaver;
+  final YoutubeConnectionController youtubeConnection;
+  final MusicRequestManager musicRequests;
 
   const RewardConfiguratorWidget(
       {super.key,
@@ -46,6 +51,8 @@ class RewardConfiguratorWidget extends StatefulWidget {
       required this.audioplayer,
       required this.twitchShared,
       required this.executor,
+      required this.youtubeConnection,
+      required this.musicRequests,
       required this.autosaver});
 
   @override
@@ -230,6 +237,8 @@ class _State extends State<RewardConfiguratorWidget> {
                               return _ActionWidget(
                                   index: index,
                                   audioplayer: widget.audioplayer,
+                                  youtubeConnection: widget.youtubeConnection,
+                                  musicRequests: widget.musicRequests,
                                   changesCallback: _notifyActionsChanges,
                                   onDelete: () => _handleActionDelete(action),
                                   key: ValueKey(action.id),
@@ -392,6 +401,8 @@ class _ActionWidget extends StatelessWidget {
   final RewardAction action;
   final VoidCallback onDelete;
   final VoidCallback changesCallback;
+  final YoutubeConnectionController youtubeConnection;
+  final MusicRequestManager musicRequests;
 
   const _ActionWidget(
       {super.key,
@@ -400,6 +411,8 @@ class _ActionWidget extends StatelessWidget {
       required this.onDelete,
       required this.audioplayer,
       required this.index,
+      required this.youtubeConnection,
+      required this.musicRequests,
       required this.changesCallback});
 
   @override
@@ -521,8 +534,18 @@ class _ActionWidget extends StatelessWidget {
   Widget _createInternal(BuildContext context, ThemeData theme) {
     switch (action.type) {
       case RewardAction.typeQueueTrack:
-        return Text(context.localizations.reaction_queue_track_description,
-            style: TextStyle(fontSize: 13, color: theme.textColorSecondary));
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(context.localizations.reaction_queue_track_description,
+                style: TextStyle(fontSize: 13, color: theme.textColorSecondary)),
+            const Gap(16),
+            SimpleDivider(theme: theme),
+            const Gap(16),
+            YoutubeConnectionPanel(
+                connection: youtubeConnection, requests: musicRequests),
+          ],
+        );
 
       case RewardAction.typePlayAudios:
         return PlayAudiosWidget(

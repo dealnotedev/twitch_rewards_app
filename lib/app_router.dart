@@ -78,6 +78,8 @@ class ApplicationRouter extends NavigatorObserver {
                   audioplayer: locator.provide(),
                   twitchShared: locator.provide(),
                   executor: locator.provide(),
+                  youtubeConnection: locator.provide(),
+                  musicRequests: locator.provide(),
                   reward: args.reward,
                 );
               });

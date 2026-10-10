@@ -17,6 +17,7 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/music/music_player_panel.dart';
 import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/youtube_connection_controller.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
@@ -57,6 +58,7 @@ void main() async {
       binding: WidgetsBinding.instance,
       onExitRequested: () async {
         await locator.provide<MusicRequestManager>().close();
+        await locator.provide<YoutubeConnectionController>().close();
         return AppExitResponse.exit;
       });
 }
@@ -99,6 +101,7 @@ class _RebornPageState extends State<MyApp> {
     widget.autosaver.unregisterSaveCallback(_handleAutosaving);
     _wsSubscription.cancel();
     unawaited(widget.locator.provide<MusicRequestManager>().close());
+    unawaited(widget.locator.provide<YoutubeConnectionController>().close());
     super.dispose();
   }
 

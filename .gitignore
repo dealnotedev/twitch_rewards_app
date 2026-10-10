@@ -31,6 +31,7 @@ migrate_working_dir/
 .pub/
 /build/
 /tools/*.exe
+/tools/*.exe.download
 /tools/.download-*/
 /tools/ffmpeg-build.json
 /tools/ffmpeg-notices/

@@ -278,6 +278,12 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
         l.music_queue_full(requests.maxQueueLength),
       MusicQueueErrorType.trackTooLongOrLive =>
         l.music_track_too_long(requests.maxDuration.inMinutes),
+      MusicQueueErrorType.youtubeAccessRequired => l.music_youtube_access_error,
+      MusicQueueErrorType.youtubeDownloadBlocked => l.music_youtube_download_error,
+      MusicQueueErrorType.youtubeRateLimited => l.music_youtube_rate_limit_error,
+      MusicQueueErrorType.youtubeUnavailable => l.music_youtube_unavailable_error,
+      MusicQueueErrorType.networkUnavailable => l.music_youtube_network_error,
+      MusicQueueErrorType.musicToolsUnavailable => l.music_youtube_tools_error,
       MusicQueueErrorType.operationFailed => error.details ?? l.music_failed,
     };
     final text =

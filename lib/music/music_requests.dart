@@ -14,6 +14,8 @@ class MusicRequestManager {
   final Future<void> Function(double)? _saveVolume;
   final int maxQueueLength;
   final Duration maxDuration;
+  final void Function(MusicQueueErrorType reason, Uri sourceUrl)?
+  onPreparationHeld;
   final _states = StreamController<MusicQueueSnapshot>.broadcast();
   final _queue = <_Request>[];
   _Request? _active;
@@ -26,6 +28,7 @@ class MusicRequestManager {
   bool _closed = false;
   double _volume;
   MusicQueueError? _error;
+  MusicQueueError? _hold;
   late MusicQueueSnapshot _current;
 
   MusicRequestManager({
@@ -33,15 +36,17 @@ class MusicRequestManager {
     required this._player,
     double volume = 1,
     this._saveVolume,
+    this.onPreparationHeld,
     this.maxQueueLength = 10,
     this.maxDuration = const Duration(minutes: 10),
-  })  : _volume = volume.isFinite ? volume.clamp(0, 1).toDouble() : 1 {
+  }) : _volume = volume.isFinite ? volume.clamp(0, 1).toDouble() : 1 {
     _current = MusicQueueSnapshot(
-        revision: 0,
-        nowPlaying: null,
-        queue: const [],
-        lastError: null,
-        volume: _volume);
+      revision: 0,
+      nowPlaying: null,
+      queue: const [],
+      lastError: null,
+      volume: _volume,
+    );
   }
 
   MusicQueueSnapshot get current => _current;
@@ -53,21 +58,29 @@ class MusicRequestManager {
     final text = input?.trim() ?? '';
     final url = parseYoutubeUrl(text);
     if (url == null) {
-      _setError(MusicQueueError(
+      _setError(
+        MusicQueueError(
           requester: requester,
           type: text.isEmpty
               ? MusicQueueErrorType.missingYoutubeUrl
-              : MusicQueueErrorType.invalidYoutubeUrl));
+              : MusicQueueErrorType.invalidYoutubeUrl,
+        ),
+      );
       return false;
     }
     if (_queue.length + (_active == null ? 0 : 1) >= maxQueueLength) {
-      _setError(MusicQueueError(
-          requester: requester, type: MusicQueueErrorType.queueFull));
+      _setError(
+        MusicQueueError(
+          requester: requester,
+          type: MusicQueueErrorType.queueFull,
+        ),
+      );
       return false;
     }
     _error = null;
-    _queue.add(_Request(
-        id: const Uuid().v4(), requestedBy: requester, sourceUrl: url));
+    _queue.add(
+      _Request(id: const Uuid().v4(), requestedBy: requester, sourceUrl: url),
+    );
     _emit();
     _ensurePreparing();
     return true;
@@ -93,7 +106,7 @@ class MusicRequestManager {
       'youtube.com',
       'www.youtube.com',
       'm.youtube.com',
-      'music.youtube.com'
+      'music.youtube.com',
     ].contains(host)) {
       if (uri.path == '/watch') {
         id = uri.queryParameters['v'];
@@ -107,8 +120,23 @@ class MusicRequestManager {
     return Uri.https('www.youtube.com', '/watch', {'v': id});
   }
 
+  /// Retries waiting requests after a successful YouTube connection or a manual retry.
+  bool resumePreparation() {
+    if (_closed || _hold == null) return false;
+    _hold = null;
+    _emit();
+    _ensurePreparing();
+    return true;
+  }
+
+  void _startHold(MusicQueueErrorType reason, _Request request) {
+    _hold = MusicQueueError(requester: request.requestedBy, type: reason);
+    _emit();
+    onPreparationHeld?.call(reason, request.sourceUrl);
+  }
+
   void _ensurePreparing() {
-    if (_closed || _preparation != null) return;
+    if (_closed || _preparation != null || _hold != null) return;
     _preparation = _prepareLoop();
   }
 
@@ -116,7 +144,7 @@ class MusicRequestManager {
     // Keep assignment of _preparation ahead of even an empty loop's finally.
     await Future<void>.value();
     try {
-      while (!_closed) {
+      while (!_closed && _hold == null) {
         final request = _queue
             .where((r) => r.phase == MusicQueueItemPhase.resolving)
             .firstOrNull;
@@ -128,29 +156,41 @@ class MusicRequestManager {
           if (metadata.duration <= Duration.zero ||
               metadata.duration > maxDuration) {
             _queue.remove(request);
-            _setError(MusicQueueError(
+            _setError(
+              MusicQueueError(
                 requester: request.requestedBy,
-                type: MusicQueueErrorType.trackTooLongOrLive));
+                type: MusicQueueErrorType.trackTooLongOrLive,
+              ),
+            );
             continue;
           }
           request.metadata = metadata;
           request.phase = MusicQueueItemPhase.downloading;
           _emit();
           final file = await _fetcher.obtain(
-              metadata: metadata,
-              onProgress: (p) {
-                if (_closed || !_queue.contains(request)) return;
-                request.phase = p.phase;
-                request.progress = p.fraction;
-                _emit();
-              });
+            metadata: metadata,
+            onProgress: (p) {
+              if (_closed || !_queue.contains(request)) return;
+              request.phase = p.phase;
+              request.progress = p.fraction;
+              _emit();
+            },
+          );
           if (_closed || !_queue.contains(request)) continue;
           request.filePath = file;
           request.phase = MusicQueueItemPhase.ready;
           request.progress = 1;
           _emit();
         } catch (error) {
-          if (_queue.remove(request) && !_closed) {
+          final reason = error is MusicTrackException ? error.errorType : null;
+          if (musicPreparationHoldReasons.contains(reason) &&
+              _queue.contains(request) &&
+              !_closed) {
+            request.phase = MusicQueueItemPhase.resolving;
+            request.metadata = null;
+            request.progress = null;
+            _startHold(reason!, request);
+          } else if (_queue.remove(request) && !_closed) {
             _setError(_operationError(request, error));
           }
         } finally {
@@ -160,6 +200,11 @@ class MusicRequestManager {
       }
     } finally {
       _preparation = null;
+      if (!_closed &&
+          _hold == null &&
+          _queue.any((r) => r.phase == MusicQueueItemPhase.resolving)) {
+        _ensurePreparing();
+      }
     }
   }
 
@@ -180,16 +225,19 @@ class MusicRequestManager {
   Future<void> _play(_Request request) async {
     try {
       await _player.play(
-          DownloadedMusicTrack(
-              itemId: request.id,
-              requestedBy: request.requestedBy,
-              metadata: request.metadata!,
-              filePath: request.filePath!),
-          volume: _volume, onPosition: (position) {
-        if (_closed || _active != request) return;
-        request.position = position;
-        _emit();
-      });
+        DownloadedMusicTrack(
+          itemId: request.id,
+          requestedBy: request.requestedBy,
+          metadata: request.metadata!,
+          filePath: request.filePath!,
+        ),
+        volume: _volume,
+        onPosition: (position) {
+          if (_closed || _active != request) return;
+          request.position = position;
+          _emit();
+        },
+      );
     } catch (error) {
       if (!_closed) _error = _operationError(request, error);
     } finally {
@@ -221,8 +269,8 @@ class MusicRequestManager {
     final target = position < Duration.zero
         ? Duration.zero
         : position > duration
-            ? duration
-            : position;
+        ? duration
+        : position;
     try {
       await _player.seek(target);
       if (_closed || _active != request) return false;
@@ -300,27 +348,33 @@ class MusicRequestManager {
   static MusicQueueError _operationError(_Request? request, Object error) {
     final text = error.toString();
     return MusicQueueError(
-        requester: request?.requestedBy ?? '',
-        type: MusicQueueErrorType.operationFailed,
-        details: text.length <= 320 ? text : '${text.substring(0, 317)}...');
+      requester: request?.requestedBy ?? '',
+      type: error is MusicTrackException
+          ? error.errorType
+          : MusicQueueErrorType.operationFailed,
+      details: text.length <= 320 ? text : '${text.substring(0, 317)}...',
+    );
   }
 
   void _emit() {
     if (_closed) return;
     final active = _active;
     _current = MusicQueueSnapshot(
-        revision: _current.revision + 1,
-        nowPlaying: active == null
-            ? null
-            : MusicNowPlaying(
-                item: active.view,
-                startedAt: active.startedAt!,
-                position: active.position,
-                positionUpdatedAt: DateTime.now(),
-                paused: active.paused),
-        queue: List.unmodifiable(_queue.map((r) => r.view)),
-        lastError: _error,
-        volume: _volume);
+      revision: _current.revision + 1,
+      nowPlaying: active == null
+          ? null
+          : MusicNowPlaying(
+              item: active.view,
+              startedAt: active.startedAt!,
+              position: active.position,
+              positionUpdatedAt: DateTime.now(),
+              paused: active.paused,
+            ),
+      queue: List.unmodifiable(_queue.map((r) => r.view)),
+      lastError: _hold ?? _error,
+      hold: _hold?.type,
+      volume: _volume,
+    );
     _states.add(_current);
   }
 
@@ -349,17 +403,21 @@ class _Request {
   Duration position = Duration.zero;
   bool paused = false;
 
-  _Request(
-      {required this.id, required this.requestedBy, required this.sourceUrl});
+  _Request({
+    required this.id,
+    required this.requestedBy,
+    required this.sourceUrl,
+  });
 
   MusicQueueItem get view => MusicQueueItem(
-      id: id,
-      requestedBy: requestedBy,
-      sourceUrl: sourceUrl,
-      phase: phase,
-      title: metadata?.title,
-      author: metadata?.author,
-      duration: metadata?.duration,
-      thumbnail: metadata?.thumbnail,
-      preparationProgress: progress);
+    id: id,
+    requestedBy: requestedBy,
+    sourceUrl: sourceUrl,
+    phase: phase,
+    title: metadata?.title,
+    author: metadata?.author,
+    duration: metadata?.duration,
+    thumbnail: metadata?.thumbnail,
+    preparationProgress: progress,
+  );
 }

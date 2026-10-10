@@ -84,8 +84,19 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
 
+# Every Windows build verifies the downloader against its committed release pin.
+set(MUSIC_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools")
+add_custom_target(music_tools ALL
+  COMMAND powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass
+          -File "${MUSIC_TOOLS_DIR}/ensure_yt_dlp.ps1"
+  COMMENT "Checking the pinned yt-dlp release"
+  VERBATIM)
+add_dependencies(${BINARY_NAME} music_tools)
+install(FILES "${MUSIC_TOOLS_DIR}/yt-dlp.exe" "${MUSIC_TOOLS_DIR}/yt-dlp.json"
+  DESTINATION "${CMAKE_INSTALL_PREFIX}/tools" COMPONENT Runtime)
+
 # Prepare and normalize YouTube audio before it enters the playback cache.
-foreach(MUSIC_TOOL yt-dlp.exe deno.exe ffmpeg.exe)
+foreach(MUSIC_TOOL deno.exe ffmpeg.exe)
   set(MUSIC_TOOL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../tools/${MUSIC_TOOL}")
   if(EXISTS "${MUSIC_TOOL_PATH}")
     install(FILES "${MUSIC_TOOL_PATH}"

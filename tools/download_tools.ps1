@@ -49,23 +49,9 @@ function Read-Sha256 {
 New-Item -ItemType Directory -Path $temporaryDirectory | Out-Null
 
 try {
-  $ytDlpPath = Join-Path $toolDirectory 'yt-dlp.exe'
-  $ytDlpSums = Join-Path $temporaryDirectory 'yt-dlp-SHA2-256SUMS'
-  Download-File `
-    -Uri 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe' `
-    -Destination $ytDlpPath
-  Download-File `
-    -Uri 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/SHA2-256SUMS' `
-    -Destination $ytDlpSums
-  $ytDlpChecksumLine = Get-Content -LiteralPath $ytDlpSums |
-    Where-Object { $_ -match '\syt-dlp\.exe$' } |
-    Select-Object -First 1
-  if ($null -eq $ytDlpChecksumLine) {
-    throw 'yt-dlp checksum was not found in SHA2-256SUMS'
-  }
-  Assert-Sha256 `
-    -Path $ytDlpPath `
-    -Expected ($ytDlpChecksumLine -split '\s+')[0]
+  & powershell.exe -NoProfile -NonInteractive -ExecutionPolicy Bypass `
+    -File (Join-Path $toolDirectory 'ensure_yt_dlp.ps1')
+  if ($LASTEXITCODE -ne 0) { throw 'Unable to prepare the pinned yt-dlp release' }
 
   $denoArchive = Join-Path $temporaryDirectory 'deno.zip'
   $denoChecksum = Join-Path $temporaryDirectory 'deno.zip.sha256sum'

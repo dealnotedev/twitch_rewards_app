@@ -7,11 +7,28 @@ an existing verified minimal FFmpeg, or builds it locally if absent, changed,
 or requested with `-RebuildFfmpeg`. **The first FFmpeg build requires Docker
 Desktop running in Linux container mode.**
 
-Windows builds copy only `yt-dlp.exe`, `deno.exe` and `ffmpeg.exe` into `tools/`
-next to `twitch_listener.exe`, together with FFmpeg's build manifest and license
+Windows builds copy `yt-dlp.exe`, `deno.exe` and `ffmpeg.exe` into `tools/`
+next to `twitch_listener.exe`, together with the yt-dlp pin, FFmpeg's build manifest and license
 notices. Include this folder when distributing the app. Executables and generated
 build metadata are ignored by Git. Bundled tools take precedence over PATH.
 FFprobe is not needed; incremental Windows builds remove its former bundled copy.
+
+## Pinned yt-dlp
+
+`yt-dlp.json` pins release **2026.08.19** and its Windows executable SHA-256.
+Every Windows build runs `ensure_yt_dlp.ps1` before packaging: a matching binary
+is reused; a missing or different binary is downloaded from the pinned release
+and replaced only after verification. Download or checksum failures fail the
+build. `download_tools.ps1` uses the same pin.
+
+To update the pin and local executable to the latest stable release:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File tools/ensure_yt_dlp.ps1 -Update
+```
+
+To pin a specific stable release, add `-Version 2026.08.19`. Commit the updated
+`yt-dlp.json`; the executables remain ignored by Git.
 
 ## Minimal FFmpeg build
 
@@ -88,10 +105,11 @@ regeneration commands are in `test/music/fixtures/README.md`.
 Native playback can be checked separately using `MUSIC_SMOKE_FILE` and
 `MUSIC_MPV_LIBRARY` as described in `test/music/native_music_smoke_test.dart`.
 
-If YouTube extraction stops working, rerun the download script to update yt-dlp
-and Deno, then rebuild the app. To update FFmpeg, update the pinned source version
+If YouTube extraction stops working, update the yt-dlp pin with the command
+above, refresh Deno with the download script, then rebuild the app. To update FFmpeg, update the pinned source version
 and verified hash in both build files, rebuild, and run the audio tests. The app
-never updates tools or uses browser cookies automatically.
+uses only the YouTube session explicitly connected in a Play YouTube Track card.
+It does not update tools at runtime.
 
 References: [yt-dlp](https://github.com/yt-dlp/yt-dlp#dependencies),
 [Deno releases](https://github.com/denoland/deno/releases),
