@@ -94,6 +94,40 @@ void main() {
       expect(arguments, contains('--remote-debugging-address=127.0.0.1'));
       expect(arguments, contains('--remote-debugging-port=${server.port}'));
       expect(arguments, isNot(contains('--remote-debugging-port=0')));
+      expect(arguments, contains('--disable-extensions'));
+      expect(arguments, contains('--disable-default-apps'));
+      expect(arguments, contains('--disable-sync'));
+      final disabledFeatures = arguments
+          .singleWhere((argument) => argument.startsWith('--disable-features='))
+          .substring('--disable-features='.length)
+          .split(',');
+      expect(
+        disabledFeatures,
+        containsAll([
+          'msEdgeOnRampImport',
+          'msEdgeAutoImportFromIE',
+          'msEdgeAutoImportFromFirefox',
+          'msEdgeFRESpartanImportAllowed',
+          'msEdgeContinuousMigration',
+          'msEdgeContinuousMigrationUser',
+          'msEdgeContinuousMigrationExperience',
+          'msEdgeContinuousMigrationLongRunning',
+          'msEdgeContinuousExtensionsImport',
+          'msImplicitSignin',
+        ]),
+      );
+      // Website sign-in must stay manual and cookies must survive reopening.
+      expect(
+        arguments,
+        isNot(
+          anyOf(
+            contains('--enable-automation'),
+            contains('--guest'),
+            contains('--incognito'),
+            contains('--inprivate'),
+          ),
+        ),
+      );
       expect(arguments.last, url.toString());
       expect(
         await browser.readYoutubeVideoUrl(),

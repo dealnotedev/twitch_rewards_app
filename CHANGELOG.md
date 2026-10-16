@@ -1,5 +1,20 @@
 # Changelog
 
+## 2.2.2
+
+Changes since [2.2.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.1).
+
+- Replaced the reward configurator's decorative Lottie animation with a static
+  action count, removing the animation dependency and its asset. The count
+  updates when reactions are added or removed.
+- Added regression coverage for opening a random-audio reward when display
+  metadata is unavailable, both themes, and larger text.
+- Hardened the managed YouTube browser's launch flags to disable extensions,
+  default apps, sync, and Edge import and implicit Windows sign-in features.
+  Website sign-in stays manual and saved YouTube cookies are retained.
+- Synchronized Flutter and Windows application version metadata at **2.2.2**
+  (build **4**).
+
 ## 2.2.1
 
 Changes since [2.2.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.0).

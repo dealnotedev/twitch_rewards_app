@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:lottie/lottie.dart';
 import 'package:twitch_listener/actions/crash_process.dart';
 import 'package:twitch_listener/actions/delay.dart';
 import 'package:twitch_listener/actions/enable_input.dart';
@@ -151,10 +150,40 @@ class _State extends State<RewardConfiguratorWidget> {
                           const Gap(16),
                           Expanded(
                               flex: 1,
-                              child: Lottie.asset(Assets.assetsRex,
-                                  width: 50,
-                                  height: 60,
-                                  frameRate: FrameRate.max))
+                              child: Container(
+                                constraints:
+                                    const BoxConstraints(minHeight: 60),
+                                padding: const EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: theme.accentSubtle,
+                                  borderRadius: BorderRadius.circular(8),
+                                  border: Border.all(
+                                    color: theme.accentColor
+                                        .withValues(alpha: 0.18),
+                                    width: 0.5,
+                                  ),
+                                ),
+                                child: Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Icon(Icons.account_tree_outlined,
+                                        size: 20, color: theme.accentColor),
+                                    const Gap(8),
+                                    Flexible(
+                                      child: Text(
+                                        context.localizations
+                                            .x_actions(actions.length),
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: theme.accentColor,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ))
                         ],
                       ),
                       const Gap(8),

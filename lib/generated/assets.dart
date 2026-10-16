@@ -72,5 +72,4 @@ class Assets {
   static const String assetsIcWarningWhite16dp =
       'assets/ic_warning_white_16dp.png';
   static const String assetsLogo = 'assets/logo.png';
-  static const String assetsRex = 'assets/rex.json';
 }

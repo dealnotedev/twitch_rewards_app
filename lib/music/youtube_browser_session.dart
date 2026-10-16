@@ -35,6 +35,22 @@ class YoutubeConnectionException implements Exception {
 
 /// Opens an app-owned browser profile. Never attaches to a personal profile.
 class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
+  // Edge's first-run UI switch does not disable its import or Windows account
+  // sign-in services. Cover first-run and continuous import across Edge versions.
+  // Chrome ignores the Edge-specific feature names.
+  static const _disabledBrowserFeatures = [
+    'msEdgeOnRampImport',
+    'msEdgeAutoImportFromIE',
+    'msEdgeAutoImportFromFirefox',
+    'msEdgeFRESpartanImportAllowed',
+    'msEdgeContinuousMigration',
+    'msEdgeContinuousMigrationUser',
+    'msEdgeContinuousMigrationExperience',
+    'msEdgeContinuousMigrationLongRunning',
+    'msEdgeContinuousExtensionsImport',
+    'msImplicitSignin',
+  ];
+
   final Directory profileDirectory;
   final String? Function() _findBrowser;
   final Future<Process> Function(String, List<String>) _startProcess;
@@ -104,6 +120,11 @@ class ManagedYoutubeBrowserSession implements YoutubeBrowserSession {
         '--remote-debugging-port=$port',
         '--no-first-run',
         '--no-default-browser-check',
+        // These affect browser services, not normal website sign-in or cookies.
+        '--disable-extensions',
+        '--disable-default-apps',
+        '--disable-sync',
+        '--disable-features=${_disabledBrowserFeatures.join(',')}',
         '--new-window',
         url.toString(),
       ]);
