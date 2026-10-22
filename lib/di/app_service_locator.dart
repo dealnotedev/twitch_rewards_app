@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:twitch_listener/audioplayer.dart';
@@ -8,6 +9,7 @@ import 'package:twitch_listener/music/media_kit_music_track_player.dart';
 import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
 import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/music_tool_paths.dart';
 import 'package:twitch_listener/music/yt_dlp_music_track_fetcher.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
@@ -32,6 +34,14 @@ class AppServiceLocator extends ServiceLocator {
   final Settings settings;
   final Audioplayer audioplayer;
   final Map<Type, Object> map = {};
+  late final MusicServerController musicServer;
+  Future<void>? _musicClosing;
+
+  Future<void> closeMusic() => _musicClosing ??= () async {
+    await musicServer.close();
+    await provide<MusicRequestManager>().close();
+    await provide<YoutubeConnectionController>().close();
+  }();
 
   AppServiceLocator._(this.settings, this.audioplayer) {
     final wsManager = WebSocketManager(
@@ -133,6 +143,10 @@ class AppServiceLocator extends ServiceLocator {
       saveVolume: settings.saveMusicVolume,
       onPreparationHeld: youtubeConnection.requireCheck,
     );
+    musicServer = MusicServerController(musicRequests);
+    unawaited(musicServer.start());
+    map[MusicServerController] = musicServer;
+
     final executor = RewardExecutor(
       audioplayer: audioplayer,
       obs: obs,

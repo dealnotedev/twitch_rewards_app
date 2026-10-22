@@ -153,6 +153,15 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "1.1.1"
+  dart_music_player_protocol:
+    dependency: "direct main"
+    description:
+      path: "."
+      ref: "707e5e907b50d6b4035ea73f1861f43ce1856113"
+      resolved-ref: "707e5e907b50d6b4035ea73f1861f43ce1856113"
+      url: "https://github.com/dealnotedev/dart_music_player_protocol.git"
+    source: git
+    version: "1.0.0"
   dbus:
     dependency: transitive
     description:

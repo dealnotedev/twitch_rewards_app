@@ -17,6 +17,7 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/music/music_player_panel.dart';
 import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
 import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
@@ -58,8 +59,7 @@ void main() async {
   AppLifecycleListener(
       binding: WidgetsBinding.instance,
       onExitRequested: () async {
-        await locator.provide<MusicRequestManager>().close();
-        await locator.provide<YoutubeConnectionController>().close();
+        await locator.closeMusic();
         return AppExitResponse.exit;
       });
 }
@@ -102,8 +102,13 @@ class _RebornPageState extends State<MyApp> {
     widget.autosaver.unregisterSaveCallback(_handleAutosaving);
     _wsSubscription.cancel();
     widget.locator.provide<UpdateController>().dispose();
-    unawaited(widget.locator.provide<MusicRequestManager>().close());
-    unawaited(widget.locator.provide<YoutubeConnectionController>().close());
+    final locator = widget.locator;
+    if (locator is AppServiceLocator) {
+      unawaited(locator.closeMusic());
+    } else {
+      unawaited(locator.provide<MusicRequestManager>().close());
+      unawaited(locator.provide<YoutubeConnectionController>().close());
+    }
     super.dispose();
   }
 
@@ -231,6 +236,8 @@ class _RebornPageState extends State<MyApp> {
                                 onGenerateRoute: _router.routerFactory,
                                 initialRoute: ApplicationRouter.routeRoot,
                               )),
+                              if (widget.locator is AppServiceLocator)
+                                _MusicServerNotice(server: widget.locator.provide()),
                               MusicPlayerPanel(
                                   requests: widget.locator.provide()),
                             ],
@@ -347,4 +354,23 @@ class _RebornPageState extends State<MyApp> {
     }
     super.didUpdateWidget(oldWidget);
   }
+}
+
+class _MusicServerNotice extends StatelessWidget {
+  final MusicServerController server;
+  const _MusicServerNotice({required this.server});
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: server,
+    builder: (context, _) => server.error == null
+        ? const SizedBox.shrink()
+        : MaterialBanner(
+            content: Text(context.localizations.music_server_failed),
+            actions: [TextButton(
+              onPressed: server.start,
+              child: Text(context.localizations.music_server_retry),
+            )],
+          ),
+  );
 }

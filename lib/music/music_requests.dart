@@ -8,7 +8,7 @@ import 'music_track_player.dart';
 export 'music_models.dart';
 
 /// Shared by all reward actions and independent of Twitch settlement and OBS.
-class MusicRequestManager {
+class MusicRequestManager implements MusicRequests {
   final MusicTrackFetcher _fetcher;
   final MusicTrackPlayer _player;
   final Future<void> Function(double)? _saveVolume;
@@ -49,7 +49,9 @@ class MusicRequestManager {
     );
   }
 
+  @override
   MusicQueueSnapshot get current => _current;
+  @override
   Stream<MusicQueueSnapshot> get states => _states.stream;
 
   /// Only accepts the request. Preparation and playback run independently.
@@ -247,6 +249,7 @@ class MusicRequestManager {
     }
   }
 
+  @override
   Future<bool> setPaused(bool paused) async {
     final request = _active;
     if (_closed || request == null) return false;
@@ -262,6 +265,7 @@ class MusicRequestManager {
     }
   }
 
+  @override
   Future<bool> seek(Duration position) async {
     final request = _active;
     if (_closed || request == null) return false;
@@ -283,6 +287,7 @@ class MusicRequestManager {
     }
   }
 
+  @override
   Future<bool> skip() => _skipping ??= _skip();
 
   Future<bool> _skip() async {
@@ -300,6 +305,7 @@ class MusicRequestManager {
     }
   }
 
+  @override
   Future<bool> remove(String id) async {
     if (_closed) return false;
     final index = _queue.indexWhere((r) => r.id == id);
@@ -378,6 +384,7 @@ class MusicRequestManager {
     _states.add(_current);
   }
 
+  @override
   Future<void> close() => _closing ??= _close();
 
   Future<void> _close() async {

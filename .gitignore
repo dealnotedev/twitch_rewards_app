@@ -49,3 +49,6 @@ app.*.map.json
 /android/app/debug
 /android/app/profile
 /android/app/release
+
+# Local development overrides must not affect portable builds.
+pubspec_overrides.yaml

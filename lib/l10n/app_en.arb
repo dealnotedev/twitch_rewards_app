@@ -261,5 +261,7 @@
   "music_youtube_access_error": "YouTube needs verification. Open a Play YouTube Track card and connect YouTube.",
   "music_youtube_download_error": "YouTube blocked audio downloads (403). Open a Play YouTube Track card for connection details.",
   "music_youtube_rate_limit_error": "YouTube temporarily limited requests. Wait, then resume requests in a Play YouTube Track card.",
-  "music_youtube_unavailable_error": "This YouTube video is unavailable. Please choose another."
+  "music_youtube_unavailable_error": "This YouTube video is unavailable. Please choose another.",
+  "music_server_failed": "OBS music connection could not start on port 47822. Check whether another Listener is running.",
+  "music_server_retry": "Retry connection"
 }

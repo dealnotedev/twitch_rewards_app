@@ -1,5 +1,27 @@
 # Changelog
 
+## 2.3.0
+
+Changes since [2.2.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.2).
+
+- Added a native HTTP/WebSocket music connection at `127.0.0.1:47822` for the
+  Flutter OBS overlay's external player. OBS can display Listener's queue and
+  preparation progress and control pause, seek, skip and queue removal while
+  audio keeps playing in Listener.
+- Start the music connection with Listener, show a retry action if its port is
+  unavailable, and close it on exit. Closing or hiding an OBS view leaves
+  Listener playback running.
+- Share music models and transport through the pinned standalone
+  `dart_music_player_protocol` package. Listener builds independently of the
+  OBS overlay without an adjacent package checkout.
+- Limit Listener to one instance per Windows session. Launching it again
+  activates the existing window and restores it if minimized, including when
+  two launches happen during startup.
+- Added music transport and occupied-port regression tests and a native Windows
+  smoke check for single-instance startup and window activation.
+- Synchronized Flutter and Windows application version metadata at **2.3.0**
+  (build **5**).
+
 ## 2.2.2
 
 Changes since [2.2.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.1).

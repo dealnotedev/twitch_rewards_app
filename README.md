@@ -93,6 +93,9 @@ the downloader version with URLs, local paths and credentials removed.
 3. Run `twitch_listener.exe`.
 4. Select **Login** and approve the requested Twitch permissions in your browser.
 
+Listener runs as a single instance per Windows session. Launching it again
+brings the existing window to the foreground and restores it if minimized.
+
 > [!NOTE]
 > Twitch authentication uses a temporary callback on `localhost:3000`. If login cannot complete, check whether another application is already using that port or whether a firewall is blocking it.
 
@@ -202,6 +205,12 @@ Release builds use AOT code and must not include `data/flutter_assets/kernel_blo
 The Windows build removes this file from both Listener and its updater in Release
 configuration. The packaging script also rejects archives containing it.
 
+After building Release, check single-instance startup and window activation with:
+
+```powershell
+./test/windows/single_instance_smoke.ps1
+```
+
 To build a full distribution including the standalone updater and the separate
 update package, run `./tools/build_release.ps1`. See [updater setup](updater/README.md).
 Install the full `Release.zip` once; subsequent updates can be opened from the
@@ -255,3 +264,22 @@ Copy the entire release folder. A standalone `twitch_listener.exe` is not a comp
 <div align="center">
   Built with Flutter, Twitch EventSub, and OBS WebSocket.
 </div>
+
+### Display the Listener player in OBS
+
+Listener publishes its music queue and playback controls at
+`http://127.0.0.1:47822` while running. In the Flutter OBS overlay, open
+**Overlay settings → Player → Player source → External player** and use port
+**47822**. Both Cosmic and Turntable views work. The local OBS player remains
+available by selecting **Local player** (its controller port is 47821).
+
+The connection is native HTTP/WebSocket on this computer only, independent of
+OBS WebSocket v5. Audio continues playing in Listener; capture its audio in OBS
+separately. Closing or hiding an OBS view never stops Listener playback.
+
+The shared contract and native transport are provided by
+[`dart_music_player_protocol`](https://github.com/dealnotedev/dart_music_player_protocol),
+a standalone Dart package pinned to a tested Git commit. `flutter pub get`
+downloads it automatically. Listener can be cloned and built independently of
+the OBS overlay; no adjacent package checkout is required. See the package
+README for optional local development overrides.
