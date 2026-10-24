@@ -85,7 +85,8 @@ void main() {
 
         expect(tester.takeException(), isNull);
         expect(find.byType(ErrorWidget), findsNothing);
-        expect(find.text('1 action'), findsOneWidget);
+        expect(find.text('1 action'), findsNothing);
+        expect(find.text('Link Twitch reward'), findsOneWidget);
         expect(tester.getTopLeft(find.text('Reward Name')).dy, lessThan(200));
         for (final audio in reward.handlers.single.audios) {
           expect(find.text(audio.path).hitTestable(), findsOneWidget);
@@ -94,7 +95,7 @@ void main() {
     );
   }
 
-  testWidgets('action count follows adding and deleting reactions', (
+  testWidgets('reactions can still be added and deleted without the summary', (
     tester,
   ) async {
     final reward = await showConfigurator(tester);
@@ -109,22 +110,22 @@ void main() {
     );
     await tester.pumpAndSettle();
     expect(reward.handlers, isEmpty);
-    expect(find.text('0 actions'), findsOneWidget);
+    expect(find.text('0 actions'), findsNothing);
 
     await tester.tap(find.text('Add New Reaction'));
     await tester.pump();
     await tester.tap(find.text('Delay'));
     await tester.pumpAndSettle();
     expect(reward.handlers.single.type, RewardAction.typeDelay);
-    expect(find.text('1 action'), findsOneWidget);
+    expect(find.text('1 action'), findsNothing);
     expect(tester.takeException(), isNull);
   });
 
-  testWidgets('summary fits larger text at the minimum window width', (
+  testWidgets('link controls fit larger text at the minimum window width', (
     tester,
   ) async {
     await showConfigurator(tester, textScale: 2);
-    expect(find.text('1 action'), findsOneWidget);
+    expect(find.text('Link Twitch reward'), findsOneWidget);
     expect(tester.takeException(), isNull);
   });
 }

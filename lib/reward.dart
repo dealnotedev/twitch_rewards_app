@@ -4,6 +4,36 @@ import 'package:uuid/uuid.dart';
 class Reward {
   String name;
 
+  String? twitchRewardId;
+  String? twitchBroadcasterId;
+
+  bool get isLinked => twitchRewardId != null;
+
+  void linkToTwitch({
+    required String rewardId,
+    required String broadcasterId,
+    required String title,
+  }) {
+    twitchRewardId = rewardId;
+    twitchBroadcasterId = broadcasterId;
+    name = title;
+  }
+
+  void unlinkFromTwitch() {
+    twitchRewardId = null;
+    twitchBroadcasterId = null;
+  }
+
+  bool matchesRedemption({
+    required String? rewardId,
+    required String title,
+    required String? broadcasterId,
+  }) {
+    if (disabled) return false;
+    if (!isLinked) return name == title;
+    return twitchRewardId == rewardId && twitchBroadcasterId == broadcasterId;
+  }
+
   final String id;
   final List<RewardAction> handlers;
   bool disabled;
@@ -14,12 +44,16 @@ class Reward {
       {required this.name,
       required this.handlers,
       this.expanded = false,
+      this.twitchRewardId,
+      this.twitchBroadcasterId,
       this.disabled = false})
       : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'twitchRewardId': twitchRewardId,
+      'twitchBroadcasterId': twitchBroadcasterId,
       'disabled': disabled,
       'handlers': handlers.map((e) => e.toJson()).toList()
     };
@@ -28,6 +62,8 @@ class Reward {
   static Reward fromJson(dynamic json) {
     return Reward(
         name: json['name'] as String,
+        twitchRewardId: json['twitchRewardId'] as String?,
+        twitchBroadcasterId: json['twitchBroadcasterId'] as String?,
         disabled: json['disabled'] as bool? ?? false,
         handlers: (json['handlers'] as List<dynamic>)
             .map(RewardAction.fromJson)

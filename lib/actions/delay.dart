@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/integer_input_formatter.dart';
 import 'package:twitch_listener/reward.dart';
 import 'package:twitch_listener/text_field_decoration.dart';
 
@@ -18,24 +18,29 @@ class DelayWidget extends StatefulWidget {
 class _State extends State<DelayWidget> {
   late final RewardAction _action;
 
-  late final TextEditingController _secondsController;
+  late final TextEditingController _millisController;
 
-  final _secondsFocusNode = FocusNode();
+  final _millisFocusNode = FocusNode();
+  // Duration stores microseconds in a signed 64-bit integer on the desktop.
+  static const _maximumMillis =
+      0x7fffffffffffffff ~/ Duration.microsecondsPerMillisecond;
 
   @override
   void initState() {
     _action = widget.action;
-    _secondsController =
+    _millisController =
         TextEditingController(text: widget.action.millis.toString());
-    _secondsController.addListener(_handleSecondsEdit);
+    _millisController.addListener(_handleMillisEdit);
+    _millisFocusNode.addListener(_handleFocusChanged);
     super.initState();
   }
 
   @override
   void dispose() {
-    _secondsController.removeListener(_handleSecondsEdit);
-    _secondsController.dispose();
-    _secondsFocusNode.dispose();
+    _millisController.removeListener(_handleMillisEdit);
+    _millisController.dispose();
+    _millisFocusNode.removeListener(_handleFocusChanged);
+    _millisFocusNode.dispose();
     super.dispose();
   }
 
@@ -47,28 +52,46 @@ class _State extends State<DelayWidget> {
         clearable: false,
         builder: (cntx, decoration, style) {
           return TextField(
-            controller: _secondsController,
-            focusNode: _secondsFocusNode,
+            controller: _millisController,
+            focusNode: _millisFocusNode,
             maxLines: 1,
-            keyboardType: TextInputType.number,
-            inputFormatters: <TextInputFormatter>[
-              FilteringTextInputFormatter.digitsOnly
+            keyboardType: const TextInputType.numberWithOptions(
+                signed: false, decimal: false),
+            inputFormatters: const [
+              UnsignedIntegerInputFormatter(maxValue: _maximumMillis)
             ],
-            textInputAction: TextInputAction.search,
+            textInputAction: TextInputAction.done,
+            autocorrect: false,
+            enableSuggestions: false,
+            enableIMEPersonalizedLearning: false,
+            smartDashesType: SmartDashesType.disabled,
+            smartQuotesType: SmartQuotesType.disabled,
             style: style,
             decoration: decoration,
           );
         },
         hint: context.localizations.reaction_delay_seconds_hint,
-        controller: _secondsController,
-        focusNode: _secondsFocusNode,
+        controller: _millisController,
+        focusNode: _millisFocusNode,
         theme: theme);
   }
 
-  void _handleSecondsEdit() {
-    try {
-      _action.millis = int.parse(_secondsController.text.trim());
-      widget.changesCallback();
-    } catch (_) {}
+  void _handleMillisEdit() {
+    final text = _millisController.text;
+    final millis = text.isEmpty ? 0 : int.tryParse(text);
+    if (millis == null ||
+        millis < 0 ||
+        millis > _maximumMillis ||
+        millis == _action.millis) {
+      return;
+    }
+    _action.millis = millis;
+    widget.changesCallback();
+  }
+
+  void _handleFocusChanged() {
+    if (!_millisFocusNode.hasFocus && _millisController.text.isEmpty) {
+      _millisController.text = '0';
+    }
   }
 }

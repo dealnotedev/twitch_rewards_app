@@ -83,7 +83,7 @@ class _State extends State<TextFieldDecoration> {
         borderRadius: BorderRadius.circular(7),
       ),
       child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 4),
+        padding: const EdgeInsets.symmetric(vertical: 6),
         decoration: BoxDecoration(
             color: theme.inputBackground,
             border: Border.all(

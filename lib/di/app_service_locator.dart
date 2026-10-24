@@ -18,6 +18,10 @@ import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/rewards_controller.dart';
+import 'package:twitch_listener/twitch/twitch_api.dart';
+import 'package:twitch_listener/twitch/twitch_authenticator.dart';
+import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
 
 class AppServiceLocator extends ServiceLocator {
@@ -164,7 +168,23 @@ class AppServiceLocator extends ServiceLocator {
     map[MusicRequestManager] = musicRequests;
     map[YoutubeConnectionController] = youtubeConnection;
     map[Audioplayer] = audioplayer;
-    map[TwitchShared] = TwitchShared();
+    final twitchShared = TwitchShared();
+    map[TwitchShared] = twitchShared;
+    map[TwitchRewardsController] = TwitchRewardsController(
+      settings: settings,
+      shared: twitchShared,
+      autosaver: autosaver,
+      createApi: (creds) => TwitchApi(
+        settings: settings,
+        clientSecret: twitchClientSecret,
+        broadcasterId: creds.broadcasterId,
+      ),
+      authorize: () => TwitchAuthenticator(
+        clientId: twitchClientId,
+        clientSecret: twitchClientSecret,
+        oauthRedirectUrl: twitchOauthRedirectUrl,
+      ).login(),
+    );
     map[Autosaver] = autosaver;
   }
 

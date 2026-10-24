@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
@@ -30,6 +32,10 @@ class SimpleDropdown<T> extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Match TextFieldDecoration's frame and density-adjusted input padding.
+    // Flutter removes 8 px from InputDecorator on compact desktop themes.
+    final verticalPadding = 6.0 +
+        math.max(0.0, 4.0 + theme.visualDensity.baseSizeAdjustment.dy / 2);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -52,11 +58,14 @@ class SimpleDropdown<T> extends StatelessWidget {
             child: Container(
               key: globalKey,
               decoration: BoxDecoration(
-                border: Border.all(color: theme.border, width: 0.5),
+                border: Border.all(
+                    color: theme.border,
+                    width: 0.5,
+                    strokeAlign: BorderSide.strokeAlignOutside),
                 borderRadius: BorderRadius.circular(8),
               ),
               padding: padding ??
-                  const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                  EdgeInsets.symmetric(horizontal: 12, vertical: verticalPadding),
               child: Row(
                 children: [
                   Expanded(
@@ -65,6 +74,8 @@ class SimpleDropdown<T> extends StatelessWidget {
                             .firstWhereOrNull((a) => a.id == selected)
                             ?.title ??
                         '',
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                     style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.w400,

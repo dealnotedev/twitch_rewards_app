@@ -21,7 +21,7 @@
 
 ## What it does
 
-Twitch Listener watches your channel for custom Channel Point reward redemptions. When a reward title matches a configured entry, the app runs its reaction chain from top to bottom.
+Twitch Listener watches your channel for custom Channel Point reward redemptions. Link a reaction chain to a Twitch reward by ID, or match its exact title manually. Linked chains keep working when the reward is renamed.
 
 For example, a **Helium voice** reward can enable an OBS microphone filter, wait two minutes, and disable the filter again — without any manual scene management during the stream.
 
@@ -114,12 +114,22 @@ Twitch Listener uses **OBS WebSocket v5**, which is built into OBS Studio 28 and
 
 ### 3. Create your first reward chain
 
-1. Create a custom Channel Point reward in Twitch.
-2. In Twitch Listener, select **Add New Reward**.
-3. Enter the reward title **exactly as it appears on Twitch**.
+1. In Twitch Listener, select **Add New Reward**.
+2. In **Basic Settings**, select **Link Twitch reward** to open the full-screen reward catalog.
+3. Choose an existing reward and select **Save** in the toolbar, or use **Create reward** to create and link a new reward on Twitch. Search, filter by **Created by Listener** or **Without reactions**, and edit rewards that Twitch allows Listener to manage.
 4. Add reactions in the order they should run.
 5. Save the configuration and ensure the reward is active.
 6. Use the play button to test the chain before going live.
+
+The linked name is read-only in Basic Settings and follows the reward on Twitch.
+Use **Change link** to choose another reward or **Unlink** to return to matching by
+the last known name; both preserve the reaction chain. A missing linked reward
+stays linked and never falls back to title matching automatically. You can also
+leave a chain unlinked and enter the title **exactly as it appears on Twitch**.
+
+Creating and editing rewards requires Twitch reward-management permission. Existing
+connections can still select rewards; use **Reconnect Twitch** in the catalog to
+grant the additional permission.
 
 > [!TIP]
 > OBS scene, source, input, and filter names must also match exactly. Test each chain with OBS connected before relying on it during a stream.

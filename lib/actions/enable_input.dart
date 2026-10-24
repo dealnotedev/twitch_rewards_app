@@ -80,8 +80,6 @@ class _State extends State<EnableInputWidget> {
         const Gap(8),
         Expanded(
             child: SimpleDropdown<bool>(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 theme: theme,
                 title: context.localizations.action_title,
                 available: [

@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_creds_interceptor.dart';
+import 'package:twitch_listener/twitch/reward_settings.dart';
 
 class Statuses {
   static const resolved = 'RESOLVED';
@@ -15,13 +16,19 @@ class TwitchApi {
 
   final String broadcasterId;
 
+  void close() => dio.close(force: true);
+
   TwitchApi(
       {required Settings settings,
       required String clientSecret,
       required this.broadcasterId}) {
     final interceptor =
         TwitchCredsInterceptor(settings: settings, clientSecret: clientSecret);
-    dio = Dio(BaseOptions(baseUrl: 'https://api.twitch.tv/helix'));
+    dio = Dio(BaseOptions(
+        baseUrl: 'https://api.twitch.tv/helix',
+        connectTimeout: const Duration(seconds: 15),
+        sendTimeout: const Duration(seconds: 30),
+        receiveTimeout: const Duration(seconds: 30)));
     dio.interceptors.add(interceptor);
   }
 
@@ -68,16 +75,47 @@ class TwitchApi {
     });
   }
 
-  Future<List<RedemptionDto>> getCustomRewards() {
+  Future<List<RedemptionDto>> getCustomRewards({bool onlyManageable = false}) {
     return dio
         .get('/channel_points/custom_rewards',
-            queryParameters: {'broadcaster_id': broadcasterId})
+            queryParameters: {
+              'broadcaster_id': broadcasterId,
+              if (onlyManageable) 'only_manageable_rewards': true,
+            })
         .then((response) => response.data)
         .then((json) {
           return ((json['data'] as List<dynamic>)
               .map(RedemptionDto.fromJson)
               .toList());
         });
+  }
+
+  Future<Set<String>> getGrantedScopes() async {
+    final response = await dio.get('https://id.twitch.tv/oauth2/validate');
+    return (response.data['scopes'] as List<dynamic>).cast<String>().toSet();
+  }
+
+  Future<RedemptionDto> createCustomReward(
+    TwitchRewardSettings settings,
+  ) async {
+    final response = await dio.post(
+      '/channel_points/custom_rewards',
+      queryParameters: {'broadcaster_id': broadcasterId},
+      data: settings.toJson(creating: true),
+    );
+    return RedemptionDto.fromJson(response.data['data'][0]);
+  }
+
+  Future<RedemptionDto> updateCustomReward(
+    String id,
+    TwitchRewardSettings settings,
+  ) async {
+    final response = await dio.patch(
+      '/channel_points/custom_rewards',
+      queryParameters: {'broadcaster_id': broadcasterId, 'id': id},
+      data: settings.toJson(),
+    );
+    return RedemptionDto.fromJson(response.data['data'][0]);
   }
 
   Future<void> subscribeChat({

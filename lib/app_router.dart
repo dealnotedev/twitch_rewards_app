@@ -9,6 +9,10 @@ import 'package:twitch_listener/reward_configurator.dart';
 import 'package:twitch_listener/rewards_state.dart';
 import 'package:twitch_listener/twitch_state.dart';
 import 'package:twitch_listener/updates/update_notice.dart';
+import 'package:twitch_listener/twitch/dto.dart';
+import 'package:twitch_listener/twitch/reward_catalog.dart';
+import 'package:twitch_listener/twitch/reward_editor.dart';
+import 'package:twitch_listener/twitch/rewards_controller.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
@@ -17,6 +21,8 @@ class ApplicationRouter extends NavigatorObserver {
 
   static const routeRoot = '/';
   static const _routeRewardConfig = '/reward/config';
+  static const _routeTwitchRewards = '/reward/twitch';
+  static const _routeTwitchRewardEditor = '/reward/twitch/edit';
 
   static final _changes = StreamController<_RouteChange>.broadcast();
   static Route? _current;
@@ -52,6 +58,24 @@ class ApplicationRouter extends NavigatorObserver {
     return currentPath;
   }
 
+  static Future<TwitchRewardSelection?> openTwitchRewards(
+    BuildContext context, {
+    required Reward reward,
+  }) => Navigator.pushNamed<TwitchRewardSelection>(
+    context,
+    _routeTwitchRewards,
+    arguments: _RewardConfigArgs(reward: reward),
+  );
+
+  static Future<RedemptionDto?> openTwitchRewardEditor(
+    BuildContext context, {
+    RedemptionDto? reward,
+  }) => Navigator.pushNamed<RedemptionDto>(
+    context,
+    _routeTwitchRewardEditor,
+    arguments: reward,
+  );
+
   static void popToRoot(BuildContext context) {
     popTo(context, routeRoot);
   }
@@ -69,6 +93,22 @@ class ApplicationRouter extends NavigatorObserver {
   RouteFactory get routerFactory {
     return (settings) {
       switch (settings.name) {
+        case _routeTwitchRewards:
+          return MaterialPageRoute<TwitchRewardSelection>(
+            settings: settings,
+            builder: (_) => TwitchRewardCatalog(
+              controller: locator.provide(),
+              target: (settings.arguments as _RewardConfigArgs).reward,
+            ),
+          );
+        case _routeTwitchRewardEditor:
+          return MaterialPageRoute<RedemptionDto>(
+            settings: settings,
+            builder: (_) => TwitchRewardEditor(
+              controller: locator.provide(),
+              reward: settings.arguments as RedemptionDto?,
+            ),
+          );
         case _routeRewardConfig:
           return MaterialPageRoute(
               settings: settings,
@@ -98,7 +138,7 @@ class ApplicationRouter extends NavigatorObserver {
                       const Gap(16),
                       Expanded(
                         child: TwitchStateWidget(
-                            twitchShared: locator.provide(),
+                            rewardsController: locator.provide(),
                             webSocketManager: locator.provide(),
                             settings: locator.provide()),
                       ),

@@ -314,7 +314,7 @@ class _RewardState extends State<_RewardWidget> {
                   stream: _twitchShared.redemptions.changes,
                   initialData: _twitchShared.redemptions.current,
                   builder: (cntx, snapshot) {
-                    final redemption = snapshot.requireData[reward.name];
+                    final redemption = _twitchShared.findReward(reward);
                     return Row(
                       children: [
                         Flexible(

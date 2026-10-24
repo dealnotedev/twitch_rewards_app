@@ -119,8 +119,6 @@ class _State extends State<ToggleSourceWidget> {
         const Gap(8),
         Expanded(
             child: SimpleDropdown<String>(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
                 theme: theme,
                 title: context.localizations.action_title,
                 available: [

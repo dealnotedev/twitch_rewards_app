@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/actions/crash_process.dart';
@@ -13,11 +15,13 @@ import 'package:twitch_listener/actions/toggle_source.dart';
 import 'package:twitch_listener/app_router.dart';
 import 'package:twitch_listener/audioplayer.dart';
 import 'package:twitch_listener/autosaver.dart';
+import 'package:twitch_listener/back_button.dart';
 import 'package:twitch_listener/buttons.dart';
 import 'package:twitch_listener/custom_switch.dart';
 import 'package:twitch_listener/dropdown/dropdown_menu.dart';
 import 'package:twitch_listener/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/empty_widget.dart';
+import 'package:twitch_listener/outline_icons.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/music/music_requests.dart';
@@ -63,20 +67,34 @@ class _State extends State<RewardConfiguratorWidget> {
   late final Reward _reward;
 
   final _nameFocusNode = FocusNode();
+  StreamSubscription? _rewardSubscription;
+  bool _justUnlinked = false;
 
   @override
   void initState() {
     _reward = widget.reward;
     _nameController = TextEditingController(text: _reward.name);
     _nameController.addListener(_handleNameEdit);
+    _rewardSubscription = widget.twitchShared.redemptions.changes.listen((_) {
+      if (!mounted) return;
+      final remote = widget.twitchShared.findReward(_reward);
+      if (_reward.isLinked &&
+          remote != null &&
+          _nameController.text != remote.title) {
+        _reward.name = remote.title;
+        _nameController.text = remote.title;
+      }
+      setState(() {});
+    });
     super.initState();
   }
 
   @override
   void dispose() {
+    _rewardSubscription?.cancel();
     _nameFocusNode.dispose();
-    _nameController.dispose();
     _nameController.removeListener(_handleNameEdit);
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -115,77 +133,7 @@ class _State extends State<RewardConfiguratorWidget> {
                             fontSize: 14, color: theme.textColorPrimary),
                       ),
                       const Gap(8),
-                      Row(
-                        children: [
-                          Expanded(
-                              flex: 2,
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    context.localizations.reward_name_title,
-                                    style: TextStyle(
-                                        fontSize: 12,
-                                        fontWeight: FontWeight.w600,
-                                        color: theme.textColorPrimary),
-                                  ),
-                                  const Gap(6),
-                                  TextFieldDecoration(
-                                      clearable: false,
-                                      builder: (cntx, decoration, style) {
-                                        return TextField(
-                                          decoration: decoration,
-                                          style: style,
-                                          focusNode: _nameFocusNode,
-                                          controller: _nameController,
-                                        );
-                                      },
-                                      hint: context
-                                          .localizations.reward_name_hint,
-                                      controller: _nameController,
-                                      focusNode: _nameFocusNode,
-                                      theme: theme),
-                                ],
-                              )),
-                          const Gap(16),
-                          Expanded(
-                              flex: 1,
-                              child: Container(
-                                constraints:
-                                    const BoxConstraints(minHeight: 60),
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: theme.accentSubtle,
-                                  borderRadius: BorderRadius.circular(8),
-                                  border: Border.all(
-                                    color: theme.accentColor
-                                        .withValues(alpha: 0.18),
-                                    width: 0.5,
-                                  ),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  children: [
-                                    Icon(Icons.account_tree_outlined,
-                                        size: 20, color: theme.accentColor),
-                                    const Gap(8),
-                                    Flexible(
-                                      child: Text(
-                                        context.localizations
-                                            .x_actions(actions.length),
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 13,
-                                          fontWeight: FontWeight.w600,
-                                          color: theme.accentColor,
-                                        ),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ))
-                        ],
-                      ),
+                        _createRewardLinkField(context, theme),
                       const Gap(8),
                       Row(
                         children: [
@@ -302,41 +250,166 @@ class _State extends State<RewardConfiguratorWidget> {
     widget.autosaver.notifyChanges();
   }
 
-  Widget _createBackButton(BuildContext context, ThemeData theme) {
-    final radius = BorderRadius.circular(8);
-    return Material(
-        type: MaterialType.transparency,
-        borderRadius: radius,
-        child: InkWell(
-          onTap: () {
-            ApplicationRouter.pop(context);
+  Widget _createRewardLinkField(BuildContext context, ThemeData theme) {
+    final l10n = context.localizations;
+    final linked = _reward.isLinked;
+    final missing =
+        linked &&
+        widget.twitchShared.rewardsLoaded &&
+        widget.twitchShared.findReward(_reward) == null;
+    final field = TextFieldDecoration(
+      clearable: false,
+      builder: (context, decoration, style) => TextField(
+        key: const ValueKey('reward-name'),
+        enabled: !linked,
+        decoration: decoration,
+        controller: _nameController,
+        focusNode: _nameFocusNode,
+        style: linked ? style.copyWith(color: theme.textColorSecondary) : style,
+      ),
+      hint: l10n.reward_name_hint,
+      controller: _nameController,
+      focusNode: _nameFocusNode,
+      theme: theme,
+    );
+    final buttons = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        CustomButton(
+          text: linked ? l10n.twitch_rewards_change : l10n.twitch_rewards_link,
+          style: linked
+              ? CustomButtonStyle.secondary
+              : CustomButtonStyle.primary,
+          theme: theme,
+          onTap: _openTwitchRewards,
+        ),
+        if (linked)
+          CustomButton(
+            text: l10n.twitch_rewards_unlink,
+            style: CustomButtonStyle.secondary,
+            theme: theme,
+            onTap: () => setState(() {
+              _reward.unlinkFromTwitch();
+              _justUnlinked = true;
+              _notifyActionsChanges();
+            }),
+          ),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              l10n.reward_name_title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: theme.textColorPrimary,
+              ),
+            ),
+            if (linked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.accentSubtle,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SimpleIcon.simpleSquare(OutlineIcons.link, size: 14, color: theme.accentColor),
+                    const Gap(4),
+                    Text(
+                      l10n.twitch_rewards_linked,
+                      style: TextStyle(fontSize: 11, color: theme.accentColor),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const Gap(6),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 560 &&
+                MediaQuery.textScalerOf(context).scale(1) <= 1.3) {
+              return Row(
+                children: [
+                  Expanded(child: field),
+                  const Gap(12),
+                  buttons,
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [field, const Gap(10), buttons],
+            );
           },
-          borderRadius: radius,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-            child: Row(
-              children: [
-                SimpleIcon.simpleSquare(Assets.assetsIcBackWhite16dp,
-                    size: 16, color: theme.textColorPrimary),
-                const Gap(4),
-                Text(
-                  context.localizations.button_back,
-                  style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: theme.textColorPrimary),
-                )
-              ],
+        ),
+        if (linked) ...[
+          const Gap(8),
+          Text(
+            missing
+                ? l10n.twitch_rewards_missing
+                : l10n.twitch_rewards_name_follows,
+            style: TextStyle(
+              fontSize: 12,
+              color: missing
+                  ? theme.colorScheme.error
+                  : theme.textColorSecondary,
             ),
           ),
-        ));
+          const Gap(4),
+          Text(
+            'ID: ${_reward.twitchRewardId}',
+            style: TextStyle(fontSize: 11, color: theme.textColorSecondary),
+          ),
+        ],
+        if (_justUnlinked && !linked) ...[
+          const Gap(8),
+          Text(
+            l10n.twitch_rewards_unlinked,
+            style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _openTwitchRewards() async {
+    final selection = await ApplicationRouter.openTwitchRewards(
+      context,
+      reward: _reward,
+    );
+    if (!mounted || selection == null) return;
+    setState(() {
+      _reward.linkToTwitch(
+        rewardId: selection.reward.id,
+        broadcasterId: selection.broadcasterId,
+        title: selection.reward.title,
+      );
+      _nameController.text = selection.reward.title;
+      _justUnlinked = false;
+    });
+    _nameFocusNode.unfocus();
+    _notifyActionsChanges();
   }
 
   Widget _createToolbar(BuildContext context, ThemeData theme) {
     return Row(
       children: [
         const Gap(8),
-        _createBackButton(context, theme),
+        AppBackButton(
+          theme: theme,
+          onTap: () => ApplicationRouter.pop(context),
+        ),
         const Gap(8),
         Expanded(
             child: Row(
@@ -354,7 +427,7 @@ class _State extends State<RewardConfiguratorWidget> {
                 initialData: _nameController.text,
                 builder: (cntx, name) {
                   final found =
-                      widget.twitchShared.redemptions.current[name.requireData];
+                      widget.twitchShared.findReward(_reward);
                   return Row(
                     children: [
                       if (found != null) ...[
@@ -402,6 +475,7 @@ class _State extends State<RewardConfiguratorWidget> {
   }
 
   void _handleNameEdit() {
+    if (_reward.isLinked) return;
     _reward.name = _nameController.text;
     _notifyActionsChanges();
   }

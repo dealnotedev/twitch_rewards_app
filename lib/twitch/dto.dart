@@ -113,6 +113,11 @@ class StreamDto {
 }
 
 class RedemptionDto {
+  final String backgroundColor;
+  final int? maxPerStream;
+  final int? maxPerUserPerStream;
+  final int? cooldownSeconds;
+  final bool skipRequestQueue;
   final String id;
   final bool enabled;
   final int cost;
@@ -126,7 +131,12 @@ class RedemptionDto {
   final ImageDto defaultImage;
 
   RedemptionDto(
-      {required this.id,
+      {this.backgroundColor = '#6441AD',
+      this.maxPerStream,
+      this.maxPerUserPerStream,
+      this.cooldownSeconds,
+      this.skipRequestQueue = false,
+      required this.id,
       required this.enabled,
       required this.cost,
       required this.title,
@@ -140,6 +150,19 @@ class RedemptionDto {
   static RedemptionDto fromJson(dynamic json) {
     final imageJson = json['image'];
     return RedemptionDto(
+        backgroundColor: json['background_color'] as String? ?? '#6441AD',
+        maxPerStream: json['max_per_stream_setting']?['is_enabled'] == true
+            ? json['max_per_stream_setting']['max_per_stream'] as int
+            : null,
+        maxPerUserPerStream:
+            json['max_per_user_per_stream_setting']?['is_enabled'] == true
+                ? json['max_per_user_per_stream_setting']['max_per_user_per_stream'] as int
+                : null,
+        cooldownSeconds: json['global_cooldown_setting']?['is_enabled'] == true
+            ? json['global_cooldown_setting']['global_cooldown_seconds'] as int
+            : null,
+        skipRequestQueue:
+            json['should_redemptions_skip_request_queue'] as bool? ?? false,
         id: json['id'] as String,
         enabled: json['is_enabled'] as bool,
         cost: json['cost'] as int,

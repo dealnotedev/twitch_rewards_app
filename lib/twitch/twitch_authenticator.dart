@@ -11,7 +11,7 @@ class TwitchAuthenticator {
   final String oauthRedirectUrl;
 
   static const _scope =
-      'channel:read:redemptions user:read:chat moderator:manage:chat_messages';
+      'channel:read:redemptions channel:manage:redemptions user:read:chat moderator:manage:chat_messages';
 
   TwitchAuthenticator(
       {required this.clientId,

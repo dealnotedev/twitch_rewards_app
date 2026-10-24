@@ -16,19 +16,20 @@ import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
-import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/viewers_counter.dart';
 
 class TwitchStateWidget extends StatefulWidget {
   final WebSocketManager webSocketManager;
   final Settings settings;
-  final TwitchShared twitchShared;
+  final TwitchRewardsController rewardsController;
 
   const TwitchStateWidget(
       {super.key,
       required this.webSocketManager,
       required this.settings,
-      required this.twitchShared});
+      required this.rewardsController,
+  });
 
   @override
   State<StatefulWidget> createState() => _State();
@@ -37,7 +38,6 @@ class TwitchStateWidget extends StatefulWidget {
 class _State extends State<TwitchStateWidget> {
   late final WebSocketManager _ws;
   late final Settings _settings;
-  late final TwitchShared _twitchShared;
 
   StreamSubscription<WsState>? _wsSubs;
   StreamSubscription<TwitchCreds?>? _twitchSubs;
@@ -46,7 +46,6 @@ class _State extends State<TwitchStateWidget> {
   void initState() {
     _ws = widget.webSocketManager;
     _settings = widget.settings;
-    _twitchShared = widget.twitchShared;
 
     _twitchCreds = _settings.twitchAuth;
     _wsState = _ws.currentState;
@@ -60,6 +59,7 @@ class _State extends State<TwitchStateWidget> {
 
   @override
   void dispose() {
+    _timer?.cancel();
     _wsSubs?.cancel();
     _twitchSubs?.cancel();
     super.dispose();
@@ -221,12 +221,16 @@ class _State extends State<TwitchStateWidget> {
 
   Future<void> _fetchUserInfo(TwitchApi api) async {
     final data = await api.getUser();
+    if (!mounted || _twitchCreds?.broadcasterId != api.broadcasterId) return;
 
     setState(() {
       _user = data;
     });
 
     await _refreshRedemptions(api);
+
+    if (!mounted || _twitchCreds?.broadcasterId != api.broadcasterId) return;
+    _timer?.cancel();
 
     _timer = Timer.periodic(
         const Duration(minutes: 1), (_) => _handleTimerTick(api, dto: data));
@@ -239,6 +243,8 @@ class _State extends State<TwitchStateWidget> {
   }
 
   void _handleTwitchAuth() {
+    _timer?.cancel();
+    _timer = null;
     final creds = _twitchCreds;
 
     if (creds != null) {
@@ -266,10 +272,7 @@ class _State extends State<TwitchStateWidget> {
   StreamDto? _stream;
 
   Future<void> _refreshRedemptions(TwitchApi api) {
-    return api.getCustomRewards().then((redemptions) {
-      _twitchShared.redemptions.set(Map.fromEntries(
-          redemptions.map((e) => MapEntry(e.title, e)).toList()));
-    });
+    return widget.rewardsController.refresh();
   }
 
   void _handleTimerTick(TwitchApi api, {required UserDto dto}) async {
@@ -277,6 +280,8 @@ class _State extends State<TwitchStateWidget> {
         value.firstWhereOrNull((element) => element.userId == dto.id));
 
     await _refreshRedemptions(api);
+
+    if (!mounted || _twitchCreds?.broadcasterId != api.broadcasterId) return;
 
     setState(() {
       _stream = steam;

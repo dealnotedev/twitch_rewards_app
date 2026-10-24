@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.4.0
+
+Changes since [2.3.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.3.0).
+
+- Link reaction chains to existing Twitch Channel Point rewards by ID. Linked
+  names follow Twitch changes, and unlinking retains the name and all actions.
+- Added a fullscreen reward catalog with search, a filter for rewards without
+  reactions, grouping by management permissions, and sorting by points cost.
+- Create and edit rewards in Listener with title, description, cost, color,
+  availability, cooldown and redemption limits. Editing follows Twitch's
+  permissions; rewards created elsewhere can be linked.
+- Added a color picker with presets, HEX input and a points preview. Reward
+  screens share the application's cards, controls, back button and Save toolbar.
+- Aligned text fields and dropdown heights across the application, and limited
+  switch interaction to the switch itself on the new reward screens.
+- Adapted numeric fields for whole-number input, keyboard navigation, paste
+  validation and overflow protection, including delay actions and reward limits.
+- Synchronized Flutter and Windows application version metadata at **2.4.0**
+  (build **6**).
+
 ## 2.3.0
 
 Changes since [2.2.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.2.2).

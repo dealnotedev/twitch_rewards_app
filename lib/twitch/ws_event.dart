@@ -27,17 +27,21 @@ class WsMessagePayload {
 }
 
 class WsReward {
+  final String? id;
   final String title;
   final int cost;
 
-  WsReward({required this.title, required this.cost});
+  WsReward({this.id, required this.title, required this.cost});
 
   static WsReward fromJson(dynamic json) {
-    return WsReward(title: json['title'] as String, cost: json['cost'] as int);
+    return WsReward(
+      id: json['id'] as String?,
+      title: json['title'] as String, cost: json['cost'] as int);
   }
 }
 
 class WsMessageEvent {
+  final String? broadcasterUserId;
   final String? id;
   final String? userName;
   final String? userId;
@@ -56,7 +60,9 @@ class WsMessageEvent {
   final String? color;
 
   WsMessageEvent(
-      {required this.id,
+      {
+    this.broadcasterUserId,
+    required this.id,
       required this.userName,
       required this.userId,
       required this.userInput,
@@ -72,7 +78,8 @@ class WsMessageEvent {
     final rewardJson = json['reward'];
     final messageJson = json['message'];
     return WsMessageEvent(
-        id: json['id'] as String?,
+      broadcasterUserId: json['broadcaster_user_id'] as String?,
+      id: json['id'] as String?,
         userName: json['user_name'] as String?,
         userId: json['user_id'] as String?,
         userInput: json['user_input'] as String?,

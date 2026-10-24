@@ -27,6 +27,7 @@ import 'package:twitch_listener/simple_widgets.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
 
 void main() async {
@@ -104,6 +105,7 @@ class _RebornPageState extends State<MyApp> {
     widget.locator.provide<UpdateController>().dispose();
     final locator = widget.locator;
     if (locator is AppServiceLocator) {
+      locator.provide<TwitchRewardsController>().dispose();
       unawaited(locator.closeMusic());
     } else {
       unawaited(locator.provide<MusicRequestManager>().close());
@@ -161,14 +163,23 @@ class _RebornPageState extends State<MyApp> {
         eventId != null &&
         _handledMessages.add(eventId)) {
       _handleReward(rewardTitle,
-          userInput: userInput, requester: json.payload.event?.userName ?? '');
+          rewardId: json.payload.event?.reward?.id,
+          broadcasterId: json.payload.event?.broadcasterUserId,
+          userInput: userInput,
+          requester: json.payload.event?.userName ?? '');
     }
   }
 
   void _handleReward(String rewardTitle,
-      {required String? userInput, required String requester}) {
-    final rewards = _settings.rewards.rewards
-        .where((element) => element.name == rewardTitle && !element.disabled);
+      {required String? rewardId,
+      required String? broadcasterId,
+      required String? userInput,
+      required String requester}) {
+    final rewards = _settings.rewards.rewards.where(
+        (element) => element.matchesRedemption(
+            rewardId: rewardId,
+            title: rewardTitle,
+            broadcasterId: broadcasterId ?? _settings.twitchAuth?.broadcasterId));
 
     for (var reward in rewards) {
       _executor.execute(reward, userInput: userInput, requester: requester);
