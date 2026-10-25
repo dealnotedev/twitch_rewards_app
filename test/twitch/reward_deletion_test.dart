@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/twitch/redemption.dart';
 import 'package:twitch_listener/twitch/redemption_queue_entry.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';

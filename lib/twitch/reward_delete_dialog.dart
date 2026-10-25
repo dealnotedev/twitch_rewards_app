@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/ui/buttons.dart';
+import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/outline_icons.dart';
-import 'package:twitch_listener/ripple_icon.dart';
-import 'package:twitch_listener/simple_icon.dart';
-import 'package:twitch_listener/simple_indicator.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/outline_icons.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/simple_icon.dart';
+import 'package:twitch_listener/ui/simple_indicator.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 
 /// Returns true to refund pending requests, false to confirm, or null to cancel.

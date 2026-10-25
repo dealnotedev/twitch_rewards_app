@@ -86,9 +86,8 @@ final class _SelectedValue<T, R> implements Observable<R> {
 /// immutable snapshots: publish a new object instead of mutating the current.
 /// Notifications are synchronous by default; pass `sync: false` to defer them.
 final class ObservableValue<T> implements Observable<T> {
-  ObservableValue({required T current, bool sync = true})
-    : _current = current,
-      _changes = StreamController<T>.broadcast(sync: sync);
+  ObservableValue({required this._current, bool sync = true})
+    : _changes = StreamController<T>.broadcast(sync: sync);
 
   T _current;
   final StreamController<T> _changes;

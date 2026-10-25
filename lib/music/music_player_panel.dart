@@ -1,12 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 
-import '../actions/volume_slider.dart';
-import '../extensions.dart';
+import 'package:twitch_listener/ui/volume_slider.dart';
+import 'package:twitch_listener/core/extensions.dart';
 import '../generated/assets.dart';
-import '../observable_value.dart';
-import '../ripple_icon.dart';
-import '../themes.dart';
+import 'package:twitch_listener/core/observable_value.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'music_requests.dart';
 
 class MusicPlayerPanel extends StatefulWidget {

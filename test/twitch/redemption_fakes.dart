@@ -1,15 +1,15 @@
 import 'dart:async';
 
-import 'package:twitch_listener/autosaver.dart';
-import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/reward_execution.dart';
-import 'package:twitch_listener/reward_executor.dart';
+import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/rewards/reward_execution.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/redemption.dart';
 import 'package:twitch_listener/twitch/redemption_queue_controller.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
-import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/twitch_shared.dart';
 
 import 'rewards_fakes.dart';
 

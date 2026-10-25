@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/audioplayer.dart';
-import 'package:twitch_listener/autosaver.dart';
+import 'package:twitch_listener/audio/audioplayer.dart';
+import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
-import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/reward_executor.dart';
-import 'package:twitch_listener/rewards_state.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
+import 'package:twitch_listener/rewards/rewards_state.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
-import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/twitch_shared.dart';
 
 import 'rewards_fakes.dart';
 

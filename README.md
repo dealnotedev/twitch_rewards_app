@@ -232,11 +232,22 @@ application language and light/dark theme.
 
 ```text
 lib/
-├── actions/          # Reaction editors and action-specific UI
+├── app/              # Application shell, navigation, and HomeScreen
+├── audio/            # Sound-effect playback and ringtones
+├── core/             # Settings, autosaving, and shared utilities
+├── di/               # Dependency registration
+├── generated/        # Generated asset references
+├── l10n/             # Localizations
+├── music/            # Music requests, playback, and YouTube sessions
 ├── obs/              # OBS WebSocket connection and commands
-├── twitch/           # OAuth, Twitch API, and EventSub WebSocket handling
-├── reward*.dart      # Reward model, configuration, execution, and storage
-└── main.dart         # Application entry point and event coordination
+├── rewards/          # Reaction chains: model, editors, execution, and storage
+│   └── actions/      # Action-specific editors
+├── twitch/           # OAuth, Twitch API, EventSub, and redemption UI
+├── ui/               # Shared widgets, themes, and dropdowns
+├── updates/          # Update checks and notification banner
+├── utils/            # Windows input and process helpers
+├── main.dart         # Application initialization and entry point
+└── secrets.dart      # Local Twitch credentials (ignored by Git)
 test/                 # Automated tests
 windows/              # Native Windows runner
 assets/               # Runtime icons and bundled assets

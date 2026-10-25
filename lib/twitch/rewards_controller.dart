@@ -2,14 +2,14 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import 'package:twitch_listener/autosaver.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/redemption.dart';
 import 'package:twitch_listener/twitch/reward_settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
-import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/twitch_shared.dart';
 
 enum TwitchRewardsError {
   notConnected,

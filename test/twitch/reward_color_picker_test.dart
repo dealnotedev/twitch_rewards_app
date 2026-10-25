@@ -5,7 +5,7 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/reward_color_picker.dart';
 
 void main() {

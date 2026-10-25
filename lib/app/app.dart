@@ -1,0 +1,350 @@
+import 'dart:async';
+
+import 'package:bitsdojo_window/bitsdojo_window.dart';
+import 'package:collection/collection.dart';
+import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:twitch_listener/app/app_router.dart';
+import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/extensions.dart';
+import 'package:twitch_listener/core/settings.dart';
+import 'package:twitch_listener/di/app_service_locator.dart';
+import 'package:twitch_listener/di/service_locator.dart';
+import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/l10n/app_localizations.dart';
+import 'package:twitch_listener/music/music_player_panel.dart';
+import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/music_server_controller.dart';
+import 'package:twitch_listener/music/youtube_connection_controller.dart';
+import 'package:twitch_listener/twitch/rewards_controller.dart';
+import 'package:twitch_listener/twitch/ws_event.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/simple_icon.dart';
+import 'package:twitch_listener/ui/simple_widgets.dart';
+import 'package:twitch_listener/ui/themes.dart';
+import 'package:twitch_listener/updates/update_controller.dart';
+
+class ListenerApp extends StatefulWidget {
+  final ServiceLocator locator;
+  final ApplicationRouter router;
+
+  const ListenerApp({super.key, required this.locator, required this.router});
+
+  Autosaver get autosaver => locator.provide();
+
+  @override
+  State<StatefulWidget> createState() => _ListenerAppState();
+}
+
+class _ListenerAppState extends State<ListenerApp> {
+  late final WebSocketManager _webSocketManager;
+  late final ApplicationRouter _router;
+  late final Settings _settings;
+
+  late final StreamSubscription<WsMessage> _wsSubscription;
+
+  @override
+  void initState() {
+    _router = widget.router;
+    _settings = widget.locator.provide();
+    _webSocketManager = widget.locator.provide();
+    _wsSubscription = _webSocketManager.messages.listen(
+      _handleWebSocketMessage,
+    );
+
+    widget.autosaver.registerSaveCallback(_handleAutosaving);
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    widget.autosaver.unregisterSaveCallback(_handleAutosaving);
+    _wsSubscription.cancel();
+    widget.locator.provide<UpdateController>().dispose();
+    final locator = widget.locator;
+    if (locator is AppServiceLocator) {
+      unawaited(locator.closeRedemptions());
+      locator.provide<TwitchRewardsController>().dispose();
+      unawaited(locator.closeMusic());
+    } else {
+      unawaited(locator.provide<MusicRequestManager>().close());
+      unawaited(locator.provide<YoutubeConnectionController>().close());
+    }
+    super.dispose();
+  }
+
+  bool _autosaved = false;
+
+  Future<void> _handleAutosaving() async {
+    setState(() {
+      _autosaved = true;
+    });
+
+    await Future.delayed(const Duration(milliseconds: 500));
+
+    setState(() {
+      _autosaved = false;
+    });
+  }
+
+  final _chatMessages = <WsMessage>[];
+
+  void _handleWebSocketMessage(WsMessage json) {
+    final chatMessageId = json.payload.event?.messageId;
+    final chatterId = json.payload.event?.chatterUserId;
+
+    if (json.payload.event?.message?.text == '!удолі' && chatterId != null) {
+      final previous = _chatMessages.lastWhereOrNull(
+        (m) => m.payload.event?.chatterUserId == chatterId,
+      );
+
+      if (previous != null) {
+        _chatMessages.remove(previous);
+        _webSocketManager.removeChatMessage(previous.payload.event?.messageId);
+      }
+
+      _webSocketManager.removeChatMessage(chatMessageId);
+      return;
+    }
+
+    if (json.payload.subscription?.type == 'channel.chat.message' &&
+        chatMessageId != null &&
+        chatterId != null) {
+      _chatMessages.add(json);
+    }
+  }
+
+  final _dropdownManager = DropdownManager(
+    offset: const Offset(0, -_toolbarHeight),
+  );
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder(
+      stream: _settings.appearanceChanges,
+      initialData: _settings.appearance,
+      builder: (context, snapshot) {
+        final appearance = snapshot.requireData;
+
+        final ThemeMode themeMode;
+        switch (appearance.brightness) {
+          case AppBrightness.system:
+            themeMode = ThemeMode.system;
+            break;
+
+          case AppBrightness.dark:
+            themeMode = ThemeMode.dark;
+            break;
+
+          case AppBrightness.light:
+            themeMode = ThemeMode.light;
+            break;
+        }
+
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: Themes.light,
+          darkTheme: Themes.dark,
+          themeMode: themeMode,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DropdownScope(
+            manager: _dropdownManager,
+            child: Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                return Scaffold(
+                  backgroundColor: theme.surfacePrimary,
+                  body: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => DropdownScope.of(context).clear(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          child: _createWindowTitleBarBox(
+                            context,
+                            theme,
+                            appearance: appearance,
+                          ),
+                        ),
+                        SimpleDivider(theme: theme),
+                        Expanded(
+                          child: Navigator(
+                            observers: [
+                              _router,
+                              DropdownNavigationObserver(
+                                manager: _dropdownManager,
+                              ),
+                            ],
+                            onGenerateRoute: _router.routerFactory,
+                            initialRoute: ApplicationRouter.routeRoot,
+                          ),
+                        ),
+                        if (widget.locator is AppServiceLocator)
+                          _MusicServerNotice(server: widget.locator.provide()),
+                        MusicPlayerPanel(requests: widget.locator.provide()),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  static const _toolbarHeight = 42.0;
+
+  Widget _createWindowTitleBarBox(
+    BuildContext context,
+    ThemeData theme, {
+    required Appearance appearance,
+  }) {
+    final String brigthessIcon;
+    switch (appearance.brightness) {
+      case AppBrightness.system:
+        brigthessIcon = Assets.assetsIcSunMoonWhite16dp;
+        break;
+      case AppBrightness.dark:
+        brigthessIcon = Assets.assetsIcMoonWhite16dp;
+        break;
+      case AppBrightness.light:
+        brigthessIcon = Assets.assetsIcSunWhite16dp;
+        break;
+    }
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.surfaceSecondary,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: theme.dark ? 0.16 : 0.04),
+            offset: const Offset(0, 1),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      height: _toolbarHeight,
+      child: Row(
+        children: [
+          Expanded(
+            child: MoveWindow(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
+                ),
+                child: Row(
+                  children: [
+                    Tooltip(
+                      message: 'It\'s dealnoteDev',
+                      child: SimpleIcon.simpleSquare(
+                        Assets.assetsIcLogo20dp,
+                        size: 20,
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Text(
+                        context.localizations.app_title,
+                        style: TextStyle(
+                          color: theme.textColorPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+          AnimatedOpacity(
+            opacity: _autosaved ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: RippleIcon(
+              size: 16,
+              icon: Assets.assetsIcSaveWhite16dp,
+              borderRadius: BorderRadius.circular(8),
+              background: theme.accentSubtle,
+              color: theme.accentColor,
+            ),
+          ),
+          RippleIcon(
+            size: 16,
+            icon: brigthessIcon,
+            borderRadius: BorderRadius.circular(8),
+            color: theme.textColorPrimary,
+            onTap: () {
+              _settings.toggleBrightness(appearance.brightness);
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcMinimizeWhite16dp,
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.minimize();
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcMaximizeWhite16dp,
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.maximizeOrRestore();
+            },
+          ),
+          RippleIcon(
+            borderRadius: BorderRadius.circular(8),
+            icon: Assets.assetsIcCloseWhite16dp,
+            hoverColor: const Color(0xFFD4183D),
+            size: 16,
+            color: theme.textColorPrimary,
+            onTap: () {
+              appWindow.close();
+            },
+          ),
+          const Gap(8),
+        ],
+      ),
+    );
+  }
+
+  @override
+  void didUpdateWidget(covariant ListenerApp oldWidget) {
+    if (widget.autosaver != oldWidget.autosaver) {
+      oldWidget.autosaver.unregisterSaveCallback(_handleAutosaving);
+      widget.autosaver.registerSaveCallback(_handleAutosaving);
+    }
+    super.didUpdateWidget(oldWidget);
+  }
+}
+
+class _MusicServerNotice extends StatelessWidget {
+  final MusicServerController server;
+  const _MusicServerNotice({required this.server});
+
+  @override
+  Widget build(BuildContext context) => ListenableBuilder(
+    listenable: server,
+    builder: (context, _) => server.error == null
+        ? const SizedBox.shrink()
+        : MaterialBanner(
+            content: Text(context.localizations.music_server_failed),
+            actions: [
+              TextButton(
+                onPressed: server.start,
+                child: Text(context.localizations.music_server_retry),
+              ),
+            ],
+          ),
+  );
+}

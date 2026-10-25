@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/actions/enable_input.dart';
-import 'package:twitch_listener/actions/toggle_filter.dart';
-import 'package:twitch_listener/actions/toggle_source.dart';
-import 'package:twitch_listener/dropdown/dropdown_menu.dart';
-import 'package:twitch_listener/dropdown/dropdown_scope.dart';
-import 'package:twitch_listener/dropdown/simple_dropdown.dart';
+import 'package:twitch_listener/rewards/actions/enable_input.dart';
+import 'package:twitch_listener/rewards/actions/toggle_filter.dart';
+import 'package:twitch_listener/rewards/actions/toggle_source.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_menu.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/dropdown/simple_dropdown.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
-import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/text_field_decoration.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/ui/text_field_decoration.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 void main() {
   for (final dark in [false, true]) {

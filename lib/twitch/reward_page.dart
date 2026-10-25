@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/back_button.dart';
-import 'package:twitch_listener/extensions.dart';
-import 'package:twitch_listener/simple_widgets.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/back_button.dart';
+import 'package:twitch_listener/core/extensions.dart';
+import 'package:twitch_listener/ui/simple_widgets.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 
 /// Uses the same parent navigator and content area as Reward Configuration.

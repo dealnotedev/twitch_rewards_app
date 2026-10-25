@@ -6,7 +6,7 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:twitch_listener/secrets.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
@@ -129,7 +129,7 @@ class WebSocketManager {
       }
 
       final encoded = jsonEncode(json);
-      print('WEBSOCKET $encoded');
+      debugPrint('WEBSOCKET $encoded');
 
       final msg = WsMessage.fromJson(json);
       _messagesSubject.add(msg);
@@ -204,7 +204,7 @@ class WebSocketManager {
 
     try {
       final cleaned = await api.cleanupInactiveEventSubs();
-      print(cleaned);
+      debugPrint('$cleaned');
     } catch (_) {}
 
     try {
@@ -247,7 +247,9 @@ class WebSocketManager {
         );
       }
     } on DioException catch (e) {
-      print('Api Error ${e.response?.statusCode} with message ${e.message}');
+      debugPrint(
+        'Api Error ${e.response?.statusCode} with message ${e.message}',
+      );
       rethrow;
     } finally {
       completer.complete();

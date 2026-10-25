@@ -1,9 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:twitch_listener/reward_execution.dart';
-import 'package:twitch_listener/reward_executor.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/rewards/reward_execution.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
+import 'package:twitch_listener/core/settings.dart';
 
 import 'redemption.dart';
 import 'redemption_queue_entry.dart';

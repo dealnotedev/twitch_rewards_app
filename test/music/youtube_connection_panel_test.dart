@@ -7,7 +7,7 @@ import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
 import 'package:twitch_listener/music/youtube_connection_panel.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 import 'fakes.dart';
 

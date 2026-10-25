@@ -1,0 +1,804 @@
+import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:gap/gap.dart';
+import 'package:twitch_listener/rewards/actions/crash_process.dart';
+import 'package:twitch_listener/rewards/actions/delay.dart';
+import 'package:twitch_listener/rewards/actions/enable_input.dart';
+import 'package:twitch_listener/rewards/actions/flip_source.dart';
+import 'package:twitch_listener/rewards/actions/play_audio.dart';
+import 'package:twitch_listener/rewards/actions/play_audios.dart';
+import 'package:twitch_listener/rewards/actions/send_input.dart';
+import 'package:twitch_listener/rewards/actions/set_scene.dart';
+import 'package:twitch_listener/rewards/actions/toggle_filter.dart';
+import 'package:twitch_listener/rewards/actions/toggle_source.dart';
+import 'package:twitch_listener/app/app_router.dart';
+import 'package:twitch_listener/audio/audioplayer.dart';
+import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/ui/back_button.dart';
+import 'package:twitch_listener/ui/buttons.dart';
+import 'package:twitch_listener/ui/custom_switch.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_menu.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/empty_widget.dart';
+import 'package:twitch_listener/ui/outline_icons.dart';
+import 'package:twitch_listener/core/extensions.dart';
+import 'package:twitch_listener/generated/assets.dart';
+import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/youtube_connection_controller.dart';
+import 'package:twitch_listener/music/youtube_connection_panel.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
+import 'package:twitch_listener/rewards/reward_test.dart';
+import 'package:twitch_listener/rewards/reward_ext.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/simple_icon.dart';
+import 'package:twitch_listener/ui/simple_indicator.dart';
+import 'package:twitch_listener/ui/simple_widgets.dart';
+import 'package:twitch_listener/ui/text_field_decoration.dart';
+import 'package:twitch_listener/ui/themes.dart';
+import 'package:twitch_listener/twitch/twitch_shared.dart';
+
+class RewardConfiguratorWidget extends StatefulWidget {
+  final TwitchShared twitchShared;
+  final Audioplayer audioplayer;
+  final RewardExecutor executor;
+  final Reward reward;
+  final Autosaver autosaver;
+  final YoutubeConnectionController youtubeConnection;
+  final MusicRequestManager musicRequests;
+
+  const RewardConfiguratorWidget({
+    super.key,
+    required this.reward,
+    required this.audioplayer,
+    required this.twitchShared,
+    required this.executor,
+    required this.youtubeConnection,
+    required this.musicRequests,
+    required this.autosaver,
+  });
+
+  @override
+  State<StatefulWidget> createState() => _State();
+}
+
+class _State extends State<RewardConfiguratorWidget> {
+  late final TextEditingController _nameController;
+  late final Reward _reward;
+
+  final _nameFocusNode = FocusNode();
+  StreamSubscription? _rewardSubscription;
+  bool _justUnlinked = false;
+
+  @override
+  void initState() {
+    _reward = widget.reward;
+    _nameController = TextEditingController(text: _reward.name);
+    _nameController.addListener(_handleNameEdit);
+    _rewardSubscription = widget.twitchShared.redemptions.changes.listen((_) {
+      if (!mounted) return;
+      final remote = widget.twitchShared.findReward(_reward);
+      if (_reward.isLinked &&
+          remote != null &&
+          _nameController.text != remote.title) {
+        _reward.name = remote.title;
+        _nameController.text = remote.title;
+      }
+      setState(() {});
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    _rewardSubscription?.cancel();
+    _nameFocusNode.dispose();
+    _nameController.removeListener(_handleNameEdit);
+    _nameController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final actions = _reward.handlers;
+
+    return Container(
+      color: theme.surfacePrimary,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Gap(8),
+          _createToolbar(context, theme),
+          const Gap(8),
+          SimpleDivider(theme: theme),
+          Expanded(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 48),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Gap(16),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: theme.cardDecoration,
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          context
+                              .localizations
+                              .reward_configigure_basic_settings,
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: theme.textColorPrimary,
+                          ),
+                        ),
+                        const Gap(8),
+                        _createRewardLinkField(context, theme),
+                        const Gap(8),
+                        Row(
+                          children: [
+                            CustomSwitch(
+                              value: !_reward.disabled,
+                              onToggle: _handleStatusChange,
+                              theme: theme,
+                            ),
+                            const Gap(8),
+                            Expanded(
+                              child: Text(
+                                _reward.disabled
+                                    ? context
+                                          .localizations
+                                          .reward_status_inactive
+                                    : context
+                                          .localizations
+                                          .reward_status_active,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w600,
+                                  color: theme.textColorPrimary,
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  const Gap(16),
+                  Container(
+                    margin: const EdgeInsets.symmetric(horizontal: 16),
+                    decoration: theme.cardDecoration,
+                    padding: const EdgeInsets.only(
+                      top: 16,
+                      left: 16,
+                      right: 16,
+                      bottom: 12,
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                context.localizations.reaction_chain_title,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  color: theme.textColorPrimary,
+                                ),
+                              ),
+                            ),
+                            CustomButton(
+                              prefixIcon: Assets.assetsIcPlayWhite16dp,
+                              text: '',
+                              style: CustomButtonStyle.secondary,
+                              theme: theme,
+                              onTap: () {
+                                testReward(context, _reward, widget.executor);
+                              },
+                            ),
+                            const Gap(8),
+                            CustomButton(
+                              key: _addKey,
+                              prefixIcon: Assets.assetsIcPlusWhite16dp,
+                              suffixIcon: Assets.assetsIcArrowDownWhite16dp,
+                              text: context.localizations.button_add_reaction,
+                              style: CustomButtonStyle.secondary,
+                              theme: theme,
+                              onTap: () {
+                                _showAddDropdown(context);
+                              },
+                            ),
+                          ],
+                        ),
+                        if (actions.isEmpty) ...[
+                          const Gap(8),
+                          EmptyWidget(
+                            text:
+                                context.localizations.reaction_chain_empty_text,
+                            theme: theme,
+                          ),
+                        ] else ...[
+                          const Gap(4),
+                          ReorderableList(
+                            shrinkWrap: true,
+                            proxyDecorator: (child, index, animation) =>
+                                Material(
+                                  type: MaterialType.transparency,
+                                  child: child,
+                                ),
+                            itemBuilder: (context, index) {
+                              final action = actions[index];
+                              return _ActionWidget(
+                                index: index,
+                                audioplayer: widget.audioplayer,
+                                youtubeConnection: widget.youtubeConnection,
+                                musicRequests: widget.musicRequests,
+                                changesCallback: _notifyActionsChanges,
+                                onDelete: () => _handleActionDelete(action),
+                                key: ValueKey(action.id),
+                                action: action,
+                                theme: theme,
+                              );
+                            },
+                            itemCount: actions.length,
+                            onReorderItem: (oldIndex, newIndex) {
+                              setState(() {
+                                final item = actions.removeAt(oldIndex);
+                                actions.insert(newIndex, item);
+
+                                _notifyActionsChanges();
+                              });
+                            },
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _notifyActionsChanges() {
+    widget.autosaver.notifyChanges();
+  }
+
+  Widget _createRewardLinkField(BuildContext context, ThemeData theme) {
+    final l10n = context.localizations;
+    final linked = _reward.isLinked;
+    final missing =
+        linked &&
+        widget.twitchShared.rewardsLoaded &&
+        widget.twitchShared.findReward(_reward) == null;
+    final field = TextFieldDecoration(
+      clearable: false,
+      builder: (context, decoration, style) => TextField(
+        key: const ValueKey('reward-name'),
+        enabled: !linked,
+        decoration: decoration,
+        controller: _nameController,
+        focusNode: _nameFocusNode,
+        style: linked ? style.copyWith(color: theme.textColorSecondary) : style,
+      ),
+      hint: l10n.reward_name_hint,
+      controller: _nameController,
+      focusNode: _nameFocusNode,
+      theme: theme,
+    );
+    final buttons = Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: [
+        CustomButton(
+          text: linked ? l10n.twitch_rewards_change : l10n.twitch_rewards_link,
+          style: linked
+              ? CustomButtonStyle.secondary
+              : CustomButtonStyle.primary,
+          theme: theme,
+          onTap: _openTwitchRewards,
+        ),
+        if (linked)
+          CustomButton(
+            text: l10n.twitch_rewards_unlink,
+            style: CustomButtonStyle.secondary,
+            theme: theme,
+            onTap: () => setState(() {
+              _reward.unlinkFromTwitch();
+              _justUnlinked = true;
+              _notifyActionsChanges();
+            }),
+          ),
+      ],
+    );
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Wrap(
+          spacing: 10,
+          runSpacing: 6,
+          crossAxisAlignment: WrapCrossAlignment.center,
+          children: [
+            Text(
+              l10n.reward_name_title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: theme.textColorPrimary,
+              ),
+            ),
+            if (linked)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 3),
+                decoration: BoxDecoration(
+                  color: theme.accentSubtle,
+                  borderRadius: BorderRadius.circular(5),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    SimpleIcon.simpleSquare(
+                      OutlineIcons.link,
+                      size: 14,
+                      color: theme.accentColor,
+                    ),
+                    const Gap(4),
+                    Text(
+                      l10n.twitch_rewards_linked,
+                      style: TextStyle(fontSize: 11, color: theme.accentColor),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        const Gap(6),
+        LayoutBuilder(
+          builder: (context, constraints) {
+            if (constraints.maxWidth >= 560 &&
+                MediaQuery.textScalerOf(context).scale(1) <= 1.3) {
+              return Row(
+                children: [
+                  Expanded(child: field),
+                  const Gap(12),
+                  buttons,
+                ],
+              );
+            }
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [field, const Gap(10), buttons],
+            );
+          },
+        ),
+        if (linked) ...[
+          const Gap(8),
+          Text(
+            missing
+                ? l10n.twitch_rewards_missing
+                : l10n.twitch_rewards_name_follows,
+            style: TextStyle(
+              fontSize: 12,
+              color: missing
+                  ? theme.colorScheme.error
+                  : theme.textColorSecondary,
+            ),
+          ),
+          const Gap(4),
+          Text(
+            'ID: ${_reward.twitchRewardId}',
+            style: TextStyle(fontSize: 11, color: theme.textColorSecondary),
+          ),
+        ],
+        if (_justUnlinked && !linked) ...[
+          const Gap(8),
+          Text(
+            l10n.twitch_rewards_unlinked,
+            style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
+          ),
+        ],
+      ],
+    );
+  }
+
+  Future<void> _openTwitchRewards() async {
+    final selection = await ApplicationRouter.openTwitchRewards(
+      context,
+      reward: _reward,
+    );
+    if (!mounted || selection == null) return;
+    setState(() {
+      _reward.linkToTwitch(
+        rewardId: selection.reward.id,
+        broadcasterId: selection.broadcasterId,
+        title: selection.reward.title,
+      );
+      _nameController.text = selection.reward.title;
+      _justUnlinked = false;
+    });
+    _nameFocusNode.unfocus();
+    _notifyActionsChanges();
+  }
+
+  Widget _createToolbar(BuildContext context, ThemeData theme) {
+    return Row(
+      children: [
+        const Gap(8),
+        AppBackButton(
+          theme: theme,
+          onTap: () => ApplicationRouter.pop(context),
+        ),
+        const Gap(8),
+        Expanded(
+          child: Row(
+            children: [
+              Flexible(
+                child: Text(
+                  context.localizations.reward_configure_title,
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: theme.textColorPrimary,
+                  ),
+                ),
+              ),
+              StreamBuilder(
+                stream: _nameController.stream(),
+                initialData: _nameController.text,
+                builder: (cntx, name) {
+                  final found = widget.twitchShared.findReward(_reward);
+                  return Row(
+                    children: [
+                      if (found != null) ...[
+                        const Gap(8),
+                        SimpleIndicator(
+                          fontSize: 12,
+                          text: context.localizations.x_points(found.cost),
+                          theme: theme,
+                          style: IndicatorStyle.neutral,
+                        ),
+                      ],
+                    ],
+                  );
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  final _addKey = GlobalKey();
+
+  void _showAddDropdown(BuildContext context) {
+    final manager = DropdownScope.of(context);
+
+    manager.show(
+      context,
+      builder: (cntx) {
+        return DropdownPopupMenu<String>(
+          selected: null,
+          items: RewardAction.availableTypes
+              .map((t) => RewardActionAtts.forType(context, t))
+              .map((a) => Item(id: a.type, title: a.title, icon: a.icon))
+              .toList(),
+          onTap: (String type) {
+            manager.dismiss(_addKey);
+            _handleAddActionClick(type);
+          },
+        );
+      },
+      key: _addKey,
+    );
+  }
+
+  void _handleStatusChange(bool value) {
+    setState(() {
+      _reward.disabled = !value;
+      _notifyActionsChanges();
+    });
+  }
+
+  void _handleNameEdit() {
+    if (_reward.isLinked) return;
+    _reward.name = _nameController.text;
+    _notifyActionsChanges();
+  }
+
+  void _handleAddActionClick(String type) {
+    final action = RewardAction.create(type);
+
+    setState(() {
+      _reward.handlers.add(action);
+      _notifyActionsChanges();
+    });
+  }
+
+  void _handleActionDelete(RewardAction action) {
+    setState(() {
+      _reward.handlers.remove(action);
+      _notifyActionsChanges();
+    });
+  }
+}
+
+class _ActionWidget extends StatelessWidget {
+  final int index;
+  final Audioplayer audioplayer;
+  final ThemeData theme;
+  final RewardAction action;
+  final VoidCallback onDelete;
+  final VoidCallback changesCallback;
+  final YoutubeConnectionController youtubeConnection;
+  final MusicRequestManager musicRequests;
+
+  const _ActionWidget({
+    super.key,
+    required this.action,
+    required this.theme,
+    required this.onDelete,
+    required this.audioplayer,
+    required this.index,
+    required this.youtubeConnection,
+    required this.musicRequests,
+    required this.changesCallback,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final attrs = RewardActionAtts.forType(context, action.type);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      width: double.infinity,
+      clipBehavior: Clip.antiAlias,
+      decoration: BoxDecoration(
+        color: theme.surfaceTertiary,
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: theme.border,
+          width: 0.5,
+          strokeAlign: BorderSide.strokeAlignOutside,
+        ),
+      ),
+      child: Stack(
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Gap(8),
+              Row(
+                children: [
+                  const Gap(8),
+                  ReorderableDragStartListener(
+                    index: index,
+                    child: RippleIcon(
+                      icon: Assets.assetsIcReorderWhite16dp,
+                      size: 16,
+                      color: theme.textColorSecondary,
+                    ),
+                  ),
+                  const Gap(4),
+                  SimpleIcon.simpleSquare(
+                    attrs.icon,
+                    size: 16,
+                    color: theme.textColorPrimary,
+                  ),
+                  const Gap(12),
+                  Text(
+                    _getActionTitle(context, attrs: attrs),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: theme.textColorPrimary,
+                    ),
+                  ),
+                  Expanded(
+                    child: _createAdditionalHeaderWidget(context, theme),
+                  ),
+                  RippleIcon(
+                    borderRadius: BorderRadius.circular(8),
+                    icon: Assets.assetsIcDeleteWhite16dp,
+                    onTap: onDelete,
+                    size: 16,
+                    color: theme.textColorPrimary,
+                  ),
+                  const Gap(8),
+                ],
+              ),
+              const Gap(8),
+              ..._createCustomWidgets(context, theme),
+            ],
+          ),
+          Positioned.fill(
+            child: IgnorePointer(
+              child: CustomPaint(
+                painter: _ActionAccentPainter(
+                  color: theme.accentColor.withValues(alpha: 0.58),
+                  radius: 8,
+                  width: 4,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static String _getActionTitle(
+    BuildContext context, {
+    required RewardActionAtts attrs,
+  }) {
+    switch (attrs.type) {
+      case RewardAction.typeDelay:
+        return context.localizations.reaction_delay_title;
+      default:
+        return attrs.title;
+    }
+  }
+
+  List<Widget> _createCustomWidgets(BuildContext context, ThemeData theme) {
+    if ([
+      RewardAction.typeDelay,
+      RewardAction.typeSendInput,
+    ].contains(action.type)) {
+      return [];
+    }
+    return [
+      SimpleDivider(theme: theme),
+      Padding(
+        padding: const EdgeInsets.all(16),
+        child: _createInternal(context, theme),
+      ),
+    ];
+  }
+
+  Widget _createAdditionalHeaderWidget(BuildContext context, ThemeData theme) {
+    switch (action.type) {
+      case RewardAction.typeDelay:
+        return Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+          child: DelayWidget(action: action, changesCallback: changesCallback),
+        );
+
+      case RewardAction.typeSendInput:
+        return Padding(
+          padding: const EdgeInsetsDirectional.only(start: 12, end: 8),
+          child: SendInputWidget(
+            action: action,
+            changesCallback: changesCallback,
+          ),
+        );
+
+      default:
+        return const SizedBox.shrink();
+    }
+  }
+
+  Widget _createInternal(BuildContext context, ThemeData theme) {
+    switch (action.type) {
+      case RewardAction.typeQueueTrack:
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              context.localizations.reaction_queue_track_description,
+              style: TextStyle(fontSize: 13, color: theme.textColorSecondary),
+            ),
+            const Gap(16),
+            SimpleDivider(theme: theme),
+            const Gap(16),
+            YoutubeConnectionPanel(
+              connection: youtubeConnection,
+              requests: musicRequests,
+            ),
+          ],
+        );
+
+      case RewardAction.typePlayAudios:
+        return PlayAudiosWidget(
+          action: action,
+          audioplayer: audioplayer,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typePlayAudio:
+        return PlayAudioWidget(
+          action: action,
+          audioplayer: audioplayer,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeCrashProcess:
+        return CrashProcessWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeToggleSource:
+        return ToggleSourceWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeFlipSource:
+        return FlipSourceWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeEnableInput:
+        return EnableInputWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeToggleFilter:
+        return ToggleFilterWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
+
+      case RewardAction.typeSetScene:
+        return SetSceneWidget(action: action, changesCallback: changesCallback);
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(8),
+      width: double.infinity,
+      child: Text(
+        'Not yet implemented',
+        textAlign: TextAlign.center,
+        style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
+      ),
+    );
+  }
+}
+
+class _ActionAccentPainter extends CustomPainter {
+  final Color color;
+  final double radius;
+  final double width;
+
+  const _ActionAccentPainter({
+    required this.color,
+    required this.radius,
+    required this.width,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.fill;
+
+    final rect = Offset.zero & size;
+    final rrect = RRect.fromRectAndRadius(rect, Radius.circular(radius));
+
+    canvas
+      ..save()
+      ..clipRRect(rrect)
+      ..drawRect(Rect.fromLTWH(0, 0, width, size.height), paint)
+      ..restore();
+  }
+
+  @override
+  bool shouldRepaint(covariant _ActionAccentPainter oldDelegate) {
+    return color != oldDelegate.color ||
+        radius != oldDelegate.radius ||
+        width != oldDelegate.width;
+  }
+}

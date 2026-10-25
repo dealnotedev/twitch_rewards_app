@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/actions/volume_slider.dart';
+import 'package:twitch_listener/ui/volume_slider.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/music/music_player_panel.dart';
 import 'package:twitch_listener/music/music_requests.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 import 'fakes.dart';
 

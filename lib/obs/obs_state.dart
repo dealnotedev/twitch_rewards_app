@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/connection_status.dart';
-import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/ui/buttons.dart';
+import 'package:twitch_listener/ui/connection_status.dart';
+import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
-import 'package:twitch_listener/settings.dart';
-import 'package:twitch_listener/simple_icon.dart';
-import 'package:twitch_listener/text_field_decoration.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/core/settings.dart';
+import 'package:twitch_listener/ui/simple_icon.dart';
+import 'package:twitch_listener/ui/text_field_decoration.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 class ObsStateWidget extends StatefulWidget {
   final ObsConnect connect;

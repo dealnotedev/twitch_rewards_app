@@ -1,7 +1,7 @@
 import 'dart:ffi';
 
 import 'package:ffi/ffi.dart';
-import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards/reward.dart';
 import 'package:win32/win32.dart';
 
 class InputSender {

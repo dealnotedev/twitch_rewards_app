@@ -1,8 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
-import 'package:twitch_listener/audioplayer.dart';
-import 'package:twitch_listener/autosaver.dart';
+import 'package:twitch_listener/audio/audioplayer.dart';
+import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/music/media_kit_music_track_player.dart';
@@ -14,10 +14,10 @@ import 'package:twitch_listener/music/music_tool_paths.dart';
 import 'package:twitch_listener/music/yt_dlp_music_track_fetcher.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
-import 'package:twitch_listener/reward_executor.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
+import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
-import 'package:twitch_listener/twitch_shared.dart';
+import 'package:twitch_listener/twitch/twitch_shared.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';

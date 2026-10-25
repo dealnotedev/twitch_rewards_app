@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
-import 'package:twitch_listener/simple_indicator.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/simple_indicator.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/redemption_queue_controller.dart';
 import 'package:twitch_listener/twitch/redemption_queue_entry.dart';
 import 'package:twitch_listener/twitch/redemption_queue_panel.dart';

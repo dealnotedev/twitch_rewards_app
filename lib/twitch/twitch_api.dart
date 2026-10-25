@@ -1,5 +1,5 @@
 import 'package:dio/dio.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/twitch_creds_interceptor.dart';
 import 'package:twitch_listener/twitch/reward_settings.dart';

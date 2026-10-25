@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/custom_switch.dart';
-import 'package:twitch_listener/integer_input_formatter.dart';
-import 'package:twitch_listener/text_field_decoration.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/custom_switch.dart';
+import 'package:twitch_listener/ui/integer_input_formatter.dart';
+import 'package:twitch_listener/ui/text_field_decoration.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 /// Adds form validation and a label to the application's existing input chrome.
 class RewardFormField extends StatefulWidget {

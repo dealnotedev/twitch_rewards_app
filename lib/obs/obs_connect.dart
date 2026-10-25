@@ -2,9 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart';
 import 'package:obs_websocket/obs_websocket.dart';
-import 'package:twitch_listener/extensions.dart';
-import 'package:twitch_listener/observable_value.dart';
-import 'package:twitch_listener/settings.dart';
+import 'package:twitch_listener/core/extensions.dart';
+import 'package:twitch_listener/core/observable_value.dart';
+import 'package:twitch_listener/core/settings.dart';
 
 class ObsConnect {
   final Settings settings;

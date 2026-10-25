@@ -2,12 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/audioplayer.dart';
+import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
-import 'package:twitch_listener/reward.dart';
-import 'package:twitch_listener/reward_executor.dart';
-import 'package:twitch_listener/reward_execution.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
+import 'package:twitch_listener/rewards/reward_execution.dart';
 
 import 'fakes.dart';
 

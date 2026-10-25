@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:twitch_listener/reward.dart';
+import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 
 void main() {

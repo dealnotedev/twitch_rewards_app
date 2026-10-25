@@ -2,11 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
-import 'package:twitch_listener/themes.dart';
+import 'package:twitch_listener/ui/themes.dart';
 
 /// Shared connection controls, presented inside each Play YouTube Track card.
 class YoutubeConnectionPanel extends StatefulWidget {

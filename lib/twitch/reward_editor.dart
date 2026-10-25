@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
-import 'package:twitch_listener/app_router.dart';
-import 'package:twitch_listener/buttons.dart';
-import 'package:twitch_listener/extensions.dart';
+import 'package:twitch_listener/app/app_router.dart';
+import 'package:twitch_listener/ui/buttons.dart';
+import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
-import 'package:twitch_listener/themes.dart';
-import 'package:twitch_listener/simple_widgets.dart';
+import 'package:twitch_listener/ui/themes.dart';
+import 'package:twitch_listener/ui/simple_widgets.dart';
 import 'package:twitch_listener/twitch/reward_color_picker.dart';
 import 'package:twitch_listener/twitch/reward_delete_dialog.dart';
 import 'package:twitch_listener/twitch/reward_form_field.dart';
