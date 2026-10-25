@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/ui/simple_indicator.dart';
@@ -99,6 +100,8 @@ void main() {
     expect(find.text('1 total'), findsOneWidget);
     expect(find.byTooltip('Confirm now'), findsOneWidget);
     expect(find.byTooltip('Refund points'), findsOneWidget);
+    expect(find.byTooltip('Pause auto confirmation'), findsOneWidget);
+    expect(find.byTooltip('Remove from queue'), findsOneWidget);
     expect(find.text('Confirm now'), findsNothing);
     expect(find.text('Refund points'), findsNothing);
     expect(find.text('10:00'), findsOneWidget);
@@ -123,6 +126,8 @@ void main() {
     expect(find.byTooltip('Reaction in progress'), findsOneWidget);
     expect(find.text('Auto confirmation'), findsNothing);
     expect(find.byType(LinearProgressIndicator), findsNothing);
+    expect(find.byTooltip('Pause auto confirmation'), findsNothing);
+    expect(find.byTooltip('Remove from queue'), findsOneWidget);
     expect(find.textContaining('Track'), findsNothing);
     await tester.pumpWidget(const SizedBox.shrink());
   });
@@ -150,6 +155,82 @@ void main() {
     );
     expect(tester.getSize(row), originalSize);
     await tester.pump(const Duration(milliseconds: 120));
+    await tester.pump(const Duration(milliseconds: 240));
+    expect(find.text('Viewer'), findsNothing);
+    expect(find.text('Reward queue'), findsNothing);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('pause freezes the countdown and progress; resume continues it', (
+    tester,
+  ) async {
+    final controller = _PanelController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_screen(controller));
+    controller.clock = controller.clock.add(const Duration(minutes: 2));
+    await tester.pump(const Duration(seconds: 1));
+    final timerWidth = tester
+        .getSize(find.byType(LinearProgressIndicator))
+        .width;
+    final caption = tester.renderObject<RenderParagraph>(
+      find.text('Auto confirmation'),
+    );
+    expect(
+      caption.getBoxesForSelection(
+        TextSelection(baseOffset: 0, extentOffset: 'Auto confirmation'.length),
+      ),
+      hasLength(1),
+      reason: 'The measured timer must fit its caption on one line',
+    );
+    await tester.tap(find.byTooltip('Pause auto confirmation'));
+    await tester.pump();
+    expect(
+      tester.getSize(find.byType(LinearProgressIndicator)).width,
+      timerWidth,
+    );
+    expect(find.text('Paused'), findsOneWidget);
+    expect(find.text('08:00'), findsOneWidget);
+    expect(find.byTooltip('Resume auto confirmation'), findsOneWidget);
+    expect(find.byTooltip('Confirm now'), findsOneWidget);
+    expect(find.byTooltip('Refund points'), findsOneWidget);
+    controller.clock = controller.clock.add(const Duration(hours: 1));
+    await tester.pump(const Duration(seconds: 2));
+    expect(find.text('08:00'), findsOneWidget);
+    expect(
+      tester
+          .widget<LinearProgressIndicator>(find.byType(LinearProgressIndicator))
+          .value,
+      closeTo(.8, .001),
+    );
+    await tester.tap(find.byTooltip('Resume auto confirmation'));
+    await tester.pump();
+    expect(
+      tester.getSize(find.byType(LinearProgressIndicator)).width,
+      timerWidth,
+    );
+    expect(find.text('Auto confirmation'), findsOneWidget);
+    controller.clock = controller.clock.add(const Duration(minutes: 1));
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.text('07:00'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
+
+  testWidgets('remove leaves the list without a dialog or settlement label', (
+    tester,
+  ) async {
+    final controller = _PanelController();
+    addTearDown(controller.dispose);
+    await tester.pumpWidget(_screen(controller));
+    await tester.tap(find.byTooltip('Remove from queue'));
+    await tester.pump();
+    expect(controller.removed, 'one');
+    expect(find.byType(Dialog), findsNothing);
+    expect(find.byTooltip('Removed from queue'), findsOneWidget);
+    expect(find.byTooltip('Execution confirmed'), findsNothing);
+    expect(find.byTooltip('Points refunded'), findsNothing);
+    await tester.pump(const Duration(milliseconds: 600));
     await tester.pump(const Duration(milliseconds: 240));
     expect(find.text('Viewer'), findsNothing);
     expect(find.text('Reward queue'), findsNothing);
@@ -231,6 +312,8 @@ class _PanelController extends ChangeNotifier
   );
   String? confirmed;
   String? refunded;
+  String? removed;
+  DateTime clock = DateTime.utc(2026, 10, 25, 12);
   _PanelController({
     RedemptionQueueState state = RedemptionQueueState.waiting,
   }) {
@@ -239,7 +322,7 @@ class _PanelController extends ChangeNotifier
   }
   @override
   DateTime Function() get now => _now;
-  DateTime _now() => DateTime.utc(2026, 10, 25, 12);
+  DateTime _now() => clock;
   @override
   String get accountKey => 'test-client:channel';
   @override
@@ -250,6 +333,30 @@ class _PanelController extends ChangeNotifier
   bool canDecide(RedemptionQueueEntry entry) => !entry.terminal;
   @override
   bool isBusy(String id) => false;
+  @override
+  bool canRemove(RedemptionQueueEntry entry) => !entry.terminal;
+  @override
+  bool canToggleTimer(RedemptionQueueEntry entry) =>
+      !entry.terminal && entry.hasTimer;
+  @override
+  void toggleTimer(String id) {
+    if (record.isPaused) {
+      record.confirmAt = clock.add(record.pausedRemaining!);
+      record.pausedRemaining = null;
+    } else {
+      record.pausedRemaining = record.remainingAt(clock);
+      record.confirmAt = null;
+    }
+    notifyListeners();
+  }
+
+  @override
+  void remove(String id) {
+    removed = id;
+    record.state = RedemptionQueueState.removed;
+    notifyListeners();
+  }
+
   @override
   Future<void> confirmNow(String id) async {
     confirmed = id;

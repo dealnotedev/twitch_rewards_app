@@ -10,6 +10,154 @@ import 'redemption_fakes.dart';
 import 'rewards_fakes.dart';
 
 void main() {
+  test('pauses one countdown and resumes its exact remaining time', () async {
+    final h = await QueueHarness.create();
+    addTearDown(h.close);
+    await h.queue.handleMessage(redemptionMessage('one'));
+    await h.queue.handleMessage(redemptionMessage('two'));
+    h.clock = h.clock.add(
+      const Duration(minutes: 2, seconds: 17, milliseconds: 250),
+    );
+    h.queue.toggleTimer('one');
+    final entry = h.queue.find('one')!;
+    const remaining = Duration(minutes: 7, seconds: 42, milliseconds: 750);
+    expect(entry.isPaused, isTrue);
+    expect(entry.confirmAt, isNull);
+    expect(entry.remainingAt(h.clock), remaining);
+    h.clock = h.clock.add(const Duration(hours: 1));
+    await h.queue.tick();
+    expect(h.api.patches, [('two', RedemptionStatus.fulfilled)]);
+    expect(entry.remainingAt(h.clock), remaining);
+    h.queue.toggleTimer('one');
+    expect(entry.isPaused, isFalse);
+    expect(entry.confirmAt, h.clock.add(remaining));
+    h.clock = h.clock.add(remaining - const Duration(milliseconds: 1));
+    await h.queue.tick();
+    expect(h.api.patches, hasLength(1));
+    h.clock = h.clock.add(const Duration(milliseconds: 1));
+    await h.queue.tick();
+    expect(h.api.patches, [
+      ('two', RedemptionStatus.fulfilled),
+      ('one', RedemptionStatus.fulfilled),
+    ]);
+  });
+
+  for (final status in [
+    RedemptionStatus.fulfilled,
+    RedemptionStatus.canceled,
+  ]) {
+    test('manual $status is available while the timer is paused', () async {
+      final h = await QueueHarness.create();
+      addTearDown(h.close);
+      await h.queue.handleMessage(redemptionMessage('one'));
+      h.queue.toggleTimer('one');
+      expect(h.queue.canDecide(h.queue.find('one')!), isTrue);
+      await (status == RedemptionStatus.fulfilled
+          ? h.queue.confirmNow('one')
+          : h.queue.refund('one'));
+      expect(h.queue.entries, isEmpty);
+      h.clock = h.clock.add(const Duration(hours: 1));
+      await h.queue.tick();
+      expect(h.api.patches, [('one', status)]);
+    });
+  }
+
+  test(
+    'local removal leaves Twitch untouched and ignores duplicate delivery',
+    () async {
+      final h = await QueueHarness.create();
+      addTearDown(h.close);
+      await h.queue.handleMessage(redemptionMessage('one'));
+      h.queue.toggleTimer('one');
+      h.queue.remove('one');
+      expect(h.queue.entries, isEmpty);
+      expect(h.queue.find('one')!.state, RedemptionQueueState.removed);
+      expect(h.queue.canDecide(h.queue.find('one')!), isFalse);
+      expect(h.queue.canToggleTimer(h.queue.find('one')!), isFalse);
+      await h.queue.handleMessage(redemptionMessage('one'));
+      h.clock = h.clock.add(const Duration(hours: 1));
+      await h.queue.tick();
+      await h.queue.confirmNow('one');
+      await h.queue.refund('one');
+      expect(h.executor.calls, 1);
+      expect(h.api.patches, isEmpty);
+      expect(h.api.pendingReads, 0);
+      expect(h.api.deleteCalls, isEmpty);
+    },
+  );
+
+  for (final failure in [false, true]) {
+    test(
+      'removing an executing reaction does not cancel or settle it, failure=$failure',
+      () async {
+        final h = await QueueHarness.create();
+        addTearDown(h.close);
+        final effect = Completer<void>();
+        var canceled = false;
+        h.executor.run = (execution) async {
+          execution!.track(effect.future, cancel: () async => canceled = true);
+        };
+        final handled = h.queue.handleMessage(redemptionMessage('one'));
+        await flushQueue();
+        expect(h.queue.canToggleTimer(h.queue.find('one')!), isFalse);
+        h.queue.remove('one');
+        expect(canceled, isFalse);
+        expect(h.queue.entries, isEmpty);
+        if (failure) {
+          effect.completeError(StateError('Effect failed later'));
+        } else {
+          effect.complete();
+        }
+        await handled;
+        h.clock = h.clock.add(const Duration(hours: 1));
+        await h.queue.tick();
+        expect(h.queue.find('one')!.state, RedemptionQueueState.removed);
+        expect(h.api.patches, isEmpty);
+        expect(h.executor.calls, 1);
+      },
+    );
+  }
+
+  test('removing a failed decision stops retries even without management permission', () async {
+    final h = await QueueHarness.create();
+    addTearDown(h.close);
+    await h.queue.handleMessage(redemptionMessage('one'));
+    h.api.beforePatch = () async {
+      throw DioException(
+        requestOptions: RequestOptions(),
+        type: DioExceptionType.connectionError,
+      );
+    };
+    await h.queue.confirmNow('one');
+    h.api.scopes = {'channel:read:redemptions'};
+    await h.rewards.refresh();
+    expect(h.queue.canDecide(h.queue.find('one')!), isFalse);
+    expect(h.queue.canRemove(h.queue.find('one')!), isTrue);
+    h.queue.remove('one');
+    h.clock = h.clock.add(const Duration(hours: 1));
+    await h.queue.tick();
+    await h.queue.retry('one');
+    expect(h.queue.entries, isEmpty);
+    expect(h.api.patches, [('one', RedemptionStatus.fulfilled)]);
+  });
+
+  test('an already sent decision cannot be removed or paused', () async {
+    final h = await QueueHarness.create();
+    addTearDown(h.close);
+    await h.queue.handleMessage(redemptionMessage('one'));
+    final response = Completer<void>();
+    h.api.beforePatch = () => response.future;
+    final deciding = h.queue.confirmNow('one');
+    expect(h.queue.canRemove(h.queue.find('one')!), isFalse);
+    expect(h.queue.canToggleTimer(h.queue.find('one')!), isFalse);
+    h.queue.remove('one');
+    h.queue.toggleTimer('one');
+    expect(h.queue.entries.single.state, RedemptionQueueState.waiting);
+    response.complete();
+    await deciding;
+    expect(h.queue.find('one')!.state, RedemptionQueueState.confirmed);
+  });
+
   test(
     'starts ten minutes after completion and handles delivery duplicates once',
     () async {
@@ -174,6 +322,8 @@ void main() {
     final h = await QueueHarness.create();
     addTearDown(h.close);
     await h.queue.handleMessage(redemptionMessage('waiting'));
+    h.queue.toggleTimer('waiting');
+    expect(h.queue.find('waiting')!.isPaused, isTrue);
     h.api.statuses['waiting'] = RedemptionStatus.unfulfilled;
     await h.queue.close();
     h.clock = h.clock.add(const Duration(hours: 1));

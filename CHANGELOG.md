@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.2
+
+Changes since [2.5.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.1).
+
+- Pause automatic confirmation for an individual request and resume with the
+  exact remaining time. Manual confirmation and refunds remain available.
+- Remove a request from Listener's queue without a dialog, changing its status
+  on Twitch, or interrupting its running reaction. Removed requests stop being
+  confirmed, refunded or retried automatically by Listener.
+- Place a compact pause/resume button beside the countdown label and a small
+  close icon without a background in the top-right corner of each request.
+- Add a visible progress-track background and size the timer from its content
+  in every build. Running and paused states share the larger measured width,
+  respecting the current font and text scale.
+- Reorganized application modules and extracted the home screen.
+- Synchronized Flutter and Windows application version metadata at **2.5.2**
+  (build **9**).
+
 ## 2.5.1
 
 Changes since [2.5.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.0).

@@ -1,10 +1,12 @@
 import 'dart:async';
+import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/ui/buttons.dart';
 import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/ui/outline_icons.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
 import 'package:twitch_listener/ui/simple_icon.dart';
 import 'package:twitch_listener/ui/simple_indicator.dart';
 import 'package:twitch_listener/ui/themes.dart';
@@ -26,6 +28,10 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
   static const _departureDuration = Duration(milliseconds: 540);
   static const _departureVisibleDuration = Duration(milliseconds: 320);
   static const _reflowDuration = Duration(milliseconds: 220);
+  static const _compactActionSize = 20.0;
+  late TextStyle _timerLabelStyle;
+  late TextStyle _timerValueStyle;
+  late double _timerWidth;
   GlobalKey<AnimatedListState> _listKey = GlobalKey();
   final _visible = <RedemptionQueueEntry>[];
   Timer? _clock;
@@ -42,6 +48,52 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     _clock = Timer.periodic(const Duration(seconds: 1), (_) {
       if (_visible.isNotEmpty && mounted) setState(() {});
     });
+  }
+
+  void _measureTimer(BuildContext context) {
+    final theme = Theme.of(context);
+    final l10n = context.localizations;
+    final inherited = DefaultTextStyle.of(context).style;
+    final bold = MediaQuery.boldTextOf(context);
+    _timerLabelStyle = inherited.merge(
+      TextStyle(
+        fontSize: 11,
+        color: theme.textColorSecondary,
+        fontWeight: bold ? FontWeight.bold : null,
+      ),
+    );
+    _timerValueStyle = inherited.merge(
+      TextStyle(
+        fontSize: 17,
+        fontWeight: bold ? FontWeight.bold : FontWeight.w600,
+        color: theme.textColorPrimary,
+        fontFeatures: const [FontFeature.tabularFigures()],
+      ),
+    );
+    final painter = TextPainter(
+      textDirection: Directionality.of(context),
+      textScaler: MediaQuery.textScalerOf(context),
+      locale: Localizations.localeOf(context),
+      maxLines: 1,
+    );
+    double measure(String text, TextStyle style) {
+      painter.text = TextSpan(text: text, style: style);
+      painter.layout();
+      return painter.width;
+    }
+
+    try {
+      final labelWidth = math.max(
+        measure(l10n.redemption_queue_until, _timerLabelStyle),
+        measure(l10n.redemption_queue_paused, _timerLabelStyle),
+      );
+      // Tabular figures keep the mm:ss width constant throughout the countdown.
+      final valueWidth = measure('00:00', _timerValueStyle);
+      _timerWidth = (labelWidth + 4 + _compactActionSize + 8 + valueWidth)
+          .ceilToDouble();
+    } finally {
+      painter.dispose();
+    }
   }
 
   @override
@@ -169,6 +221,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
 
   @override
   Widget build(BuildContext context) {
+    _measureTimer(context);
     final theme = Theme.of(context);
     final l10n = context.localizations;
     final totalPoints = _visible.fold<int>(
@@ -292,6 +345,9 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
 
   String _status(RedemptionQueueEntry entry) {
     final l10n = context.localizations;
+    if (entry.state == RedemptionQueueState.removed) {
+      return l10n.redemption_queue_removed;
+    }
     if (entry.terminal) {
       return entry.state == RedemptionQueueState.confirmed
           ? l10n.redemption_queue_confirmed
@@ -315,17 +371,14 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     return switch (entry.state) {
       RedemptionQueueState.executing => l10n.redemption_queue_executing,
       _ =>
-        _remaining(entry) <= const Duration(minutes: 1)
+        !entry.isPaused && _remaining(entry) <= const Duration(minutes: 1)
             ? l10n.redemption_queue_soon
             : l10n.redemption_queue_waiting,
     };
   }
 
-  Duration _remaining(RedemptionQueueEntry entry) {
-    final remaining =
-        entry.confirmAt?.difference(widget.controller.now()) ?? Duration.zero;
-    return remaining.isNegative ? Duration.zero : remaining;
-  }
+  Duration _remaining(RedemptionQueueEntry entry) =>
+      entry.remainingAt(widget.controller.now());
 
   Widget _statusIndicator(RedemptionQueueEntry entry) {
     final theme = Theme.of(context);
@@ -334,7 +387,13 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
         ? const Color(0xFFE8BD76)
         : const Color(0xFF95620B);
     final Widget icon;
-    if (entry.terminal) {
+    if (entry.state == RedemptionQueueState.removed) {
+      icon = SimpleIcon.simpleSquare(
+        Assets.assetsIcCloseWhite16dp,
+        size: 16,
+        color: theme.textColorSecondary,
+      );
+    } else if (entry.terminal) {
       icon = SimpleIcon.simpleSquare(
         entry.state == RedemptionQueueState.refunded
             ? OutlineIcons.refund
@@ -380,12 +439,16 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     final theme = Theme.of(context);
     final l10n = context.localizations;
     final finished = departing || entry.terminal;
+    final removable = !finished && widget.controller.canRemove(entry);
     final waiting =
         entry.state == RedemptionQueueState.waiting && entry.intent == null;
-    final showCountdown = entry.confirmAt != null;
+    final showCountdown = entry.hasTimer;
     final remaining = _remaining(entry);
-    final soon = waiting && remaining <= const Duration(minutes: 1);
-    final color = finished
+    final soon =
+        waiting && !entry.isPaused && remaining <= const Duration(minutes: 1);
+    final color = entry.isPaused || entry.state == RedemptionQueueState.removed
+        ? theme.textColorSecondary
+        : finished
         ? theme.positiveColor
         : soon
         ? (theme.dark ? const Color(0xFFE8BD76) : const Color(0xFF95620B))
@@ -461,7 +524,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
       ],
     );
     final meter = showCountdown
-        ? _timer(remaining, finished ? theme.accentColor : color)
+        ? _timer(entry, remaining, color, finished: finished)
         : const SizedBox.shrink();
     final enabled = widget.controller.canDecide(entry);
     final actions = Wrap(
@@ -504,7 +567,6 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     return Container(
       key: ValueKey('redemption-${entry.account}-${entry.id}'),
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
       decoration: BoxDecoration(
         color: !finished && soon
             ? Color.alphaBlend(
@@ -519,42 +581,80 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
         ),
         borderRadius: BorderRadius.circular(8),
       ),
-      child: LayoutBuilder(
-        builder: (context, constraints) {
-          final textScale = MediaQuery.textScalerOf(context).scale(1);
-          final wide = constraints.maxWidth >= 520 * textScale;
-          if (wide) {
-            return Row(
-              children: [
-                Expanded(child: identity),
-                const SizedBox(width: 12),
-                SizedBox(width: 150 * textScale, child: meter),
-                const SizedBox(width: 12),
-                actions,
-              ],
-            );
-          }
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              identity,
-              const SizedBox(height: 12),
-              if (constraints.maxWidth >= 490 &&
-                  MediaQuery.textScalerOf(context).scale(1) <= 1.3)
-                Row(
+      child: Stack(
+        children: [
+          Padding(
+            padding: const EdgeInsets.fromLTRB(16, 14, 32, 14),
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final textScale = MediaQuery.textScalerOf(context).scale(1);
+                final wide = constraints.maxWidth >= 520 * textScale;
+                if (wide) {
+                  return Row(
+                    children: [
+                      Expanded(child: identity),
+                      const SizedBox(width: 12),
+                      SizedBox(width: _timerWidth, child: meter),
+                      const SizedBox(width: 12),
+                      actions,
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    SizedBox(width: 165, child: meter),
-                    const Spacer(),
-                    actions,
+                    identity,
+                    const SizedBox(height: 12),
+                    if (constraints.maxWidth >= 490 &&
+                        MediaQuery.textScalerOf(context).scale(1) <= 1.3)
+                      Row(
+                        children: [
+                          SizedBox(width: _timerWidth, child: meter),
+                          const Spacer(),
+                          actions,
+                        ],
+                      )
+                    else ...[
+                      if (showCountdown) ...[
+                        Align(
+                          alignment: AlignmentDirectional.centerStart,
+                          child: SizedBox(width: _timerWidth, child: meter),
+                        ),
+                        const SizedBox(height: 12),
+                      ],
+                      actions,
+                    ],
                   ],
-                )
-              else ...[
-                if (showCountdown) ...[meter, const SizedBox(height: 12)],
-                actions,
-              ],
-            ],
-          );
-        },
+                );
+              },
+            ),
+          ),
+          Positioned(
+            top: 6,
+            right: 6,
+            child: Semantics(
+              label: l10n.redemption_queue_remove,
+              button: true,
+              enabled: removable,
+              child: Tooltip(
+                message: l10n.redemption_queue_remove,
+                excludeFromSemantics: true,
+                child: RippleIcon(
+                  icon: Assets.assetsIcCloseWhite16dp,
+                  size: 12,
+                  padding: 4,
+                  borderRadius: BorderRadius.circular(4),
+                  color: theme.textColorSecondary.withValues(
+                    alpha: removable ? 1 : .5,
+                  ),
+                  onTap: removable
+                      ? () => widget.controller.remove(entry.id)
+                      : null,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -564,6 +664,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     required String icon,
     required VoidCallback? onTap,
     bool loading = false,
+    bool compact = false,
   }) => Semantics(
     label: label,
     button: true,
@@ -572,13 +673,14 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
       message: label,
       excludeFromSemantics: true,
       child: SizedBox(
-        width: 40,
-        height: 30,
+        width: compact ? _compactActionSize : 40,
+        height: compact ? _compactActionSize : 30,
         child: CustomButton(
           theme: Theme.of(context),
           style: CustomButtonStyle.secondary,
           text: '',
           prefixIcon: icon,
+          padding: compact ? const EdgeInsets.all(2) : null,
           loading: loading,
           onTap: onTap,
         ),
@@ -595,15 +697,22 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     ),
   );
 
-  Widget _timer(Duration remaining, Color color) {
-    final theme = Theme.of(context);
+  Widget _timer(
+    RedemptionQueueEntry entry,
+    Duration remaining,
+    Color color, {
+    required bool finished,
+  }) {
     final l10n = context.localizations;
     final seconds = (remaining.inMilliseconds / 1000).ceil().clamp(0, 600);
     final formatted =
         '${(seconds ~/ 60).toString().padLeft(2, '0')}:${(seconds % 60).toString().padLeft(2, '0')}';
+    final paused = entry.isPaused;
     return Semantics(
-      label: l10n.redemption_queue_countdown(formatted),
-      excludeSemantics: true,
+      label: paused
+          ? l10n.redemption_queue_paused_countdown(formatted)
+          : l10n.redemption_queue_countdown(formatted),
+      explicitChildNodes: true,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
@@ -612,45 +721,63 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Flexible(
-                child: Text(
-                  l10n.redemption_queue_until,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: theme.textColorSecondary,
-                  ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Flexible(
+                      child: ExcludeSemantics(
+                        child: Text(
+                          paused
+                              ? l10n.redemption_queue_paused
+                              : l10n.redemption_queue_until,
+                          style: _timerLabelStyle,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 4),
+                    _actionButton(
+                      label: paused
+                          ? l10n.redemption_queue_resume
+                          : l10n.redemption_queue_pause,
+                      icon: paused
+                          ? Assets.assetsIcPlayWhite16dp
+                          : OutlineIcons.pause,
+                      compact: true,
+                      onTap:
+                          !finished && widget.controller.canToggleTimer(entry)
+                          ? () => widget.controller.toggleTimer(entry.id)
+                          : null,
+                    ),
+                  ],
                 ),
               ),
               const SizedBox(width: 8),
-              Text(
-                formatted,
-                style: TextStyle(
-                  fontSize: 17,
-                  fontWeight: FontWeight.w600,
-                  color: theme.textColorPrimary,
-                  fontFeatures: const [FontFeature.tabularFigures()],
-                ),
-              ),
+              ExcludeSemantics(child: Text(formatted, style: _timerValueStyle)),
             ],
           ),
           const SizedBox(height: 7),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(3),
-            child: TweenAnimationBuilder<double>(
-              duration: const Duration(milliseconds: 650),
-              curve: Curves.linear,
-              tween: Tween(
-                end:
-                    (remaining.inMilliseconds /
-                            RedemptionQueueController
-                                .confirmationDelay
-                                .inMilliseconds)
-                        .clamp(0, 1),
-              ),
-              builder: (context, value, _) => LinearProgressIndicator(
-                value: value,
-                minHeight: 4,
-                backgroundColor: theme.surfaceTertiary,
-                valueColor: AlwaysStoppedAnimation(color),
+          ExcludeSemantics(
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(3),
+              child: TweenAnimationBuilder<double>(
+                duration: paused
+                    ? Duration.zero
+                    : const Duration(milliseconds: 650),
+                curve: Curves.linear,
+                tween: Tween(
+                  end:
+                      (remaining.inMilliseconds /
+                              RedemptionQueueController
+                                  .confirmationDelay
+                                  .inMilliseconds)
+                          .clamp(0, 1),
+                ),
+                builder: (context, value, _) => LinearProgressIndicator(
+                  value: value,
+                  minHeight: 4,
+                  backgroundColor: color.withValues(alpha: 0.15),
+                  valueColor: AlwaysStoppedAnimation(color),
+                ),
               ),
             ),
           ),

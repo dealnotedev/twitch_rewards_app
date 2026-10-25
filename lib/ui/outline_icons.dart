@@ -7,6 +7,7 @@ class OutlineIcons {
   static const link = 'assets/ic_link_white_16dp.svg';
   static const refresh = 'assets/ic_refresh_white_16dp.svg';
   static const refund = 'assets/ic_refund_white_16dp.svg';
+  static const pause = 'assets/ic_pause_white_16dp.svg';
   static const lock = 'assets/ic_lock_white_16dp.svg';
   static const reactions = 'assets/ic_reactions_white_16dp.svg';
   static const addReaction = 'assets/ic_add_reaction_white_16dp.svg';

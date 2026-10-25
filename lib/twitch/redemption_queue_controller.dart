@@ -95,6 +95,18 @@ class RedemptionQueueController extends ChangeNotifier {
       !isBusy(entry.id) &&
       rewards.canEdit(entry.redemption.rewardId);
 
+  bool canRemove(RedemptionQueueEntry entry) =>
+      !_closed &&
+      entry.account == accountKey &&
+      !entry.terminal &&
+      !isBusy(entry.id);
+
+  bool canToggleTimer(RedemptionQueueEntry entry) =>
+      canRemove(entry) &&
+      entry.state == RedemptionQueueState.waiting &&
+      entry.intent == null &&
+      entry.hasTimer;
+
   bool _active(int generation) =>
       !_closed && generation == _generation && _account == accountKey;
 
@@ -354,6 +366,31 @@ class RedemptionQueueController extends ChangeNotifier {
 
   Future<void> confirmNow(String id) => _decide(id, RedemptionStatus.fulfilled);
   Future<void> refund(String id) => _decide(id, RedemptionStatus.canceled);
+
+  void toggleTimer(String id) {
+    final entry = _entries[id];
+    if (entry == null || !canToggleTimer(entry)) return;
+    if (entry.isPaused) {
+      entry.confirmAt = now().add(entry.pausedRemaining!);
+      entry.pausedRemaining = null;
+    } else {
+      entry.pausedRemaining = entry.remainingAt(now());
+      entry.confirmAt = null;
+    }
+    _notify();
+  }
+
+  void remove(String id) {
+    final entry = _entries[id];
+    if (entry == null || !canRemove(entry)) return;
+    // Keep the local terminal entry to ignore duplicate deliveries and late
+    // reaction results. The reaction itself and Twitch's status are untouched.
+    entry.state = RedemptionQueueState.removed;
+    entry.intent = null;
+    entry.error = null;
+    _retryAt.remove(id);
+    _notify();
+  }
 
   Future<void> _decide(String id, RedemptionStatus status) async {
     final entry = _entries[id];
