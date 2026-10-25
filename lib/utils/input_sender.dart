@@ -36,7 +36,10 @@ class InputSender {
       kbd[i + inputs.length].ki.dwFlags = KEYEVENTF_KEYUP;
     }
 
-    SendInput(inputs.length * 2, kbd, sizeOf<INPUT>());
+    final sent = SendInput(inputs.length * 2, kbd, sizeOf<INPUT>());
     calloc.free(kbd);
+    if (sent != inputs.length * 2) {
+      throw StateError('Windows rejected keyboard input');
+    }
   }
 }

@@ -19,8 +19,9 @@ class WsMessagePayload {
     final subsJson = json['subscription'];
 
     return WsMessagePayload(
-      subscription:
-          subsJson != null ? WsMessageSubscription.fromJson(subsJson) : null,
+      subscription: subsJson != null
+          ? WsMessageSubscription.fromJson(subsJson)
+          : null,
       event: eventJson != null ? WsMessageEvent.fromJson(eventJson) : null,
     );
   }
@@ -36,7 +37,9 @@ class WsReward {
   static WsReward fromJson(dynamic json) {
     return WsReward(
       id: json['id'] as String?,
-      title: json['title'] as String, cost: json['cost'] as int);
+      title: json['title'] as String,
+      cost: json['cost'] as int,
+    );
   }
 }
 
@@ -46,6 +49,8 @@ class WsMessageEvent {
   final String? userName;
   final String? userId;
   final String? userInput;
+  final String? redemptionStatus;
+  final DateTime? redeemedAt;
 
   final WsReward? reward;
   final WsChatMessage? message;
@@ -59,38 +64,42 @@ class WsMessageEvent {
   final String? messageId;
   final String? color;
 
-  WsMessageEvent(
-      {
+  WsMessageEvent({
     this.broadcasterUserId,
+    this.redemptionStatus,
+    this.redeemedAt,
     required this.id,
-      required this.userName,
-      required this.userId,
-      required this.userInput,
-      required this.reward,
-      required this.message,
-      required this.messageType,
-      required this.chatterUserId,
-      required this.chatterUserName,
-      required this.messageId,
-      required this.color});
+    required this.userName,
+    required this.userId,
+    required this.userInput,
+    required this.reward,
+    required this.message,
+    required this.messageType,
+    required this.chatterUserId,
+    required this.chatterUserName,
+    required this.messageId,
+    required this.color,
+  });
 
   static WsMessageEvent fromJson(dynamic json) {
     final rewardJson = json['reward'];
     final messageJson = json['message'];
     return WsMessageEvent(
       broadcasterUserId: json['broadcaster_user_id'] as String?,
+      redemptionStatus: json['status'] as String?,
+      redeemedAt: DateTime.tryParse(json['redeemed_at'] as String? ?? ''),
       id: json['id'] as String?,
-        userName: json['user_name'] as String?,
-        userId: json['user_id'] as String?,
-        userInput: json['user_input'] as String?,
-        message:
-            messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
-        reward: rewardJson != null ? WsReward.fromJson(rewardJson) : null,
-        messageType: json['message_type'] as String?,
-        chatterUserId: json['chatter_user_id'] as String?,
-        chatterUserName: json['chatter_user_name'] as String?,
-        messageId: json['message_id'] as String?,
-        color: json['color'] as String?);
+      userName: json['user_name'] as String?,
+      userId: json['user_id'] as String?,
+      userInput: json['user_input'] as String?,
+      message: messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
+      reward: rewardJson != null ? WsReward.fromJson(rewardJson) : null,
+      messageType: json['message_type'] as String?,
+      chatterUserId: json['chatter_user_id'] as String?,
+      chatterUserName: json['chatter_user_name'] as String?,
+      messageId: json['message_id'] as String?,
+      color: json['color'] as String?,
+    );
   }
 }
 
@@ -166,8 +175,9 @@ class WsChatEmote {
   static WsChatEmote fromJson(dynamic json) {
     return WsChatEmote(
       id: json['id'] as String,
-      format:
-          (json['format'] as List<dynamic>).map((e) => e.toString()).toList(),
+      format: (json['format'] as List<dynamic>)
+          .map((e) => e.toString())
+          .toList(),
     );
   }
 }

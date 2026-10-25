@@ -35,7 +35,6 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
   late bool _input;
   late bool _enabled;
   late bool _paused;
-  late bool _skipQueue;
   bool _saving = false;
   TwitchRewardsError? _error;
   bool get _creating => widget.reward == null;
@@ -63,7 +62,6 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
     _input = value.inputRequired;
     _enabled = value.enabled;
     _paused = value.paused;
-    _skipQueue = value.skipRequestQueue;
   }
 
   @override
@@ -109,7 +107,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
           inputRequired: _input,
           enabled: _enabled,
           paused: _paused,
-          skipRequestQueue: _skipQueue,
+          skipRequestQueue: false,
           cooldownSeconds: int.tryParse(_cooldown.text.trim()),
           maxPerStream: int.tryParse(_perStream.text.trim()),
           maxPerUserPerStream: int.tryParse(_perViewer.text.trim()),
@@ -301,13 +299,6 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                     ),
                     const Gap(8),
                   ],
-                  RewardSwitchField(
-                    label: l10n.twitch_rewards_skip_queue,
-                    value: _skipQueue,
-                    onChanged: _saving
-                        ? null
-                        : (value) => setState(() => _skipQueue = value),
-                  ),
                   const Gap(16),
                   SimpleDivider(theme: theme),
                   const Gap(16),

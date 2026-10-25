@@ -1,7 +1,6 @@
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
-import 'package:obs_websocket/event.dart';
 import 'package:obs_websocket/obs_websocket.dart';
 import 'package:twitch_listener/extensions.dart';
 import 'package:twitch_listener/observable_value.dart';
@@ -54,8 +53,11 @@ class ObsConnect {
       try {
         debugPrint('Try connect obs');
 
-        final obs = await ObsWebSocket.connect(url,
-            password: password, timeout: const Duration(seconds: 10));
+        final obs = await ObsWebSocket.connect(
+          url,
+          password: password,
+          timeout: const Duration(seconds: 10),
+        );
         await obs.stream.status;
 
         debugPrint('Obs connected');
@@ -108,74 +110,112 @@ class ObsConnect {
 
   final state = ObservableValue(current: ObsState.failed);
 
-  Future<void> _fillSceneItemsIncludeGroups(String sceneName,
-      {required List<_SourceEntry> all,
-      String? groupName,
-      required bool includeGroups}) async {
-    final List<SceneItemDetail>? list;
+  ObsWebSocket get _connection =>
+      _ws ?? (throw StateError('OBS is not connected'));
+
+  Future<void> _fillSceneItemsIncludeGroups(
+    String sceneName, {
+    required List<_SourceEntry> all,
+    String? groupName,
+    required bool includeGroups,
+  }) async {
+    final List<SceneItemDetail> list;
 
     if (groupName != null) {
-      list = await _ws?.sceneItems.getGroupSceneItemList(groupName);
+      list = await _connection.sceneItems
+          .getGroupSceneItemList(groupName)
+          .timeout(const Duration(seconds: 15));
     } else {
-      list = await _ws?.sceneItems.list(sceneName);
+      list = await _connection.sceneItems
+          .list(sceneName)
+          .timeout(const Duration(seconds: 15));
     }
 
-    if (list != null) {
-      all.addAll(
-          list.map((e) => _SourceEntry(groupName: groupName, detail: e)));
+    all.addAll(list.map((e) => _SourceEntry(groupName: groupName, detail: e)));
 
-      if (includeGroups) {
-        for (var source in list) {
-          if (source.isGroup ?? false) {
-            await _fillSceneItemsIncludeGroups(sceneName,
-                all: all,
-                groupName: source.sourceName,
-                includeGroups: includeGroups);
-          }
+    if (includeGroups) {
+      for (var source in list) {
+        if (source.isGroup ?? false) {
+          await _fillSceneItemsIncludeGroups(
+            sceneName,
+            all: all,
+            groupName: source.sourceName,
+            includeGroups: includeGroups,
+          );
         }
       }
     }
   }
 
-  Future<_SourceEntry?> _findSource(String sceneName, String sourceName,
-      {bool recursively = true}) async {
+  Future<_SourceEntry> _findSource(
+    String sceneName,
+    String sourceName, {
+    bool recursively = true,
+  }) async {
     final List<_SourceEntry> all = [];
-    await _fillSceneItemsIncludeGroups(sceneName,
-        all: all, includeGroups: recursively);
-    return all.firstWhereOrNull((s) => s.detail.sourceName == sourceName);
+    await _fillSceneItemsIncludeGroups(
+      sceneName,
+      all: all,
+      includeGroups: recursively,
+    );
+    return all.firstWhereOrNull((s) => s.detail.sourceName == sourceName) ??
+        (throw StateError('OBS source not found: $sourceName'));
   }
 
-  Future<void> toggleSource(
-      {required String sceneName, required String sourceName}) async {
+  Future<void> toggleSource({
+    required String sceneName,
+    required String sourceName,
+  }) async {
     final source = await _findSource(sceneName, sourceName, recursively: true);
 
-    if (source != null) {
-      final enabled = source.detail.sceneItemEnabled;
+    final enabled = source.detail.sceneItemEnabled;
 
-      await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: source.groupName ?? sceneName,
-          sceneItemId: source.detail.sceneItemId,
-          sceneItemEnabled: !enabled));
-    }
+    await _setSceneItemEnabled(source, sceneName, !enabled);
   }
 
-  Future<void> enableSource(
-      {required String sceneName,
-      required String sourceName,
-      required bool enabled}) async {
+  Future<void> enableSource({
+    required String sceneName,
+    required String sourceName,
+    required bool enabled,
+  }) async {
     final source = await _findSource(sceneName, sourceName, recursively: true);
 
-    if (source != null) {
-      await _ws?.sceneItems.setEnabled(SceneItemEnableStateChanged(
-          sceneName: source.groupName ?? sceneName,
-          sceneItemId: source.detail.sceneItemId,
-          sceneItemEnabled: enabled));
+    await _setSceneItemEnabled(source, sceneName, enabled);
+  }
+
+  Future<void> _setSceneItemEnabled(
+    _SourceEntry source,
+    String sceneName,
+    bool enabled,
+  ) => _checkedRequest(
+    Request(
+      'SetSceneItemEnabled',
+      requestData: {
+        'sceneName': source.groupName ?? sceneName,
+        'sceneItemId': source.detail.sceneItemId,
+        'sceneItemEnabled': enabled,
+      },
+    ),
+  );
+
+  Future<void> _checkedRequest(Request request) async {
+    final result = await _connection
+        .sendRequest(request)
+        .timeout(const Duration(seconds: 15));
+    if (result == null ||
+        result.requestId != request.requestId ||
+        !result.requestStatus.result) {
+      throw StateError(
+        result?.requestStatus.comment ?? 'OBS did not acknowledge the command',
+      );
     }
   }
 
   Future<void> enableScene({required List<String> sceneNames}) async {
-    final current = await _ws?.scenes.getCurrentProgramScene();
-    final currentIndex = current != null ? sceneNames.indexOf(current) : -1;
+    final current = await _connection.scenes.getCurrentProgramScene().timeout(
+      const Duration(seconds: 15),
+    );
+    final currentIndex = sceneNames.indexOf(current);
 
     final String nextSceneName;
     if (currentIndex != -1 && currentIndex != sceneNames.length - 1) {
@@ -184,26 +224,33 @@ class ObsConnect {
       nextSceneName = sceneNames[0];
     }
 
-    return _ws?.scenes.setCurrentProgramScene(nextSceneName) ?? Future.value();
+    await _checkedRequest(
+      Request(
+        'SetCurrentProgramScene',
+        requestData: {'sceneName': nextSceneName},
+      ),
+    );
   }
 
-  Future<void> flipSource(
-      {required String rootSceneName,
-      required String sourceName,
-      required bool horizontal,
-      required bool vertical}) async {
+  Future<void> flipSource({
+    required String rootSceneName,
+    required String sourceName,
+    required bool horizontal,
+    required bool vertical,
+  }) async {
     final source = await _findSource(rootSceneName, sourceName);
-
-    if (source == null) return;
 
     final sceneName = source.groupName ?? rootSceneName;
 
-    final response = (await _ws?.sendRequest(Request('GetSceneItemTransform',
-            requestData: {
+    final response = (await _connection.sendRequest(
+      Request(
+        'GetSceneItemTransform',
+        requestData: {
           'sceneName': sceneName,
-          'sceneItemId': source.detail.sceneItemId
-        })))
-        ?.responseData;
+          'sceneItemId': source.detail.sceneItemId,
+        },
+      ),
+    ))?.responseData;
 
     final transform = response?['sceneItemTransform'];
 
@@ -215,40 +262,60 @@ class ObsConnect {
       'sceneItemId': source.detail.sceneItemId,
       'sceneItemTransform': {
         'scaleY': vertical ? -scaleY : scaleY,
-        'scaleX': horizontal ? -scaleX : scaleX
-      }
+        'scaleX': horizontal ? -scaleX : scaleX,
+      },
     };
 
-    _ws?.sendRequest(Request('SetSceneItemTransform', requestData: data));
+    await _checkedRequest(Request('SetSceneItemTransform', requestData: data));
   }
 
   Future<void> enableInput({required String inputName, required bool enabled}) {
-    return _ws?.inputs
-            .setInputMute(inputName: inputName, inputMuted: !enabled) ??
-        Future.value();
+    return _checkedRequest(
+      Request(
+        'SetInputMute',
+        requestData: {'inputName': inputName, 'inputMuted': !enabled},
+      ),
+    );
   }
 
-  Future<void> invertSourceFilter(
-      {required String sourceName, required String filterName}) async {
-    final json = await _ws?.sendRequest(Request('GetSourceFilter',
-        requestData: {'sourceName': sourceName, 'filterName': filterName}));
+  Future<void> invertSourceFilter({
+    required String sourceName,
+    required String filterName,
+  }) async {
+    final json = await _connection.sendRequest(
+      Request(
+        'GetSourceFilter',
+        requestData: {'sourceName': sourceName, 'filterName': filterName},
+      ),
+    );
 
     final enabled = json?.responseData?['filterEnabled'] as bool?;
     if (enabled != null) {
       await enableSourceFilter(
-          sourceName: sourceName, filterName: filterName, enabled: !enabled);
+        sourceName: sourceName,
+        filterName: filterName,
+        enabled: !enabled,
+      );
+    } else {
+      throw StateError('OBS filter not found: $filterName');
     }
   }
 
-  Future<void> enableSourceFilter(
-      {required String sourceName,
-      required String filterName,
-      required bool enabled}) {
-    return _ws?.filters.setSourceFilterEnabled(
-            sourceName: sourceName,
-            filterName: filterName,
-            filterEnabled: enabled) ??
-        Future.value();
+  Future<void> enableSourceFilter({
+    required String sourceName,
+    required String filterName,
+    required bool enabled,
+  }) {
+    return _checkedRequest(
+      Request(
+        'SetSourceFilterEnabled',
+        requestData: {
+          'sourceName': sourceName,
+          'filterName': filterName,
+          'filterEnabled': enabled,
+        },
+      ),
+    );
   }
 }
 

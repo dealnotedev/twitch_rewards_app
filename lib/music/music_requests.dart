@@ -7,6 +7,14 @@ import 'music_track_player.dart';
 
 export 'music_models.dart';
 
+enum MusicRequestOutcome { completed, failed, canceled }
+
+class MusicRequestTicket {
+  final String id;
+  final Future<MusicRequestOutcome> completed;
+  const MusicRequestTicket(this.id, this.completed);
+}
+
 /// Shared by all reward actions and independent of Twitch settlement and OBS.
 class MusicRequestManager implements MusicRequests {
   final MusicTrackFetcher _fetcher;
@@ -55,8 +63,12 @@ class MusicRequestManager implements MusicRequests {
   Stream<MusicQueueSnapshot> get states => _states.stream;
 
   /// Only accepts the request. Preparation and playback run independently.
-  bool enqueue(String? input, {String requester = ''}) {
-    if (_closed) return false;
+  bool enqueue(String? input, {String requester = ''}) =>
+      enqueueTracked(input, requester: requester) != null;
+
+  /// Completion belongs to this request, including failures after admission.
+  MusicRequestTicket? enqueueTracked(String? input, {String requester = ''}) {
+    if (_closed) return null;
     final text = input?.trim() ?? '';
     final url = parseYoutubeUrl(text);
     if (url == null) {
@@ -68,7 +80,7 @@ class MusicRequestManager implements MusicRequests {
               : MusicQueueErrorType.invalidYoutubeUrl,
         ),
       );
-      return false;
+      return null;
     }
     if (_queue.length + (_active == null ? 0 : 1) >= maxQueueLength) {
       _setError(
@@ -77,15 +89,18 @@ class MusicRequestManager implements MusicRequests {
           type: MusicQueueErrorType.queueFull,
         ),
       );
-      return false;
+      return null;
     }
     _error = null;
-    _queue.add(
-      _Request(id: const Uuid().v4(), requestedBy: requester, sourceUrl: url),
+    final request = _Request(
+      id: const Uuid().v4(),
+      requestedBy: requester,
+      sourceUrl: url,
     );
+    _queue.add(request);
     _emit();
     _ensurePreparing();
-    return true;
+    return MusicRequestTicket(request.id, request.completed.future);
   }
 
   static Uri? parseYoutubeUrl(String input) {
@@ -158,6 +173,7 @@ class MusicRequestManager implements MusicRequests {
           if (metadata.duration <= Duration.zero ||
               metadata.duration > maxDuration) {
             _queue.remove(request);
+            request.finish(MusicRequestOutcome.failed);
             _setError(
               MusicQueueError(
                 requester: request.requestedBy,
@@ -193,6 +209,7 @@ class MusicRequestManager implements MusicRequests {
             request.progress = null;
             _startHold(reason!, request);
           } else if (_queue.remove(request) && !_closed) {
+            request.finish(MusicRequestOutcome.failed);
             _setError(_operationError(request, error));
           }
         } finally {
@@ -225,6 +242,7 @@ class MusicRequestManager implements MusicRequests {
   }
 
   Future<void> _play(_Request request) async {
+    var outcome = MusicRequestOutcome.completed;
     try {
       await _player.play(
         DownloadedMusicTrack(
@@ -241,8 +259,10 @@ class MusicRequestManager implements MusicRequests {
         },
       );
     } catch (error) {
+      outcome = MusicRequestOutcome.failed;
       if (!_closed) _error = _operationError(request, error);
     } finally {
+      request.finish(request.canceled ? MusicRequestOutcome.canceled : outcome);
       if (_active == request) _active = null;
       _emit();
       _startIfPossible();
@@ -295,9 +315,11 @@ class MusicRequestManager implements MusicRequests {
     final request = _active;
     try {
       if (_closed || request == null) return false;
+      request.canceled = true;
       await _player.stop();
       return true;
     } catch (error) {
+      if (request != null) request.canceled = false;
       if (request != null) _setError(_operationError(request, error));
       return false;
     } finally {
@@ -311,11 +333,16 @@ class MusicRequestManager implements MusicRequests {
     final index = _queue.indexWhere((r) => r.id == id);
     if (index < 0) return false;
     final request = _queue.removeAt(index);
+    request.canceled = true;
+    request.finish(MusicRequestOutcome.canceled);
     _emit();
     if (_preparing == request) await _fetcher.cancel();
     _startIfPossible();
     return true;
   }
+
+  Future<bool> cancelRequest(String id) =>
+      _active?.id == id ? skip() : remove(id);
 
   Future<void> setVolume(double volume, {bool persist = false}) async {
     if (_closed || !volume.isFinite) return;
@@ -389,6 +416,10 @@ class MusicRequestManager implements MusicRequests {
 
   Future<void> _close() async {
     _closed = true;
+    for (final request in [..._queue, ?_active]) {
+      request.canceled = true;
+      request.finish(MusicRequestOutcome.canceled);
+    }
     await _fetcher.cancel();
     await _player.stop();
     await _preparation;
@@ -409,6 +440,12 @@ class _Request {
   DateTime? startedAt;
   Duration position = Duration.zero;
   bool paused = false;
+  bool canceled = false;
+  final completed = Completer<MusicRequestOutcome>();
+
+  void finish(MusicRequestOutcome outcome) {
+    if (!completed.isCompleted) completed.complete(outcome);
+  }
 
   _Request({
     required this.id,

@@ -14,16 +14,17 @@ class CustomButton extends StatelessWidget {
 
   final EdgeInsets? padding;
 
-  const CustomButton(
-      {super.key,
-      this.prefixIcon,
-      this.suffixIcon,
-      required this.text,
-      required this.style,
-      this.loading = false,
-      required this.theme,
-      this.padding,
-      this.onTap});
+  const CustomButton({
+    super.key,
+    this.prefixIcon,
+    this.suffixIcon,
+    required this.text,
+    required this.style,
+    this.loading = false,
+    required this.theme,
+    this.padding,
+    this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -42,9 +43,10 @@ class CustomButton extends StatelessWidget {
         color = theme.buttonColorSecondary;
         textColor = theme.textColorPrimary;
         border = Border.all(
-            color: theme.border,
-            strokeAlign: BorderSide.strokeAlignOutside,
-            width: 0.5);
+          color: theme.border,
+          strokeAlign: BorderSide.strokeAlignOutside,
+          width: 0.5,
+        );
         break;
     }
 
@@ -58,11 +60,9 @@ class CustomButton extends StatelessWidget {
         borderRadius: radius,
         onTap: onTap,
         child: Container(
-          decoration: BoxDecoration(
-            border: border,
-            borderRadius: radius,
-          ),
-          padding: padding ??
+          decoration: BoxDecoration(border: border, borderRadius: radius),
+          padding:
+              padding ??
               const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
           child: Row(
             mainAxisSize: MainAxisSize.min,
@@ -72,8 +72,9 @@ class CustomButton extends StatelessWidget {
                   height: 10,
                   width: 10,
                   child: CircularProgressIndicator(
-                    color:
-                        textColor.withValues(alpha: onTap != null ? 1.0 : 0.75),
+                    color: textColor.withValues(
+                      alpha: onTap != null ? 1.0 : 0.75,
+                    ),
                     strokeWidth: 1.5,
                   ),
                 ),
@@ -81,20 +82,24 @@ class CustomButton extends StatelessWidget {
                 SimpleIcon.simpleSquare(prefixIcon, size: 16, color: textColor),
               ],
               if ((loading || prefixIcon != null) && text.isNotEmpty) ...[
-                const Gap(8)
+                const Gap(8),
               ],
-              Text(
-                text,
-                style: TextStyle(
+              Flexible(
+                child: Text(
+                  text,
+                  style: TextStyle(
                     fontSize: 12,
                     fontWeight: FontWeight.w600,
                     color: textColor.withValues(
-                        alpha: onTap != null ? 1.0 : 0.75)),
+                      alpha: onTap != null ? 1.0 : 0.75,
+                    ),
+                  ),
+                ),
               ),
               if (suffixIcon != null) ...[
                 const Gap(8),
                 SimpleIcon.simpleSquare(suffixIcon, size: 16, color: textColor),
-              ]
+              ],
             ],
           ),
         ),

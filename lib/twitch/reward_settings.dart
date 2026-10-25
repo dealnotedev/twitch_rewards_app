@@ -27,20 +27,22 @@ class TwitchRewardSettings {
     this.maxPerUserPerStream,
   });
 
-  factory TwitchRewardSettings.fromReward(RedemptionDto reward) =>
-      TwitchRewardSettings(
-        title: reward.title,
-        cost: reward.cost,
-        prompt: reward.prompt ?? '',
-        color: reward.backgroundColor,
-        inputRequired: reward.userInputRequired,
-        enabled: reward.enabled,
-        paused: reward.paused,
-        skipRequestQueue: reward.skipRequestQueue,
-        cooldownSeconds: reward.cooldownSeconds,
-        maxPerStream: reward.maxPerStream,
-        maxPerUserPerStream: reward.maxPerUserPerStream,
-      );
+  factory TwitchRewardSettings.fromReward(
+    RedemptionDto reward, {
+    bool? skipRequestQueue,
+  }) => TwitchRewardSettings(
+    title: reward.title,
+    cost: reward.cost,
+    prompt: reward.prompt ?? '',
+    color: reward.backgroundColor,
+    inputRequired: reward.userInputRequired,
+    enabled: reward.enabled,
+    paused: reward.paused,
+    skipRequestQueue: skipRequestQueue ?? reward.skipRequestQueue,
+    cooldownSeconds: reward.cooldownSeconds,
+    maxPerStream: reward.maxPerStream,
+    maxPerUserPerStream: reward.maxPerUserPerStream,
+  );
 
   Map<String, dynamic> toJson({bool creating = false}) => {
     'title': title,

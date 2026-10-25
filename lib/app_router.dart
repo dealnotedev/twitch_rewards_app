@@ -13,6 +13,7 @@ import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/reward_catalog.dart';
 import 'package:twitch_listener/twitch/reward_editor.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
+import 'package:twitch_listener/twitch/redemption_queue_panel.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
@@ -43,10 +44,15 @@ class ApplicationRouter extends NavigatorObserver {
     super.didPush(route, previousRoute);
   }
 
-  static Future<void> openRewardConfig(BuildContext context,
-      {required Reward reward}) {
-    return Navigator.pushNamed(context, _routeRewardConfig,
-        arguments: _RewardConfigArgs(reward: reward));
+  static Future<void> openRewardConfig(
+    BuildContext context, {
+    required Reward reward,
+  }) {
+    return Navigator.pushNamed(
+      context,
+      _routeRewardConfig,
+      arguments: _RewardConfigArgs(reward: reward),
+    );
   }
 
   static String? getCurrentRoute(BuildContext context) {
@@ -111,63 +117,69 @@ class ApplicationRouter extends NavigatorObserver {
           );
         case _routeRewardConfig:
           return MaterialPageRoute(
-              settings: settings,
-              builder: (context) {
-                final args = settings.arguments as _RewardConfigArgs;
-                return RewardConfiguratorWidget(
-                  autosaver: locator.provide(),
-                  audioplayer: locator.provide(),
-                  twitchShared: locator.provide(),
-                  executor: locator.provide(),
-                  youtubeConnection: locator.provide(),
-                  musicRequests: locator.provide(),
-                  reward: args.reward,
-                );
-              });
+            settings: settings,
+            builder: (context) {
+              final args = settings.arguments as _RewardConfigArgs;
+              return RewardConfiguratorWidget(
+                autosaver: locator.provide(),
+                audioplayer: locator.provide(),
+                twitchShared: locator.provide(),
+                executor: locator.provide(),
+                youtubeConnection: locator.provide(),
+                musicRequests: locator.provide(),
+                reward: args.reward,
+              );
+            },
+          );
 
         case routeRoot:
-          return MaterialPageRoute(builder: (context) {
-            return SingleChildScrollView(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Gap(16),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      const Gap(16),
-                      Expanded(
-                        child: TwitchStateWidget(
+          return MaterialPageRoute(
+            builder: (context) {
+              return SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Gap(16),
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Gap(16),
+                        Expanded(
+                          child: TwitchStateWidget(
                             rewardsController: locator.provide(),
                             webSocketManager: locator.provide(),
-                            settings: locator.provide()),
-                      ),
-                      const Gap(16),
-                      Expanded(
-                        child: ObsStateWidget(
+                            settings: locator.provide(),
+                          ),
+                        ),
+                        const Gap(16),
+                        Expanded(
+                          child: ObsStateWidget(
                             connect: locator.provide(),
-                            settings: locator.provide()),
-                      ),
-                      const Gap(16),
-                    ],
-                  ),
-                  const Gap(16),
-                  UpdateNotice(controller: locator.provide()),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 16),
-                    child: RewardsStateWidget(
-                      autosaver: locator.provide(),
-                      audioplayer: locator.provide(),
-                      twitchShared: locator.provide(),
-                      executor: locator.provide(),
-                      settings: locator.provide(),
+                            settings: locator.provide(),
+                          ),
+                        ),
+                        const Gap(16),
+                      ],
                     ),
-                  ),
-                  const Gap(16)
-                ],
-              ),
-            );
-          });
+                    const Gap(16),
+                    UpdateNotice(controller: locator.provide()),
+                    RedemptionQueuePanel(controller: locator.provide()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 16),
+                      child: RewardsStateWidget(
+                        autosaver: locator.provide(),
+                        audioplayer: locator.provide(),
+                        twitchShared: locator.provide(),
+                        executor: locator.provide(),
+                        settings: locator.provide(),
+                      ),
+                    ),
+                    const Gap(16),
+                  ],
+                ),
+              );
+            },
+          );
       }
 
       return null;

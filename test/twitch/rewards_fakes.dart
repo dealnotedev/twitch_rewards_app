@@ -29,23 +29,28 @@ class RewardTestSettings extends Settings {
   }
 }
 
-RedemptionDto remoteReward(String id, String title, {int cost = 300}) =>
-    RedemptionDto(
-      id: id,
-      title: title,
-      cost: cost,
-      enabled: true,
-      prompt: 'Viewer prompt',
-      userInputRequired: false,
-      paused: false,
-      isInStock: true,
-      image: null,
-      defaultImage: ImageDto(
-        url1x: 'https://example.com/icon.png',
-        url2x: 'https://example.com/icon.png',
-        url4x: 'https://example.com/icon.png',
-      ),
-    );
+RedemptionDto remoteReward(
+  String id,
+  String title, {
+  int cost = 300,
+  bool skipRequestQueue = false,
+}) => RedemptionDto(
+  id: id,
+  title: title,
+  cost: cost,
+  skipRequestQueue: skipRequestQueue,
+  enabled: true,
+  prompt: 'Viewer prompt',
+  userInputRequired: false,
+  paused: false,
+  isInStock: true,
+  image: null,
+  defaultImage: ImageDto(
+    url1x: 'https://example.com/icon.png',
+    url2x: 'https://example.com/icon.png',
+    url4x: 'https://example.com/icon.png',
+  ),
+);
 
 class RewardTestApi implements TwitchApi {
   @override

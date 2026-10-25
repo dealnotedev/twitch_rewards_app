@@ -23,6 +23,7 @@ import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_authenticator.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
+import 'package:twitch_listener/twitch/redemption_queue_controller.dart';
 
 class AppServiceLocator extends ServiceLocator {
   static late final AppServiceLocator instance;
@@ -40,6 +41,10 @@ class AppServiceLocator extends ServiceLocator {
   final Map<Type, Object> map = {};
   late final MusicServerController musicServer;
   Future<void>? _musicClosing;
+  Future<void>? _redemptionsClosing;
+
+  Future<void> closeRedemptions() =>
+      _redemptionsClosing ??= provide<RedemptionQueueController>().close();
 
   Future<void> closeMusic() => _musicClosing ??= () async {
     await musicServer.close();
@@ -186,6 +191,18 @@ class AppServiceLocator extends ServiceLocator {
       ).login(),
     );
     map[Autosaver] = autosaver;
+    map[RedemptionQueueController] = RedemptionQueueController(
+      settings: settings,
+      rewards: provide(),
+      executor: executor,
+      messages: wsManager.messages,
+      createApi: (creds) => TwitchApi(
+        settings: settings,
+        clientSecret: twitchClientSecret,
+        broadcasterId: creds.broadcasterId,
+        expectedCredentials: creds,
+      ),
+    );
   }
 
   @override

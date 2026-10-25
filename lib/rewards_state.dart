@@ -104,55 +104,96 @@ class _State extends State<RewardsStateWidget> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Row(
-                children: [
-                  SimpleIcon.simpleSquare(Assets.assetsIcThunderWhite16dp,
-                      size: 16, color: theme.textColorPrimary),
-                  const Gap(8),
-                  Expanded(
-                      child: Text(
-                    context.localizations.channel_points_config_title,
-                    style:
-                        TextStyle(fontSize: 14, color: theme.textColorPrimary),
-                  ))
-                ],
-              ),
-              const Gap(4),
-              Row(
-                children: [
-                  SimpleIndicator(
-                      text: context.localizations.x_total(total),
-                      theme: theme,
-                      style: IndicatorStyle.neutral),
-                  const Gap(4),
-                  SimpleIndicator(
-                      text: context.localizations.x_active(active),
-                      theme: theme,
-                      style: IndicatorStyle.bold),
-                  const Gap(4),
-                  SimpleIndicator(
-                      text: context.localizations.x_actions(actions),
-                      theme: theme,
-                      style: IndicatorStyle.outlined),
-                  const Expanded(child: SizedBox.shrink()),
-                  CustomButton(
-                    prefixIcon: Assets.assetsIcSaveWhite16dp,
-                    text: context.localizations.button_save_changes,
-                    style: CustomButtonStyle.secondary,
-                    theme: theme,
-                    onTap: _handleSaveChangesClick,
-                  ),
-                  const Gap(8),
-                  CustomButton(
-                    prefixIcon: Assets.assetsIcPlusWhite16dp,
-                    text: context.localizations.button_add_reward,
-                    style: CustomButtonStyle.primary,
-                    theme: theme,
-                    onTap: () {
-                      _handleAddRewardClick(context);
-                    },
-                  ),
-                ],
+              LayoutBuilder(
+                builder: (context, constraints) {
+                  final summary = Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          SimpleIcon.simpleSquare(
+                            Assets.assetsIcThunderWhite16dp,
+                            size: 16,
+                            color: theme.textColorPrimary,
+                          ),
+                          const Gap(8),
+                          Expanded(
+                            child: Text(
+                              context.localizations.channel_points_config_title,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: theme.textColorPrimary,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const Gap(8),
+                      Wrap(
+                        spacing: 4,
+                        runSpacing: 4,
+                        children: [
+                          SimpleIndicator(
+                            text: context.localizations.x_total(total),
+                            theme: theme,
+                            style: IndicatorStyle.neutral,
+                          ),
+                          SimpleIndicator(
+                            text: context.localizations.x_active(active),
+                            theme: theme,
+                            style: IndicatorStyle.bold,
+                          ),
+                          SimpleIndicator(
+                            text: context.localizations.x_actions(actions),
+                            theme: theme,
+                            style: IndicatorStyle.outlined,
+                          ),
+                        ],
+                      ),
+                    ],
+                  );
+                  final buttons = Wrap(
+                    spacing: 8,
+                    runSpacing: 8,
+                    alignment: WrapAlignment.end,
+                    children: [
+                      CustomButton(
+                        prefixIcon: Assets.assetsIcSaveWhite16dp,
+                        text: context.localizations.button_save_changes,
+                        style: CustomButtonStyle.secondary,
+                        theme: theme,
+                        onTap: _handleSaveChangesClick,
+                      ),
+                      CustomButton(
+                        prefixIcon: Assets.assetsIcPlusWhite16dp,
+                        text: context.localizations.button_add_reward,
+                        style: CustomButtonStyle.primary,
+                        theme: theme,
+                        onTap: () => _handleAddRewardClick(context),
+                      ),
+                    ],
+                  );
+                  final scale = MediaQuery.textScalerOf(context).scale(1);
+                  if (constraints.maxWidth >= 520 * scale) {
+                    return Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
+                        Expanded(child: summary),
+                        const Gap(16),
+                        buttons,
+                      ],
+                    );
+                  }
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      summary,
+                      const Gap(12),
+                      Align(alignment: Alignment.centerRight, child: buttons),
+                    ],
+                  );
+                },
               ),
               const Gap(16),
               TextFieldDecoration(

@@ -19,7 +19,6 @@ import 'package:twitch_listener/music/music_player_panel.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
-import 'package:twitch_listener/reward_executor.dart';
 import 'package:twitch_listener/ripple_icon.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/simple_icon.dart';
@@ -39,15 +38,14 @@ void main() async {
   await settings.init();
   await settings.makeRequiredMigrations();
 
-  final locator =
-      AppServiceLocator.init(settings: settings, audioplayer: Audioplayer());
+  final locator = AppServiceLocator.init(
+    settings: settings,
+    audioplayer: Audioplayer(),
+  );
 
   final router = ApplicationRouter(locator: locator);
 
-  runApp(MyApp(
-    locator: locator,
-    router: router,
-  ));
+  runApp(MyApp(locator: locator, router: router));
 
   doWhenWindowReady(() {
     const initialSize = Size(640, 720);
@@ -58,11 +56,13 @@ void main() async {
   });
 
   AppLifecycleListener(
-      binding: WidgetsBinding.instance,
-      onExitRequested: () async {
-        await locator.closeMusic();
-        return AppExitResponse.exit;
-      });
+    binding: WidgetsBinding.instance,
+    onExitRequested: () async {
+      await locator.closeRedemptions();
+      await locator.closeMusic();
+      return AppExitResponse.exit;
+    },
+  );
 }
 
 class MyApp extends StatefulWidget {
@@ -81,7 +81,6 @@ class _RebornPageState extends State<MyApp> {
   late final WebSocketManager _webSocketManager;
   late final ApplicationRouter _router;
   late final Settings _settings;
-  late final RewardExecutor _executor;
 
   late final StreamSubscription<WsMessage> _wsSubscription;
 
@@ -90,9 +89,9 @@ class _RebornPageState extends State<MyApp> {
     _router = widget.router;
     _settings = widget.locator.provide();
     _webSocketManager = widget.locator.provide();
-    _executor = widget.locator.provide();
-    _wsSubscription =
-        _webSocketManager.messages.listen(_handleWebSocketMessage);
+    _wsSubscription = _webSocketManager.messages.listen(
+      _handleWebSocketMessage,
+    );
 
     widget.autosaver.registerSaveCallback(_handleAutosaving);
     super.initState();
@@ -105,6 +104,7 @@ class _RebornPageState extends State<MyApp> {
     widget.locator.provide<UpdateController>().dispose();
     final locator = widget.locator;
     if (locator is AppServiceLocator) {
+      unawaited(locator.closeRedemptions());
       locator.provide<TwitchRewardsController>().dispose();
       unawaited(locator.closeMusic());
     } else {
@@ -128,8 +128,6 @@ class _RebornPageState extends State<MyApp> {
     });
   }
 
-  static final _handledMessages = <String>{};
-
   final _chatMessages = <WsMessage>[];
 
   void _handleWebSocketMessage(WsMessage json) {
@@ -137,8 +135,9 @@ class _RebornPageState extends State<MyApp> {
     final chatterId = json.payload.event?.chatterUserId;
 
     if (json.payload.event?.message?.text == '!удолі' && chatterId != null) {
-      final previous = _chatMessages
-          .lastWhereOrNull((m) => m.payload.event?.chatterUserId == chatterId);
+      final previous = _chatMessages.lastWhereOrNull(
+        (m) => m.payload.event?.chatterUserId == chatterId,
+      );
 
       if (previous != null) {
         _chatMessages.remove(previous);
@@ -154,114 +153,98 @@ class _RebornPageState extends State<MyApp> {
         chatterId != null) {
       _chatMessages.add(json);
     }
-
-    final eventId = json.payload.event?.id;
-    final rewardTitle = json.payload.event?.reward?.title;
-    final userInput = json.payload.event?.userInput;
-
-    if (rewardTitle != null &&
-        eventId != null &&
-        _handledMessages.add(eventId)) {
-      _handleReward(rewardTitle,
-          rewardId: json.payload.event?.reward?.id,
-          broadcasterId: json.payload.event?.broadcasterUserId,
-          userInput: userInput,
-          requester: json.payload.event?.userName ?? '');
-    }
   }
 
-  void _handleReward(String rewardTitle,
-      {required String? rewardId,
-      required String? broadcasterId,
-      required String? userInput,
-      required String requester}) {
-    final rewards = _settings.rewards.rewards.where(
-        (element) => element.matchesRedemption(
-            rewardId: rewardId,
-            title: rewardTitle,
-            broadcasterId: broadcasterId ?? _settings.twitchAuth?.broadcasterId));
-
-    for (var reward in rewards) {
-      _executor.execute(reward, userInput: userInput, requester: requester);
-    }
-  }
-
-  final _dropdownManager =
-      DropdownManager(offset: const Offset(0, -_toolbarHeight));
+  final _dropdownManager = DropdownManager(
+    offset: const Offset(0, -_toolbarHeight),
+  );
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder(
-        stream: _settings.appearanceChanges,
-        initialData: _settings.appearance,
-        builder: (context, snapshot) {
-          final appearance = snapshot.requireData;
+      stream: _settings.appearanceChanges,
+      initialData: _settings.appearance,
+      builder: (context, snapshot) {
+        final appearance = snapshot.requireData;
 
-          final ThemeMode themeMode;
-          switch (appearance.brightness) {
-            case AppBrightness.system:
-              themeMode = ThemeMode.system;
-              break;
+        final ThemeMode themeMode;
+        switch (appearance.brightness) {
+          case AppBrightness.system:
+            themeMode = ThemeMode.system;
+            break;
 
-            case AppBrightness.dark:
-              themeMode = ThemeMode.dark;
-              break;
+          case AppBrightness.dark:
+            themeMode = ThemeMode.dark;
+            break;
 
-            case AppBrightness.light:
-              themeMode = ThemeMode.light;
-              break;
-          }
+          case AppBrightness.light:
+            themeMode = ThemeMode.light;
+            break;
+        }
 
-          return MaterialApp(
-              debugShowCheckedModeBanner: false,
-              theme: Themes.light,
-              darkTheme: Themes.dark,
-              themeMode: themeMode,
-              locale: const Locale('en'),
-              localizationsDelegates: AppLocalizations.localizationsDelegates,
-              supportedLocales: AppLocalizations.supportedLocales,
-              home: DropdownScope(
-                  manager: _dropdownManager,
-                  child: Builder(builder: (context) {
-                    final theme = Theme.of(context);
-                    return Scaffold(
-                        backgroundColor: theme.surfacePrimary,
-                        body: GestureDetector(
-                          behavior: HitTestBehavior.opaque,
-                          onTap: () => DropdownScope.of(context).clear(),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Container(
-                                  child: _createWindowTitleBarBox(
-                                      context, theme,
-                                      appearance: appearance)),
-                              SimpleDivider(theme: theme),
-                              Expanded(
-                                  child: Navigator(
-                                observers: [
-                                  _router,
-                                  DropdownNavigationObserver(
-                                      manager: _dropdownManager)
-                                ],
-                                onGenerateRoute: _router.routerFactory,
-                                initialRoute: ApplicationRouter.routeRoot,
-                              )),
-                              if (widget.locator is AppServiceLocator)
-                                _MusicServerNotice(server: widget.locator.provide()),
-                              MusicPlayerPanel(
-                                  requests: widget.locator.provide()),
-                            ],
+        return MaterialApp(
+          debugShowCheckedModeBanner: false,
+          theme: Themes.light,
+          darkTheme: Themes.dark,
+          themeMode: themeMode,
+          locale: const Locale('en'),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: DropdownScope(
+            manager: _dropdownManager,
+            child: Builder(
+              builder: (context) {
+                final theme = Theme.of(context);
+                return Scaffold(
+                  backgroundColor: theme.surfacePrimary,
+                  body: GestureDetector(
+                    behavior: HitTestBehavior.opaque,
+                    onTap: () => DropdownScope.of(context).clear(),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Container(
+                          child: _createWindowTitleBarBox(
+                            context,
+                            theme,
+                            appearance: appearance,
                           ),
-                        ));
-                  })));
-        });
+                        ),
+                        SimpleDivider(theme: theme),
+                        Expanded(
+                          child: Navigator(
+                            observers: [
+                              _router,
+                              DropdownNavigationObserver(
+                                manager: _dropdownManager,
+                              ),
+                            ],
+                            onGenerateRoute: _router.routerFactory,
+                            initialRoute: ApplicationRouter.routeRoot,
+                          ),
+                        ),
+                        if (widget.locator is AppServiceLocator)
+                          _MusicServerNotice(server: widget.locator.provide()),
+                        MusicPlayerPanel(requests: widget.locator.provide()),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   static const _toolbarHeight = 42.0;
 
-  Widget _createWindowTitleBarBox(BuildContext context, ThemeData theme,
-      {required Appearance appearance}) {
+  Widget _createWindowTitleBarBox(
+    BuildContext context,
+    ThemeData theme, {
+    required Appearance appearance,
+  }) {
     final String brigthessIcon;
     switch (appearance.brightness) {
       case AppBrightness.system:
@@ -275,47 +258,62 @@ class _RebornPageState extends State<MyApp> {
         break;
     }
     return Container(
-        decoration: BoxDecoration(color: theme.surfaceSecondary, boxShadow: [
+      decoration: BoxDecoration(
+        color: theme.surfaceSecondary,
+        boxShadow: [
           BoxShadow(
-              color: Colors.black.withValues(alpha: theme.dark ? 0.16 : 0.04),
-              offset: const Offset(0, 1),
-              blurRadius: 8)
-        ]),
-        height: _toolbarHeight,
-        child: Row(children: [
+            color: Colors.black.withValues(alpha: theme.dark ? 0.16 : 0.04),
+            offset: const Offset(0, 1),
+            blurRadius: 8,
+          ),
+        ],
+      ),
+      height: _toolbarHeight,
+      child: Row(
+        children: [
           Expanded(
-              child: MoveWindow(
-                  child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-            child: Row(
-              children: [
-                Tooltip(
-                  message: 'It\'s dealnoteDev',
-                  child: SimpleIcon.simpleSquare(Assets.assetsIcLogo20dp,
-                      size: 20),
+            child: MoveWindow(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 4,
                 ),
-                const Gap(12),
-                Expanded(
-                    child: Text(
-                  context.localizations.app_title,
-                  style: TextStyle(
-                      color: theme.textColorPrimary,
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600),
-                )),
-              ],
+                child: Row(
+                  children: [
+                    Tooltip(
+                      message: 'It\'s dealnoteDev',
+                      child: SimpleIcon.simpleSquare(
+                        Assets.assetsIcLogo20dp,
+                        size: 20,
+                      ),
+                    ),
+                    const Gap(12),
+                    Expanded(
+                      child: Text(
+                        context.localizations.app_title,
+                        style: TextStyle(
+                          color: theme.textColorPrimary,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
-          ))),
+          ),
           AnimatedOpacity(
-              opacity: _autosaved ? 1.0 : 0.0,
-              duration: const Duration(milliseconds: 250),
-              child: RippleIcon(
-                size: 16,
-                icon: Assets.assetsIcSaveWhite16dp,
-                borderRadius: BorderRadius.circular(8),
-                background: theme.accentSubtle,
-                color: theme.accentColor,
-              )),
+            opacity: _autosaved ? 1.0 : 0.0,
+            duration: const Duration(milliseconds: 250),
+            child: RippleIcon(
+              size: 16,
+              icon: Assets.assetsIcSaveWhite16dp,
+              borderRadius: BorderRadius.circular(8),
+              background: theme.accentSubtle,
+              color: theme.accentColor,
+            ),
+          ),
           RippleIcon(
             size: 16,
             icon: brigthessIcon,
@@ -353,8 +351,10 @@ class _RebornPageState extends State<MyApp> {
               appWindow.close();
             },
           ),
-          const Gap(8)
-        ]));
+          const Gap(8),
+        ],
+      ),
+    );
   }
 
   @override
@@ -378,10 +378,12 @@ class _MusicServerNotice extends StatelessWidget {
         ? const SizedBox.shrink()
         : MaterialBanner(
             content: Text(context.localizations.music_server_failed),
-            actions: [TextButton(
-              onPressed: server.start,
-              child: Text(context.localizations.music_server_retry),
-            )],
+            actions: [
+              TextButton(
+                onPressed: server.start,
+                child: Text(context.localizations.music_server_retry),
+              ),
+            ],
           ),
   );
 }

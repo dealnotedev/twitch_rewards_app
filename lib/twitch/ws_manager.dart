@@ -39,8 +39,12 @@ class WebSocketManager {
 
   Stream<WsMessage> get messages => _messagesSubject.stream;
 
-  WebSocketManager(this._url, this._settings,
-      {required this._listenChat, required this._listenFollow}) {
+  WebSocketManager(
+    this._url,
+    this._settings, {
+    required this._listenChat,
+    required this._listenFollow,
+  }) {
     _settings.twitchAuthStream.listen(_handleAuth);
   }
 
@@ -77,9 +81,9 @@ class WebSocketManager {
     );
   }
 
-  Stream<WsStateEvent> get state => Stream.value(
-        WsStateEvent(_state, _state),
-      ).concatWith([_stateSubject.stream]);
+  Stream<WsStateEvent> get state =>
+      Stream.value(WsStateEvent(_state, _state))
+          .concatWith([_stateSubject.stream]);
 
   Stream<WsState> get stateShanges =>
       _stateSubject.stream.map((event) => event.current);
@@ -212,6 +216,14 @@ class WebSocketManager {
           broadcasterId: broadcasterId,
         ),
       );
+      await _registerInternal(
+        api,
+        _Registration(
+          _RegistrationType.rewardUpdates,
+          sessionId: sessionId,
+          broadcasterId: broadcasterId,
+        ),
+      );
 
       if (_listenFollow) {
         await _registerInternal(
@@ -263,6 +275,14 @@ class WebSocketManager {
         );
         break;
 
+      case _RegistrationType.rewardUpdates:
+        await api.subscribeCustomRewards(
+          broadcasterUserId: registration.broadcasterId,
+          sessionId: registration.sessionId,
+          updates: true,
+        );
+        break;
+
       case _RegistrationType.follow:
         await api.subscribeFollowEvents(
           broadcasterUserId: registration.broadcasterId,
@@ -284,7 +304,9 @@ class WebSocketManager {
         clientSecret: twitchClientSecret,
       );
       api.deleteChatMessage(
-          broadcasterUserId: broadcasterId, messageId: messageId);
+        broadcasterUserId: broadcasterId,
+        messageId: messageId,
+      );
     }
   }
 }
@@ -297,7 +319,7 @@ class _Channel {
   _Channel({required this.channel});
 }
 
-enum _RegistrationType { rewards, follow, chat }
+enum _RegistrationType { rewards, rewardUpdates, follow, chat }
 
 class _Registration {
   final _RegistrationType type;

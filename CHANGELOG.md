@@ -1,5 +1,25 @@
 # Changelog
 
+## 2.5.0
+
+Changes since [2.4.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.4.0).
+
+- Added a reward queue for rewards created by Listener, with manual confirmation
+  and refunds. Successful reactions are confirmed automatically ten minutes after
+  all actions finish, including queued music; failed reactions refund the points.
+- Keep the queue in memory for the current session. Restarting Listener starts
+  with an empty queue, without importing previous redemptions from Twitch.
+- Show viewer avatars, points, compact status icons and an automatic-confirmation
+  countdown. New requests appear first; completed requests leave with a short
+  slide to the right.
+- Place the queue below the update banner, with reward cards matching the
+  configuration list, accessible icon buttons and responsive window sizing.
+- Track action completion and cancellation across music, audio, OBS and input
+  actions, and retry interrupted confirmation or refund requests without
+  replaying the reaction.
+- Synchronized Flutter and Windows application version metadata at **2.5.0**
+  (build **7**).
+
 ## 2.4.0
 
 Changes since [2.3.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.3.0).
