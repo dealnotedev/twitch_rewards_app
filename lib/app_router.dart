@@ -167,6 +167,7 @@ class ApplicationRouter extends NavigatorObserver {
                     Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 16),
                       child: RewardsStateWidget(
+                        rewardsController: locator.provide(),
                         autosaver: locator.provide(),
                         audioplayer: locator.provide(),
                         twitchShared: locator.provide(),
