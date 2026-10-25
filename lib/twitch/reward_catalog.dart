@@ -33,6 +33,7 @@ class TwitchRewardCatalog extends StatefulWidget {
 class _TwitchRewardCatalogState extends State<TwitchRewardCatalog> {
   final _search = TextEditingController();
   final _searchFocus = FocusNode();
+  final _selectedRow = GlobalKey();
   _RewardFilter _filter = _RewardFilter.all;
   String? _selectedId;
   String? _account;
@@ -75,15 +76,22 @@ class _TwitchRewardCatalogState extends State<TwitchRewardCatalog> {
       );
 
   Future<void> _openEditor([RedemptionDto? reward]) async {
-    final created = await ApplicationRouter.openTwitchRewardEditor(
+    final saved = await ApplicationRouter.openTwitchRewardEditor(
       context,
       reward: reward,
     );
-    if (!mounted || created == null) return;
-    if (reward == null) {
-      _link(created.id);
-    } else {
-      setState(() => _selectedId = created.id);
+    if (!mounted || saved == null) return;
+    setState(() {
+      _selectedId = saved.id;
+      _selectionError = null;
+      _search.clear();
+      _filter = _RewardFilter.all;
+    });
+    await WidgetsBinding.instance.endOfFrame;
+    if (!mounted) return;
+    final rowContext = _selectedRow.currentContext;
+    if (rowContext != null && rowContext.mounted) {
+      await Scrollable.ensureVisible(rowContext, alignment: .5);
     }
   }
 
@@ -336,6 +344,7 @@ class _TwitchRewardCatalogState extends State<TwitchRewardCatalog> {
         final compactControls = constraints.maxWidth < 420 || scale > 1.4;
         final radius = BorderRadius.circular(8);
         return Semantics(
+          key: selected ? _selectedRow : null,
           selected: selected,
           child: Material(
             key: ValueKey('twitch-reward-row-${reward.id}'),
@@ -370,17 +379,14 @@ class _TwitchRewardCatalogState extends State<TwitchRewardCatalog> {
                     ),
                     const Gap(10),
                     Expanded(
-                      child: Tooltip(
-                        message: reward.title,
-                        child: Text(
-                          reward.title,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                            color: theme.textColorPrimary,
-                          ),
+                      child: Text(
+                        reward.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                          color: theme.textColorPrimary,
                         ),
                       ),
                     ),

@@ -16,13 +16,14 @@ import 'rewards_fakes.dart';
 TwitchRedemption redemption(
   String id, {
   String rewardId = 'own',
+  int cost = 750,
   RedemptionStatus status = RedemptionStatus.unfulfilled,
 }) => TwitchRedemption(
   id: id,
   broadcasterId: 'channel',
   rewardId: rewardId,
   title: 'Music',
-  cost: 750,
+  cost: cost,
   userId: 'viewer',
   userName: 'Viewer',
   userInput: 'hello',
@@ -54,6 +55,46 @@ class RedemptionTestApi extends RewardTestApi {
   Future<void> Function()? beforePatch;
   Object? patchError;
   int avatarReads = 0;
+  int pendingReads = 0;
+  List<TwitchRedemption> pendingRedemptions = [];
+  final deleteCalls = <String>[];
+  Future<void> Function()? beforePendingRead;
+  Future<void> Function()? beforeDelete;
+  Object? deleteError;
+
+  @override
+  Future<List<TwitchRedemption>> getUnfulfilledRedemptions(
+    String rewardId,
+  ) async {
+    pendingReads++;
+    await beforePendingRead?.call();
+    return pendingRedemptions
+        .where(
+          (redemption) =>
+              redemption.rewardId == rewardId &&
+              (statuses[redemption.id] ?? redemption.status) ==
+                  RedemptionStatus.unfulfilled,
+        )
+        .toList();
+  }
+
+  @override
+  Future<void> deleteCustomReward(String id) async {
+    deleteCalls.add(id);
+    await beforeDelete?.call();
+    final error = deleteError;
+    if (error != null) throw error;
+    for (final redemption in pendingRedemptions.where(
+      (entry) => entry.rewardId == id,
+    )) {
+      if ((statuses[redemption.id] ?? redemption.status) ==
+          RedemptionStatus.unfulfilled) {
+        statuses[redemption.id] = RedemptionStatus.fulfilled;
+      }
+    }
+    entries = entries.where((reward) => reward.id != id).toList();
+    owned.remove(id);
+  }
 
   @override
   Future<TwitchRedemption> setRedemptionStatus({
@@ -67,7 +108,7 @@ class RedemptionTestApi extends RewardTestApi {
     final error = patchError;
     patchError = null;
     if (error != null) throw error;
-    return redemption(redemptionId, status: status);
+    return redemption(redemptionId, rewardId: rewardId, status: status);
   }
 
   @override

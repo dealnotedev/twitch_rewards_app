@@ -7,6 +7,7 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/themes.dart';
 import 'package:twitch_listener/simple_widgets.dart';
 import 'package:twitch_listener/twitch/reward_color_picker.dart';
+import 'package:twitch_listener/twitch/reward_delete_dialog.dart';
 import 'package:twitch_listener/twitch/reward_form_field.dart';
 import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/reward_page.dart';
@@ -36,6 +37,9 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
   late bool _enabled;
   late bool _paused;
   bool _saving = false;
+  bool _deleting = false;
+  bool _closing = false;
+  bool get _busy => _saving || _deleting || _closing;
   TwitchRewardsError? _error;
   bool get _creating => widget.reward == null;
 
@@ -92,7 +96,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
   }
 
   Future<void> _save() async {
-    if (_saving || !_form.currentState!.validate()) return;
+    if (_busy || !_form.currentState!.validate()) return;
     setState(() {
       _saving = true;
       _error = null;
@@ -115,16 +119,58 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
         id: widget.reward?.id,
         expectedAccount: _account,
       );
-      if (!mounted) return;
-      // Re-enable the route's pop after PopScope observes the completed save.
-      setState(() => _saving = false);
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (mounted) Navigator.pop(context, result);
-      });
+      _closeAfterWrite(result);
     } catch (exception) {
       if (mounted) {
         setState(() {
           _saving = false;
+          _error = TwitchRewardsController.classifyError(exception);
+        });
+      }
+    }
+  }
+
+  void _closeAfterWrite([RedemptionDto? result]) {
+    if (!mounted) return;
+    // Re-enable the route's pop after PopScope observes the completed write.
+    setState(() {
+      _saving = false;
+      _deleting = false;
+      _closing = true;
+    });
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) Navigator.pop(context, result);
+    });
+  }
+
+  Future<void> _delete() async {
+    if (_busy || _creating) return;
+    final refund = await showDialog<bool>(
+      context: context,
+      builder: (_) => TwitchRewardDeleteDialog(
+        rewardTitle: widget.reward!.title,
+        loadSummary: () => widget.controller.getPendingSummary(
+          widget.reward!.id,
+          expectedAccount: _account,
+        ),
+      ),
+    );
+    if (refund == null || !mounted) return;
+    setState(() {
+      _deleting = true;
+      _error = null;
+    });
+    try {
+      await widget.controller.deleteReward(
+        widget.reward!.id,
+        refundPoints: refund,
+        expectedAccount: _account,
+      );
+      _closeAfterWrite();
+    } catch (exception) {
+      if (mounted) {
+        setState(() {
+          _deleting = false;
           _error = TwitchRewardsController.classifyError(exception);
         });
       }
@@ -142,7 +188,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
   }) => RewardFormField(
     controller: controller,
     label: label,
-    enabled: !_saving,
+    enabled: !_busy,
     validator: validator,
     maxLength: maxLength,
     lines: lines,
@@ -172,20 +218,29 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
           (_creating || widget.controller.canEdit(widget.reward!.id));
       final heading = TextStyle(fontSize: 14, color: theme.textColorPrimary);
       return PopScope(
-        canPop: !_saving,
+        canPop: !_busy || _closing,
         child: TwitchRewardPage(
           title: _creating
               ? l10n.twitch_rewards_create_title
               : l10n.twitch_rewards_edit_title,
-          onBack: _saving ? null : () => ApplicationRouter.pop(context),
+          onBack: _busy ? null : () => ApplicationRouter.pop(context),
           actions: [
+            if (!_creating && widget.controller.isManageable(widget.reward!.id))
+              CustomButton(
+                text: l10n.twitch_rewards_delete,
+                prefixIcon: Assets.assetsIcDeleteWhite16dp,
+                style: CustomButtonStyle.secondary,
+                theme: theme,
+                loading: _deleting,
+                onTap: allowed && !_busy ? _delete : null,
+              ),
             CustomButton(
               text: l10n.twitch_rewards_save,
               prefixIcon: Assets.assetsIcSaveWhite16dp,
               style: CustomButtonStyle.primary,
               theme: theme,
               loading: _saving,
-              onTap: allowed && !_saving ? _save : null,
+              onTap: allowed && !_busy ? _save : null,
             ),
           ],
           child: Form(
@@ -193,7 +248,9 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                if (_error != null || !allowed) ...[
+                // A successful deletion removes ownership before this route
+                // finishes closing; that is not a permission error.
+                if (_error != null || (!allowed && !_closing)) ...[
                   Text(
                     twitchRewardsErrorMessage(
                       context,
@@ -259,7 +316,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                   RewardSwitchField(
                     label: l10n.twitch_rewards_input,
                     value: _input,
-                    onChanged: _saving
+                    onChanged: _busy
                         ? null
                         : (value) => setState(() => _input = value),
                   ),
@@ -272,7 +329,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                     valueListenable: _cost,
                     builder: (context, value, _) => RewardColorPicker(
                       controller: _color,
-                      enabled: !_saving,
+                      enabled: !_busy,
                       cost: int.tryParse(value.text.trim()) ?? 0,
                     ),
                   ),
@@ -284,7 +341,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                   RewardSwitchField(
                     label: l10n.twitch_rewards_enabled,
                     value: _enabled,
-                    onChanged: _saving
+                    onChanged: _busy
                         ? null
                         : (value) => setState(() => _enabled = value),
                   ),
@@ -293,7 +350,7 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                     RewardSwitchField(
                       label: l10n.twitch_rewards_paused,
                       value: _paused,
-                      onChanged: _saving
+                      onChanged: _busy
                           ? null
                           : (value) => setState(() => _paused = value),
                     ),

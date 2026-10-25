@@ -121,6 +121,39 @@ class TwitchApi {
     return TwitchRedemption.fromJson(response.data['data'][0]);
   }
 
+  /// A deletion-time snapshot, separate from the live in-memory queue.
+  Future<List<TwitchRedemption>> getUnfulfilledRedemptions(
+    String rewardId,
+  ) async {
+    final result = <TwitchRedemption>[];
+    String? cursor;
+    do {
+      final response = await dio.get(
+        '/channel_points/custom_rewards/redemptions',
+        queryParameters: {
+          'broadcaster_id': broadcasterId,
+          'reward_id': rewardId,
+          'status': RedemptionStatus.unfulfilled.wireValue,
+          'first': 50,
+          'after': ?cursor,
+        },
+      );
+      final body = response.data;
+      result.addAll(
+        (body['data'] as List<dynamic>).map(TwitchRedemption.fromJson),
+      );
+      cursor = body['pagination']?['cursor'] as String?;
+    } while (cursor != null && cursor.isNotEmpty);
+    return result;
+  }
+
+  Future<void> deleteCustomReward(String id) async {
+    await dio.delete(
+      '/channel_points/custom_rewards',
+      queryParameters: {'broadcaster_id': broadcasterId, 'id': id},
+    );
+  }
+
   Future<UserDto?> getViewer(String id) async {
     final response = await dio.get('/users', queryParameters: {'id': id});
     final users = response.data['data'] as List<dynamic>;

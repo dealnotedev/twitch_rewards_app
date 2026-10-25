@@ -174,9 +174,14 @@ void main() {
   }
 
   testWidgets(
-    'creation submits an existing title and links by ID to the existing chain',
+    'creation selects the reward and links only after saving the catalog',
     (tester) async {
       await showEditor(tester);
+      for (var index = 0; index < 16; index++) {
+        final id = 'extra-$index';
+        api.entries.add(remoteReward(id, 'Extra reward $index', cost: 1));
+        api.owned.add(id);
+      }
       final action = reward.handlers.single;
       await tester.tap(find.text('Link Twitch reward'));
       await tester.pumpAndSettle();
@@ -221,8 +226,25 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Save'));
       await tester.pumpAndSettle();
-      expect(find.byType(TwitchRewardCatalog), findsNothing);
+      expect(find.byType(TwitchRewardCatalog), findsOneWidget);
       expect(find.byType(TwitchRewardEditor), findsNothing);
+      expect(reward.isLinked, isFalse);
+      expect(reward.name, 'Manual');
+      final selected = find.byKey(const ValueKey('twitch-reward-row-created'));
+      expect(selected.hitTestable(), findsOneWidget);
+      expect(
+        find.ancestor(
+          of: selected,
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is Semantics && widget.properties.selected == true,
+          ),
+        ),
+        findsOneWidget,
+      );
+      await tester.tap(find.text('Save'));
+      await tester.pumpAndSettle();
+      expect(find.byType(TwitchRewardCatalog), findsNothing);
       expect(find.byType(RewardConfiguratorWidget), findsOneWidget);
       expect(reward.name, 'Music');
       expect(reward.twitchRewardId, 'created');
@@ -233,6 +255,46 @@ void main() {
       expect(tester.takeException(), isNull);
     },
   );
+
+  for (final linked in [false, true]) {
+    testWidgets(
+      'leaving the catalog after creation preserves the link, linked=$linked',
+      (tester) async {
+        await showEditor(tester, linked: linked);
+        await tester.tap(
+          find.text(linked ? 'Change link' : 'Link Twitch reward'),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Without reactions').first);
+        await tester.enterText(find.byType(TextField), 'No matching rewards');
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Create reward'));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextFormField).first, 'New music');
+        await tester.tap(find.text('Save'));
+        await tester.pumpAndSettle();
+        expect(find.byType(TwitchRewardCatalog), findsOneWidget);
+        expect(find.byType(TwitchRewardEditor), findsNothing);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          isEmpty,
+        );
+        expect(
+          find.byKey(const ValueKey('twitch-reward-row-created')).hitTestable(),
+          findsOneWidget,
+        );
+        expect(reward.twitchRewardId, linked ? 'own' : isNull);
+        expect(reward.name, linked ? 'Music' : 'Manual');
+        await tester.tap(find.text('Back'));
+        await tester.pumpAndSettle();
+        expect(find.byType(TwitchRewardCatalog), findsNothing);
+        expect(reward.twitchRewardId, linked ? 'own' : isNull);
+        expect(reward.name, linked ? 'Music' : 'Manual');
+        expect(api.writes, 1);
+        expect(tester.takeException(), isNull);
+      },
+    );
+  }
 
   testWidgets(
     'editing validates input and synchronizes the locked name after saving',

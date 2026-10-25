@@ -29,6 +29,8 @@ class RedemptionQueueController extends ChangeNotifier {
   final _retryAt = <String, DateTime>{};
   final _avatars = <String, Future<String?>>{};
   late final StreamSubscription<TwitchCreds?> _authSubscription;
+  late final StreamSubscription<TwitchRewardSettlement>
+  _settlementsSubscription;
   StreamSubscription<WsMessage>? _messagesSubscription;
   Timer? _timer;
   String? _account;
@@ -60,6 +62,7 @@ class RedemptionQueueController extends ChangeNotifier {
     _messagesSubscription = messages?.listen((message) {
       unawaited(handleMessage(message).catchError(_backgroundError));
     });
+    _settlementsSubscription = rewards.settlements.listen(_settled);
     _permissionsChanged();
     if (startTimer) {
       _timer = Timer.periodic(
@@ -101,6 +104,20 @@ class RedemptionQueueController extends ChangeNotifier {
 
   void _backgroundError(Object error, [StackTrace? stack]) {
     if (!_closed) debugPrint('Redemption queue: $error');
+  }
+
+  void _settled(TwitchRewardSettlement event) {
+    if (_closed || event.account != accountKey) return;
+    final id = event.redemptionId;
+    if (id != null) _seen.add('${event.account}:$id');
+    for (final entry in _entries.values.toList()) {
+      if (!entry.terminal &&
+          entry.account == event.account &&
+          entry.redemption.rewardId == event.rewardId &&
+          (id == null || entry.id == id)) {
+        _complete(entry, event.status, _generation);
+      }
+    }
   }
 
   void _clear() {
@@ -458,6 +475,7 @@ class RedemptionQueueController extends ChangeNotifier {
     rewards.removeListener(_permissionsChanged);
     _clear();
     await _authSubscription.cancel();
+    await _settlementsSubscription.cancel();
     await _messagesSubscription?.cancel();
     await Future.wait(_operations.values.toList());
     super.dispose();

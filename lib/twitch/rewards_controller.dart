@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:twitch_listener/autosaver.dart';
 import 'package:twitch_listener/settings.dart';
 import 'package:twitch_listener/twitch/dto.dart';
+import 'package:twitch_listener/twitch/redemption.dart';
 import 'package:twitch_listener/twitch/reward_settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
@@ -19,6 +20,7 @@ enum TwitchRewardsError {
   rateLimited,
   network,
   accountChanged,
+  redemptionChanged,
   unknown,
 }
 
@@ -33,6 +35,29 @@ class TwitchRewardSelection {
   const TwitchRewardSelection(this.reward, this.broadcasterId);
 }
 
+class TwitchRewardPendingSummary {
+  final int count;
+  final int points;
+
+  const TwitchRewardPendingSummary({required this.count, required this.points});
+}
+
+/// Successful API decisions. A null redemption ID settles the requests left
+/// after Twitch deletes a reward and automatically confirms them.
+class TwitchRewardSettlement {
+  final String account;
+  final String rewardId;
+  final String? redemptionId;
+  final RedemptionStatus status;
+
+  const TwitchRewardSettlement({
+    required this.account,
+    required this.rewardId,
+    this.redemptionId,
+    required this.status,
+  });
+}
+
 /// Owns reward discovery, Twitch's management permissions, and channel identity.
 /// Local reaction chains remain independent of remote reward mutations.
 class TwitchRewardsController extends ChangeNotifier {
@@ -41,6 +66,10 @@ class TwitchRewardsController extends ChangeNotifier {
   final Autosaver autosaver;
   final TwitchApi Function(TwitchCreds credentials) createApi;
   final Future<TwitchCreds?> Function() authorize;
+  final _settlements = StreamController<TwitchRewardSettlement>.broadcast(
+    sync: true,
+  );
+  Stream<TwitchRewardSettlement> get settlements => _settlements.stream;
   late final StreamSubscription<TwitchCreds?> _authSubscription;
   String? _account;
   int _generation = 0;
@@ -248,6 +277,141 @@ class TwitchRewardsController extends ChangeNotifier {
     }
   }
 
+  /// Reads a dialog-only snapshot without changing the live queue or caching it.
+  Future<TwitchRewardPendingSummary> getPendingSummary(
+    String id, {
+    required String? expectedAccount,
+  }) async {
+    final auth = settings.twitchAuth;
+    if (auth == null || expectedAccount != accountKey) {
+      throw const TwitchRewardsException(TwitchRewardsError.accountChanged);
+    }
+    if (!canManage) {
+      throw const TwitchRewardsException(TwitchRewardsError.authorization);
+    }
+    if (!isManageable(id)) {
+      throw const TwitchRewardsException(TwitchRewardsError.forbidden);
+    }
+    final generation = _generation;
+    final api = createApi(auth);
+    try {
+      final pending = await api.getUnfulfilledRedemptions(id);
+      if (!_active(generation)) {
+        throw const TwitchRewardsException(TwitchRewardsError.accountChanged);
+      }
+      return TwitchRewardPendingSummary(
+        count: pending.length,
+        points: pending.fold(0, (sum, request) => sum + request.cost),
+      );
+    } catch (exception) {
+      throw TwitchRewardsException(
+        _active(generation)
+            ? classifyError(exception)
+            : TwitchRewardsError.accountChanged,
+      );
+    } finally {
+      api.close();
+    }
+  }
+
+  Future<void> deleteReward(
+    String id, {
+    required bool refundPoints,
+    required String? expectedAccount,
+  }) async {
+    final auth = settings.twitchAuth;
+    if (auth == null || expectedAccount != accountKey) {
+      throw const TwitchRewardsException(TwitchRewardsError.accountChanged);
+    }
+    if (!canManage) {
+      throw const TwitchRewardsException(TwitchRewardsError.authorization);
+    }
+    if (!isManageable(id)) {
+      throw const TwitchRewardsException(TwitchRewardsError.forbidden);
+    }
+    if (saving) throw const TwitchRewardsException(TwitchRewardsError.unknown);
+    final account = accountKey!;
+    final generation = _generation;
+    final api = createApi(auth);
+    var refunding = false;
+    void checkAccount() {
+      if (!_active(generation)) {
+        throw const TwitchRewardsException(TwitchRewardsError.accountChanged);
+      }
+    }
+
+    saving = true;
+    _revision++;
+    _notify();
+    try {
+      if (refundPoints) {
+        // Read every page before changing statuses, so pagination is not shifted
+        // by our own refunds. No history is imported into the live queue.
+        final pending = await api.getUnfulfilledRedemptions(id);
+        checkAccount();
+        refunding = true;
+        for (final redemption in pending) {
+          checkAccount();
+          final result = await api.setRedemptionStatus(
+            rewardId: id,
+            redemptionId: redemption.id,
+            status: RedemptionStatus.canceled,
+          );
+          checkAccount();
+          _settlements.add(
+            TwitchRewardSettlement(
+              account: account,
+              rewardId: id,
+              redemptionId: result.id,
+              status: result.status,
+            ),
+          );
+          if (result.status != RedemptionStatus.canceled) {
+            throw const TwitchRewardsException(
+              TwitchRewardsError.redemptionChanged,
+            );
+          }
+        }
+      }
+      checkAccount();
+      refunding = false;
+      await api.deleteCustomReward(id);
+      checkAccount();
+      _settlements.add(
+        TwitchRewardSettlement(
+          account: account,
+          rewardId: id,
+          status: RedemptionStatus.fulfilled,
+        ),
+      );
+      _revision++;
+      _manageableIds.remove(id);
+      shared.setRewards(
+        rewards.where((reward) => reward.id != id),
+        broadcasterId: auth.broadcasterId,
+      );
+    } catch (exception) {
+      var kind = classifyError(exception);
+      if (!_active(generation)) {
+        kind = TwitchRewardsError.accountChanged;
+      } else {
+        if (kind == TwitchRewardsError.authorization) canManage = false;
+        if (kind == TwitchRewardsError.notFound && refunding) {
+          // A timer or moderator may already have resolved this request.
+          // Retrying starts with a fresh snapshot of the remainder.
+          kind = TwitchRewardsError.redemptionChanged;
+        }
+      }
+      throw TwitchRewardsException(kind);
+    } finally {
+      api.close();
+      if (_active(generation)) {
+        saving = false;
+        _notify();
+      }
+    }
+  }
+
   Future<void> connect() async {
     if (authorizing) return;
     authorizing = true;
@@ -297,6 +461,7 @@ class TwitchRewardsController extends ChangeNotifier {
     _disposed = true;
     _generation++;
     _authSubscription.cancel();
+    _settlements.close();
     super.dispose();
   }
 }

@@ -183,6 +183,7 @@ class AppServiceLocator extends ServiceLocator {
         settings: settings,
         clientSecret: twitchClientSecret,
         broadcasterId: creds.broadcasterId,
+        expectedCredentials: creds,
       ),
       authorize: () => TwitchAuthenticator(
         clientId: twitchClientId,

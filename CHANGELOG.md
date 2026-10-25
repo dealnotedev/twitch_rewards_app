@@ -1,5 +1,23 @@
 # Changelog
 
+## 2.5.1
+
+Changes since [2.5.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.0).
+
+- Delete rewards created by Listener from the Twitch reward editor, choosing
+  whether to confirm or refund pending requests. The dialog shows their count
+  and total points; with no pending requests it shows Cancel and Delete.
+- Remove confirmed or refunded requests from the live queue immediately during
+  deletion, while preserving configured local reaction chains.
+- Return to the reward catalog after saving a new reward and highlight it.
+  Linking now requires Save in the catalog; the saved reward is revealed even
+  when search or filters previously hid it.
+- Mark rewards created by Listener with an icon badge in the configuration list.
+- Remove redundant reward-name tooltips and fix the brief permission warning
+  shown while the editor closed after successful deletion.
+- Synchronized Flutter and Windows application version metadata at **2.5.1**
+  (build **8**).
+
 ## 2.5.0
 
 Changes since [2.4.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.4.0).

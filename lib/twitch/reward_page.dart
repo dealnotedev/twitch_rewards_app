@@ -31,29 +31,50 @@ class TwitchRewardPage extends StatelessWidget {
         children: [
           Padding(
             padding: const EdgeInsets.fromLTRB(8, 8, 16, 8),
-            child: Row(
-              children: [
-                AppBackButton(theme: theme, onTap: onBack),
-                const Gap(8),
-                Expanded(
-                  child: Text(
-                    title,
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: theme.textColorPrimary,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final navigation = Row(
+                  children: [
+                    AppBackButton(theme: theme, onTap: onBack),
+                    const Gap(8),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w600,
+                          color: theme.textColorPrimary,
+                        ),
+                      ),
                     ),
-                  ),
-                ),
-                if (actions.isNotEmpty) ...[
-                  const Gap(8),
-                  Row(
-                    mainAxisSize: MainAxisSize.min,
-                    spacing: 8,
-                    children: actions,
-                  ),
-                ],
-              ],
+                  ],
+                );
+                if (actions.isEmpty) return navigation;
+                final buttons = Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  alignment: WrapAlignment.end,
+                  children: actions,
+                );
+                final scale = MediaQuery.textScalerOf(context).scale(1);
+                if (constraints.maxWidth >= 520 * scale) {
+                  return Row(
+                    children: [
+                      Expanded(child: navigation),
+                      const Gap(8),
+                      buttons,
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    navigation,
+                    const Gap(8),
+                    Align(alignment: Alignment.centerRight, child: buttons),
+                  ],
+                );
+              },
             ),
           ),
           SimpleDivider(theme: theme),
@@ -83,6 +104,8 @@ String twitchRewardsErrorMessage(
     TwitchRewardsError.rateLimited => l10n.twitch_rewards_error_rate,
     TwitchRewardsError.network => l10n.twitch_rewards_error_network,
     TwitchRewardsError.accountChanged => l10n.twitch_rewards_error_account,
+    TwitchRewardsError.redemptionChanged =>
+      l10n.twitch_rewards_error_redemption_changed,
     TwitchRewardsError.unknown => l10n.twitch_rewards_error_unknown,
   };
 }
