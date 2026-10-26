@@ -1,5 +1,16 @@
 # Changelog
 
+## 2.5.3
+
+Changes since [2.5.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.2).
+
+- Let reward sounds and music tracks finish playing their buffered audio before
+  disposing the player, preventing the end of playback from being cut off.
+- Measure reward queue countdown styles and width for each row build, including
+  removal animations, instead of relying on cached timer measurements.
+- Synchronized Flutter and Windows application version metadata at **2.5.3**
+  (build **10**).
+
 ## 2.5.2
 
 Changes since [2.5.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.1).
