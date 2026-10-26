@@ -29,9 +29,6 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
   static const _departureVisibleDuration = Duration(milliseconds: 320);
   static const _reflowDuration = Duration(milliseconds: 220);
   static const _compactActionSize = 20.0;
-  late TextStyle _timerLabelStyle;
-  late TextStyle _timerValueStyle;
-  late double _timerWidth;
   GlobalKey<AnimatedListState> _listKey = GlobalKey();
   final _visible = <RedemptionQueueEntry>[];
   Timer? _clock;
@@ -50,19 +47,21 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     });
   }
 
-  void _measureTimer(BuildContext context) {
+  ({TextStyle labelStyle, TextStyle valueStyle, double width}) _measureTimer(
+    BuildContext context,
+  ) {
     final theme = Theme.of(context);
     final l10n = context.localizations;
     final inherited = DefaultTextStyle.of(context).style;
     final bold = MediaQuery.boldTextOf(context);
-    _timerLabelStyle = inherited.merge(
+    final labelStyle = inherited.merge(
       TextStyle(
         fontSize: 11,
         color: theme.textColorSecondary,
         fontWeight: bold ? FontWeight.bold : null,
       ),
     );
-    _timerValueStyle = inherited.merge(
+    final valueStyle = inherited.merge(
       TextStyle(
         fontSize: 17,
         fontWeight: bold ? FontWeight.bold : FontWeight.w600,
@@ -84,13 +83,14 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
 
     try {
       final labelWidth = math.max(
-        measure(l10n.redemption_queue_until, _timerLabelStyle),
-        measure(l10n.redemption_queue_paused, _timerLabelStyle),
+        measure(l10n.redemption_queue_until, labelStyle),
+        measure(l10n.redemption_queue_paused, labelStyle),
       );
       // Tabular figures keep the mm:ss width constant throughout the countdown.
-      final valueWidth = measure('00:00', _timerValueStyle);
-      _timerWidth = (labelWidth + 4 + _compactActionSize + 8 + valueWidth)
+      final valueWidth = measure('00:00', valueStyle);
+      final width = (labelWidth + 4 + _compactActionSize + 8 + valueWidth)
           .ceilToDouble();
+      return (labelStyle: labelStyle, valueStyle: valueStyle, width: width);
     } finally {
       painter.dispose();
     }
@@ -142,7 +142,10 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
         index,
         (context, animation) => reducedMotion
             ? const SizedBox.shrink()
-            : _departure(animation, _row(removed, departing: true)),
+            : _departure(
+                animation,
+                _row(removed, timer: _measureTimer(context), departing: true),
+              ),
         duration: reducedMotion ? Duration.zero : _departureDuration,
       );
       if (!reducedMotion) {
@@ -221,7 +224,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
 
   @override
   Widget build(BuildContext context) {
-    _measureTimer(context);
+    final timer = _measureTimer(context);
     final theme = Theme.of(context);
     final l10n = context.localizations;
     final totalPoints = _visible.fold<int>(
@@ -331,8 +334,10 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                         physics: const NeverScrollableScrollPhysics(),
                         padding: EdgeInsets.zero,
                         initialItemCount: _visible.length,
-                        itemBuilder: (context, index, animation) =>
-                            _transition(animation, _row(_visible[index])),
+                        itemBuilder: (context, index, animation) => _transition(
+                          animation,
+                          _row(_visible[index], timer: timer),
+                        ),
                       ),
                       const SizedBox(height: 12),
                     ],
@@ -435,7 +440,11 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     );
   }
 
-  Widget _row(RedemptionQueueEntry entry, {bool departing = false}) {
+  Widget _row(
+    RedemptionQueueEntry entry, {
+    required ({TextStyle labelStyle, TextStyle valueStyle, double width}) timer,
+    bool departing = false,
+  }) {
     final theme = Theme.of(context);
     final l10n = context.localizations;
     final finished = departing || entry.terminal;
@@ -524,7 +533,14 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
       ],
     );
     final meter = showCountdown
-        ? _timer(entry, remaining, color, finished: finished)
+        ? _timer(
+            entry,
+            remaining,
+            color,
+            labelStyle: timer.labelStyle,
+            valueStyle: timer.valueStyle,
+            finished: finished,
+          )
         : const SizedBox.shrink();
     final enabled = widget.controller.canDecide(entry);
     final actions = Wrap(
@@ -594,7 +610,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                     children: [
                       Expanded(child: identity),
                       const SizedBox(width: 12),
-                      SizedBox(width: _timerWidth, child: meter),
+                      SizedBox(width: timer.width, child: meter),
                       const SizedBox(width: 12),
                       actions,
                     ],
@@ -609,7 +625,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                         MediaQuery.textScalerOf(context).scale(1) <= 1.3)
                       Row(
                         children: [
-                          SizedBox(width: _timerWidth, child: meter),
+                          SizedBox(width: timer.width, child: meter),
                           const Spacer(),
                           actions,
                         ],
@@ -618,7 +634,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                       if (showCountdown) ...[
                         Align(
                           alignment: AlignmentDirectional.centerStart,
-                          child: SizedBox(width: _timerWidth, child: meter),
+                          child: SizedBox(width: timer.width, child: meter),
                         ),
                         const SizedBox(height: 12),
                       ],
@@ -701,6 +717,8 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
     RedemptionQueueEntry entry,
     Duration remaining,
     Color color, {
+    required TextStyle labelStyle,
+    required TextStyle valueStyle,
     required bool finished,
   }) {
     final l10n = context.localizations;
@@ -730,7 +748,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                           paused
                               ? l10n.redemption_queue_paused
                               : l10n.redemption_queue_until,
-                          style: _timerLabelStyle,
+                          style: labelStyle,
                         ),
                       ),
                     ),
@@ -752,7 +770,7 @@ class _RedemptionQueuePanelState extends State<RedemptionQueuePanel> {
                 ),
               ),
               const SizedBox(width: 8),
-              ExcludeSemantics(child: Text(formatted, style: _timerValueStyle)),
+              ExcludeSemantics(child: Text(formatted, style: valueStyle)),
             ],
           ),
           const SizedBox(height: 7),
