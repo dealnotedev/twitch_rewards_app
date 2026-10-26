@@ -95,6 +95,9 @@ void main() {
 }
 
 class _NativePlayer implements Player {
+  @override
+  PlatformPlayer? platform;
+
   final events = _Events();
   Completer<void>? openGate;
   Object? openError;

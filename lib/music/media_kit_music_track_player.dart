@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:media_kit/media_kit.dart';
 
+import '../audio/playback_completion.dart';
 import 'music_models.dart';
 import 'music_track_player.dart';
 
@@ -41,6 +42,7 @@ class MediaKitMusicTrackPlayer implements MusicTrackPlayer {
     try {
       session.opening = () async {
         await player.setPlaylistMode(PlaylistMode.none);
+        await configureAudioCompletion(player);
         await player.setVolume(_volume * 100);
         if (!session.stopped) await player.open(Media(track.filePath));
       }();

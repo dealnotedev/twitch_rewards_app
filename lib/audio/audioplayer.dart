@@ -3,15 +3,23 @@ import 'dart:async';
 import 'package:media_kit/media_kit.dart';
 import 'package:twitch_listener/core/observable_value.dart';
 
+import 'playback_completion.dart';
+
 class Audioplayer {
-  Audioplayer();
+  final Player Function(PlayerConfiguration configuration) _createPlayer;
+
+  Audioplayer({
+    Player Function(PlayerConfiguration configuration)? createPlayer,
+  }) : _createPlayer =
+           createPlayer ??
+           ((configuration) => Player(configuration: configuration));
 
   Future<void> playFileWaitCompletion(
     String filePath, {
     required ObservableValue<double> volume,
     String title = 'Twitch Listener',
   }) async {
-    final player = Player(configuration: PlayerConfiguration(title: title));
+    final player = _createPlayer(PlayerConfiguration(title: title));
     final media = Media(filePath);
     final done = Completer<void>();
     final finished = done.future;
@@ -31,6 +39,7 @@ class Audioplayer {
     });
     try {
       await player.setPlaylistMode(PlaylistMode.none);
+      await configureAudioCompletion(player);
       await player.setVolume(volume.current * 100.0);
       await player.open(media);
       await finished;
@@ -47,7 +56,7 @@ class Audioplayer {
     required ObservableValue<double> volume,
     String title = 'Twitch Listener',
   }) async {
-    final player = Player(configuration: PlayerConfiguration(title: title));
+    final player = _createPlayer(PlayerConfiguration(title: title));
     final media = Media(filePath);
 
     await player.setPlaylistMode(PlaylistMode.single);
