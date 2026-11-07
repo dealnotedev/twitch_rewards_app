@@ -6,6 +6,8 @@ import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/ui/custom_switch.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/dropdown/dropdown_menu.dart';
+import 'package:twitch_listener/ui/dropdown/simple_dropdown.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/music/music_requests.dart';
@@ -23,6 +25,7 @@ import 'package:twitch_listener/twitch/reward_page.dart';
 import 'package:twitch_listener/twitch/reward_color_picker.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/twitch/twitch_shared.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 
 import 'rewards_fakes.dart';
 
@@ -30,17 +33,21 @@ void main() {
   late Reward reward;
   late RewardTestApi api;
   late TwitchRewardsController controller;
+  late ValueNotifier<Set<TwitchEventType>> reauthorizationRequired;
 
   Future<void> showEditor(
     WidgetTester tester, {
     bool dark = false,
     bool linked = false,
     double scale = 1,
+    Set<TwitchEventType> missingPermissions = const {},
   }) async {
     tester.view.devicePixelRatio = 1;
     tester.view.physicalSize = const Size(640, 720);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
+    reauthorizationRequired = ValueNotifier({...missingPermissions});
+    addTearDown(reauthorizationRequired.dispose);
     final action = RewardAction(type: RewardAction.typeDelay, millis: 3000);
     reward = Reward(name: 'Manual', handlers: [action]);
     addTearDown(action.dispose);
@@ -93,6 +100,7 @@ void main() {
           youtubeConnection: _Connection(),
           musicRequests: _Requests(),
           autosaver: autosaver,
+          reauthorizationRequired: reauthorizationRequired,
         ),
       ),
     );
@@ -171,6 +179,190 @@ void main() {
         expect(tester.takeException(), isNull);
       },
     );
+  }
+
+  testWidgets(
+    'header trigger menu changes type and preserves links and actions',
+    (tester) async {
+      await showEditor(tester, linked: true);
+      final action = reward.handlers.single;
+      final selector = find.byKey(const ValueKey('reward-trigger-type'));
+      final heading = tester.getRect(find.text('Basic Settings'));
+      final button = tester.getRect(selector);
+      expect(button.left, greaterThan(heading.right));
+      expect(find.text('300 points'), findsOneWidget);
+
+      Future<void> selectType(String label) async {
+        await tester.tap(selector);
+        await tester.pumpAndSettle();
+        final menu = find.byType(DropdownPopupMenu<RewardTriggerType>);
+        final popup = tester.widget<DropdownPopupMenu<RewardTriggerType>>(menu);
+        expect(popup.items.map((item) => item.title), [
+          'Reward',
+          'Command',
+          'Raid',
+          'Follow',
+        ]);
+        expect(tester.getSize(menu).width, greaterThan(button.width));
+        await tester.tap(find.descendant(of: menu, matching: find.text(label)));
+        await tester.pumpAndSettle();
+      }
+
+      await selectType('Raid');
+      expect(reward.triggerType, RewardTriggerType.raid);
+      expect(reward.toJson()['triggerType'], 'raid');
+      expect(reward.twitchRewardId, 'own');
+      expect(reward.twitchBroadcasterId, 'channel');
+      expect(reward.handlers.single, same(action));
+      expect(find.text('Linked to Twitch'), findsNothing);
+      expect(find.text('300 points'), findsNothing);
+      expect(find.text('Change link'), findsNothing);
+      expect(find.text('Name'), findsOneWidget);
+      expect(find.text('Reaction Configurator'), findsOneWidget);
+
+      await tester.enterText(
+        find.byKey(const ValueKey('reaction-name')),
+        'Raid welcome',
+      );
+      expect(reward.name, 'Raid welcome');
+      await selectType('Command');
+      expect(reward.triggerType, RewardTriggerType.command);
+      await selectType('Follow');
+      expect(reward.triggerType, RewardTriggerType.follow);
+      await selectType('Reward');
+      expect(reward.triggerType, RewardTriggerType.reward);
+      expect(reward.name, 'Music');
+      expect(find.text('Linked to Twitch'), findsOneWidget);
+      expect(find.text('300 points'), findsOneWidget);
+      expect(reward.handlers.single, same(action));
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  testWidgets(
+    'header trigger picker fits larger text at minimum window width',
+    (tester) async {
+      await showEditor(
+        tester,
+        linked: true,
+        scale: 2,
+        missingPermissions: TwitchEventType.values.toSet(),
+      );
+      final control = tester.widget<SimpleDropdown<RewardTriggerType>>(
+        find.byKey(const ValueKey('reward-trigger-type')),
+      );
+      await tester.tap(find.byKey(control.globalKey));
+      await tester.pumpAndSettle();
+      final menu = find.byType(DropdownPopupMenu<RewardTriggerType>);
+      final rect = tester.getRect(menu);
+      expect(rect.left, greaterThanOrEqualTo(8));
+      expect(rect.right, lessThanOrEqualTo(632));
+      await tester.tap(find.descendant(of: menu, matching: find.text('Raid')));
+      await tester.pumpAndSettle();
+      expect(reward.triggerType, RewardTriggerType.raid);
+      expect(
+        find.byKey(const ValueKey('twitch-events-permission-warning')),
+        findsOneWidget,
+      );
+      expect(tester.takeException(), isNull);
+    },
+  );
+
+  for (final (type, label, description) in [
+    (
+      RewardTriggerType.raid,
+      'Raid',
+      'Runs for every incoming raid to your channel. The name is only a label for this reaction.',
+    ),
+    (
+      RewardTriggerType.follow,
+      'Follow',
+      'Runs whenever someone follows your channel. The name is only a label for this reaction.',
+    ),
+  ]) {
+    for (final dark in [false, true]) {
+      testWidgets(
+        '$label has an editable label, event hint and Active, dark=$dark',
+        (tester) async {
+          await showEditor(
+            tester,
+            linked: true,
+            dark: dark,
+            missingPermissions: TwitchEventType.values.toSet(),
+          );
+          final warning = find.byKey(
+            const ValueKey('twitch-events-permission-warning'),
+          );
+          expect(warning, findsNothing);
+          final action = reward.handlers.single;
+          await tester.tap(find.byKey(const ValueKey('reward-trigger-type')));
+          await tester.pumpAndSettle();
+          final menu = find.byType(DropdownPopupMenu<RewardTriggerType>);
+          await tester.tap(
+            find.descendant(of: menu, matching: find.text(label)),
+          );
+          await tester.pumpAndSettle();
+          expect(find.text('Name'), findsOneWidget);
+          expect(reward.triggerType, type);
+          expect(find.text(description), findsOneWidget);
+          expect(
+            find.descendant(
+              of: find.byKey(const ValueKey('reward-basic-settings')),
+              matching: warning,
+            ),
+            findsOneWidget,
+          );
+          expect(
+            find.text(
+              'Missing Twitch permissions for $label. Log out and log back in to Twitch.',
+            ),
+            findsOneWidget,
+          );
+          final warningRect = tester.getRect(warning);
+          expect(
+            warningRect.top,
+            greaterThanOrEqualTo(
+              tester.getBottomLeft(find.text(description)).dy,
+            ),
+          );
+          expect(
+            warningRect.bottom,
+            lessThan(tester.getTopLeft(find.text('Active')).dy),
+          );
+          final eventType = type == RewardTriggerType.raid
+              ? TwitchEventType.raid
+              : TwitchEventType.follow;
+          reauthorizationRequired.value = TwitchEventType.values
+              .where((event) => event != eventType)
+              .toSet();
+          await tester.pumpAndSettle();
+          expect(warning, findsNothing);
+          reauthorizationRequired.value = {eventType};
+          await tester.pumpAndSettle();
+          expect(warning, findsOneWidget);
+          reauthorizationRequired.value = {};
+          await tester.pumpAndSettle();
+          expect(warning, findsNothing);
+          expect(find.text('Linked to Twitch'), findsNothing);
+          expect(find.text('300 points'), findsNothing);
+          final field = find.byKey(const ValueKey('reaction-name'));
+          await tester.enterText(field, 'Welcome raiders');
+          expect(reward.name, 'Welcome raiders');
+          expect(reward.handlers.single, same(action));
+          expect(reward.twitchRewardId, 'own');
+          final active = find.byType(CustomSwitch).first;
+          expect(tester.widget<CustomSwitch>(active).value, isTrue);
+          await tester.tap(active);
+          await tester.pumpAndSettle();
+          expect(reward.disabled, isTrue);
+          expect(find.text('Inactive'), findsOneWidget);
+          await tester.tap(active);
+          await tester.pumpAndSettle();
+          expect(reward.disabled, isFalse);
+          expect(tester.takeException(), isNull);
+        },
+      );
+    }
   }
 
   testWidgets(

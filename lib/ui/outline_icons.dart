@@ -12,4 +12,7 @@ class OutlineIcons {
   static const reactions = 'assets/ic_reactions_white_16dp.svg';
   static const addReaction = 'assets/ic_add_reaction_white_16dp.svg';
   static const reward = 'assets/ic_reward_white_24dp.svg';
+  static const command = 'assets/ic_command_white_16dp.svg';
+  static const raid = 'assets/ic_raid_white_16dp.svg';
+  static const follow = 'assets/ic_follow_white_16dp.svg';
 }

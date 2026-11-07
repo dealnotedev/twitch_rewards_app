@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/rewards/actions/crash_process.dart';
@@ -20,6 +21,7 @@ import 'package:twitch_listener/ui/buttons.dart';
 import 'package:twitch_listener/ui/custom_switch.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_menu.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/dropdown/simple_dropdown.dart';
 import 'package:twitch_listener/ui/empty_widget.dart';
 import 'package:twitch_listener/ui/outline_icons.dart';
 import 'package:twitch_listener/core/extensions.dart';
@@ -38,6 +40,8 @@ import 'package:twitch_listener/ui/simple_widgets.dart';
 import 'package:twitch_listener/ui/text_field_decoration.dart';
 import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/twitch_shared.dart';
+import 'package:twitch_listener/twitch/eventsub_permission_notice.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 
 class RewardConfiguratorWidget extends StatefulWidget {
   final TwitchShared twitchShared;
@@ -47,6 +51,7 @@ class RewardConfiguratorWidget extends StatefulWidget {
   final Autosaver autosaver;
   final YoutubeConnectionController youtubeConnection;
   final MusicRequestManager musicRequests;
+  final ValueListenable<Set<TwitchEventType>> reauthorizationRequired;
 
   const RewardConfiguratorWidget({
     super.key,
@@ -57,6 +62,7 @@ class RewardConfiguratorWidget extends StatefulWidget {
     required this.youtubeConnection,
     required this.musicRequests,
     required this.autosaver,
+    required this.reauthorizationRequired,
   });
 
   @override
@@ -68,6 +74,7 @@ class _State extends State<RewardConfiguratorWidget> {
   late final Reward _reward;
 
   final _nameFocusNode = FocusNode();
+  final _triggerTypeKey = GlobalKey();
   StreamSubscription? _rewardSubscription;
   bool _justUnlinked = false;
 
@@ -79,7 +86,8 @@ class _State extends State<RewardConfiguratorWidget> {
     _rewardSubscription = widget.twitchShared.redemptions.changes.listen((_) {
       if (!mounted) return;
       final remote = widget.twitchShared.findReward(_reward);
-      if (_reward.isLinked &&
+      if (_reward.triggerType == RewardTriggerType.reward &&
+          _reward.isLinked &&
           remote != null &&
           _nameController.text != remote.title) {
         _reward.name = remote.title;
@@ -122,24 +130,17 @@ class _State extends State<RewardConfiguratorWidget> {
                 children: [
                   const Gap(16),
                   Container(
+                    key: const ValueKey('reward-basic-settings'),
                     margin: const EdgeInsets.symmetric(horizontal: 16),
                     decoration: theme.cardDecoration,
                     padding: const EdgeInsets.all(16),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          context
-                              .localizations
-                              .reward_configigure_basic_settings,
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: theme.textColorPrimary,
-                          ),
-                        ),
+                        _createBasicSettingsHeader(context, theme),
                         const Gap(8),
-                        _createRewardLinkField(context, theme),
-                        const Gap(8),
+                        _createTriggerSettings(context, theme),
+                        const Gap(12),
                         Row(
                           children: [
                             CustomSwitch(
@@ -272,6 +273,146 @@ class _State extends State<RewardConfiguratorWidget> {
 
   void _notifyActionsChanges() {
     widget.autosaver.notifyChanges();
+  }
+
+  Widget _createBasicSettingsHeader(BuildContext context, ThemeData theme) {
+    final l10n = context.localizations;
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Flexible(
+          child: Text(
+            l10n.reward_configigure_basic_settings,
+            style: TextStyle(fontSize: 14, color: theme.textColorPrimary),
+          ),
+        ),
+        const Gap(12),
+        Flexible(
+          child: SimpleDropdown<RewardTriggerType>.compact(
+            key: const ValueKey('reward-trigger-type'),
+            theme: theme,
+            globalKey: _triggerTypeKey,
+            selected: _reward.triggerType,
+            available: [
+              Item(
+                id: RewardTriggerType.reward,
+                title: l10n.reward_trigger_reward,
+                icon: OutlineIcons.reward,
+              ),
+              Item(
+                id: RewardTriggerType.command,
+                title: l10n.reward_trigger_command,
+                icon: OutlineIcons.command,
+              ),
+              Item(
+                id: RewardTriggerType.raid,
+                title: l10n.reward_trigger_raid,
+                icon: OutlineIcons.raid,
+              ),
+              Item(
+                id: RewardTriggerType.follow,
+                title: l10n.reward_trigger_follow,
+                icon: OutlineIcons.follow,
+              ),
+            ],
+            onSelected: _handleTriggerTypeChange,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _createReactionNameField(BuildContext context, ThemeData theme) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          _reward.triggerType == RewardTriggerType.command
+              ? context.localizations.chat_command_title
+              : context.localizations.reaction_name_title,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: theme.textColorPrimary,
+          ),
+        ),
+        const Gap(6),
+        TextFieldDecoration(
+          clearable: false,
+          builder: (context, decoration, style) => TextField(
+            key: const ValueKey('reaction-name'),
+            decoration: decoration,
+            controller: _nameController,
+            focusNode: _nameFocusNode,
+            style: style,
+          ),
+          hint: context.localizations.reaction_name_hint,
+          controller: _nameController,
+          focusNode: _nameFocusNode,
+          theme: theme,
+        ),
+      ],
+    );
+  }
+
+  Widget _createTriggerSettings(BuildContext context, ThemeData theme) {
+    return switch (_reward.triggerType) {
+      RewardTriggerType.reward => _createRewardLinkField(context, theme),
+      RewardTriggerType.raid => _createEventSettings(
+        context,
+        theme,
+        TwitchEventType.raid,
+      ),
+      RewardTriggerType.follow => _createEventSettings(
+        context,
+        theme,
+        TwitchEventType.follow,
+      ),
+      RewardTriggerType.command => _createReactionNameField(context, theme),
+    };
+  }
+
+  Widget _createEventSettings(
+    BuildContext context,
+    ThemeData theme,
+    TwitchEventType eventType,
+  ) {
+    final description = switch (eventType) {
+      TwitchEventType.raid => context.localizations.raid_trigger_description,
+      TwitchEventType.follow =>
+        context.localizations.follow_trigger_description,
+    };
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _createReactionNameField(context, theme),
+        const Gap(8),
+        Text(
+          description,
+          style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
+        ),
+        EventSubPermissionNotice(
+          type: eventType,
+          reauthorizationRequired: widget.reauthorizationRequired,
+        ),
+      ],
+    );
+  }
+
+  void _handleTriggerTypeChange(RewardTriggerType type) {
+    if (_reward.triggerType == type) return;
+    _nameFocusNode.unfocus();
+    setState(() {
+      _reward.triggerType = type;
+      if (type == RewardTriggerType.reward && _reward.isLinked) {
+        final remote = widget.twitchShared.findReward(_reward);
+        if (remote != null) {
+          _reward.name = remote.title;
+          _nameController.text = remote.title;
+        }
+      }
+    });
+    _notifyActionsChanges();
   }
 
   Widget _createRewardLinkField(BuildContext context, ThemeData theme) {
@@ -444,7 +585,9 @@ class _State extends State<RewardConfiguratorWidget> {
             children: [
               Flexible(
                 child: Text(
-                  context.localizations.reward_configure_title,
+                  _reward.triggerType == RewardTriggerType.reward
+                      ? context.localizations.reward_configure_title
+                      : context.localizations.reaction_configure_title,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
@@ -511,7 +654,9 @@ class _State extends State<RewardConfiguratorWidget> {
   }
 
   void _handleNameEdit() {
-    if (_reward.isLinked) return;
+    if (_reward.triggerType == RewardTriggerType.reward && _reward.isLinked) {
+      return;
+    }
     _reward.name = _nameController.text;
     _notifyActionsChanges();
   }

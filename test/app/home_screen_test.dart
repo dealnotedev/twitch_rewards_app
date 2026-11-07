@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/app/app_router.dart';
@@ -163,6 +164,10 @@ class _Settings extends RewardTestSettings {
 }
 
 class _WebSocketManager implements WebSocketManager {
+  @override
+  ValueListenable<Set<TwitchEventType>> get reauthorizationRequired =>
+      const AlwaysStoppedAnimation({});
+
   @override
   WsState get currentState => WsState.idle;
 

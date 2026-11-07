@@ -1,8 +1,11 @@
 import 'package:twitch_listener/core/observable_value.dart';
 import 'package:uuid/uuid.dart';
 
+enum RewardTriggerType { reward, command, raid, follow }
+
 class Reward {
   String name;
+  RewardTriggerType triggerType;
 
   String? twitchRewardId;
   String? twitchBroadcasterId;
@@ -29,10 +32,16 @@ class Reward {
     required String title,
     required String? broadcasterId,
   }) {
-    if (disabled) return false;
+    if (disabled || triggerType != RewardTriggerType.reward) return false;
     if (!isLinked) return name == title;
     return twitchRewardId == rewardId && twitchBroadcasterId == broadcasterId;
   }
+
+  bool matchesChatMessage(String? message) =>
+      !disabled &&
+      triggerType == RewardTriggerType.command &&
+      name.isNotEmpty &&
+      name == message;
 
   final String id;
   final List<RewardAction> handlers;
@@ -40,34 +49,48 @@ class Reward {
 
   bool expanded;
 
-  Reward(
-      {required this.name,
-      required this.handlers,
-      this.expanded = false,
-      this.twitchRewardId,
-      this.twitchBroadcasterId,
-      this.disabled = false})
-      : id = const Uuid().v4();
+  Reward({
+    required this.name,
+    required this.handlers,
+    this.triggerType = RewardTriggerType.reward,
+    this.expanded = false,
+    this.twitchRewardId,
+    this.twitchBroadcasterId,
+    this.disabled = false,
+  }) : id = const Uuid().v4();
 
   Map<String, dynamic> toJson() {
     return {
       'name': name,
+      'triggerType': triggerType.name,
       'twitchRewardId': twitchRewardId,
       'twitchBroadcasterId': twitchBroadcasterId,
       'disabled': disabled,
-      'handlers': handlers.map((e) => e.toJson()).toList()
+      'handlers': handlers.map((e) => e.toJson()).toList(),
     };
   }
 
   static Reward fromJson(dynamic json) {
+    final triggerType = RewardTriggerType.values.firstWhere(
+      (type) => type.name == json['triggerType'],
+      orElse: () => RewardTriggerType.reward,
+    );
+    final legacyCommand = json['commandSettings']?['command'] as String?;
     return Reward(
-        name: json['name'] as String,
-        twitchRewardId: json['twitchRewardId'] as String?,
-        twitchBroadcasterId: json['twitchBroadcasterId'] as String?,
-        disabled: json['disabled'] as bool? ?? false,
-        handlers: (json['handlers'] as List<dynamic>)
-            .map(RewardAction.fromJson)
-            .toList());
+      name:
+          triggerType == RewardTriggerType.command &&
+              legacyCommand != null &&
+              legacyCommand.isNotEmpty
+          ? legacyCommand
+          : json['name'] as String,
+      triggerType: triggerType,
+      twitchRewardId: json['twitchRewardId'] as String?,
+      twitchBroadcasterId: json['twitchBroadcasterId'] as String?,
+      disabled: json['disabled'] as bool? ?? false,
+      handlers: (json['handlers'] as List<dynamic>)
+          .map(RewardAction.fromJson)
+          .toList(),
+    );
   }
 }
 
@@ -98,7 +121,7 @@ class RewardAction {
     typeFlipSource,
     typeSetScene,
     typeCrashProcess,
-    typeSendInput
+    typeSendInput,
   ];
 
   final String type;
@@ -160,32 +183,32 @@ class RewardAction {
     return action;
   }
 
-  RewardAction(
-      {required this.type,
-      this.enable = false,
-      this.disabled = false,
-      this.inputName,
-      this.filePath,
-      this.sourceName,
-      this.filterName,
-      this.sceneName,
-      this.target,
-      this.count,
-      this.action,
-      double? volume,
-      this.randomize = false,
-      this.awaitCompletion = false,
-      this.horizontal = false,
-      this.vertical = false,
-      List<String>? targets,
-      List<AudioEntry>? audios,
-      this.inputs = const [],
-      this.duration,
-      this.millis = 0})
-      : id = const Uuid().v4(),
-        targets = targets ?? <String>[],
-        audios = audios ?? <AudioEntry>[],
-        volume = ObservableValue(current: volume ?? 1.0) {
+  RewardAction({
+    required this.type,
+    this.enable = false,
+    this.disabled = false,
+    this.inputName,
+    this.filePath,
+    this.sourceName,
+    this.filterName,
+    this.sceneName,
+    this.target,
+    this.count,
+    this.action,
+    double? volume,
+    this.randomize = false,
+    this.awaitCompletion = false,
+    this.horizontal = false,
+    this.vertical = false,
+    List<String>? targets,
+    List<AudioEntry>? audios,
+    this.inputs = const [],
+    this.duration,
+    this.millis = 0,
+  }) : id = const Uuid().v4(),
+       targets = targets ?? <String>[],
+       audios = audios ?? <AudioEntry>[],
+       volume = ObservableValue(current: volume ?? 1.0) {
     if (type == typePlayAudios) {
       // Migration to new json format
       this.audios.addAll(this.targets.map((t) => AudioEntry(path: t)));
@@ -215,7 +238,7 @@ class RewardAction {
       'disabled': disabled,
       'inputs': inputs.map((e) => e.toJson()).toList(),
       'audios': audios.map((e) => e.toJson()).toList(),
-      'action': action
+      'action': action,
     };
   }
 
@@ -224,33 +247,34 @@ class RewardAction {
     final audiosJson = json['audios'] as List<dynamic>?;
     final inputsJson = json['inputs'] as List<dynamic>?;
     return RewardAction(
-        action: json['action'] as String?,
-        disabled: json['disabled'] as bool? ?? false,
-        randomize: json['randomize'] as bool? ?? false,
-        count: json['count'] as int?,
-        type: json['type'] as String,
-        horizontal: json['horizontal'] as bool? ?? false,
-        vertical: json['vertical'] as bool? ?? false,
-        duration: json['duration'] as int?,
-        millis: json['millis'] as int? ?? 0,
-        enable: json['enable'] as bool? ?? false,
-        filePath: json['filePath'] as String?,
-        target: json['target'] as String?,
-        awaitCompletion: json['awaitCompletion'] as bool? ?? false,
-        volume: json['volume'] as double?,
-        targets: targetsJson != null
-            ? targetsJson.map((e) => e.toString()).toList()
-            : [],
-        inputs: inputsJson != null
-            ? inputsJson.map(InputEntry.fromJson).toList()
-            : [],
-        audios: audiosJson != null
-            ? audiosJson.map(AudioEntry.fromJson).toList()
-            : [],
-        sourceName: json['sourceName'] as String?,
-        filterName: json['filterName'] as String?,
-        sceneName: json['sceneName'] as String?,
-        inputName: json['inputName'] as String?);
+      action: json['action'] as String?,
+      disabled: json['disabled'] as bool? ?? false,
+      randomize: json['randomize'] as bool? ?? false,
+      count: json['count'] as int?,
+      type: json['type'] as String,
+      horizontal: json['horizontal'] as bool? ?? false,
+      vertical: json['vertical'] as bool? ?? false,
+      duration: json['duration'] as int?,
+      millis: json['millis'] as int? ?? 0,
+      enable: json['enable'] as bool? ?? false,
+      filePath: json['filePath'] as String?,
+      target: json['target'] as String?,
+      awaitCompletion: json['awaitCompletion'] as bool? ?? false,
+      volume: json['volume'] as double?,
+      targets: targetsJson != null
+          ? targetsJson.map((e) => e.toString()).toList()
+          : [],
+      inputs: inputsJson != null
+          ? inputsJson.map(InputEntry.fromJson).toList()
+          : [],
+      audios: audiosJson != null
+          ? audiosJson.map(AudioEntry.fromJson).toList()
+          : [],
+      sourceName: json['sourceName'] as String?,
+      filterName: json['filterName'] as String?,
+      sceneName: json['sceneName'] as String?,
+      inputName: json['inputName'] as String?,
+    );
   }
 
   void dispose() {
@@ -266,11 +290,13 @@ class AudioEntry {
   final ObservableValue<double> volume;
 
   AudioEntry({required this.path, double? volume})
-      : volume = ObservableValue(current: volume ?? 1.0);
+    : volume = ObservableValue(current: volume ?? 1.0);
 
   static AudioEntry fromJson(dynamic json) {
     return AudioEntry(
-        path: json['path'] as String, volume: json['volume'] as double?);
+      path: json['path'] as String,
+      volume: json['volume'] as double?,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -291,9 +317,10 @@ class InputEntry {
 
   static InputEntry fromJson(dynamic json) {
     return InputEntry(
-        code: json['code'] as int,
-        type: json['type'] as int,
-        name: json['name'] as String);
+      code: json['code'] as int,
+      type: json['type'] as int,
+      name: json['name'] as String,
+    );
   }
 
   Map<String, dynamic> toJson() {
@@ -329,7 +356,7 @@ class Rewards {
 
   static Rewards fromJson(dynamic json) {
     return Rewards(
-        rewards:
-            (json['rewards'] as List<dynamic>).map(Reward.fromJson).toList());
+      rewards: (json['rewards'] as List<dynamic>).map(Reward.fromJson).toList(),
+    );
   }
 }

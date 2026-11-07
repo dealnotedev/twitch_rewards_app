@@ -57,7 +57,8 @@ class AppServiceLocator extends ServiceLocator {
       'wss://eventsub.wss.twitch.tv/ws?keepalive_timeout_seconds=30',
       settings,
       listenChat: true,
-      listenFollow: false,
+      listenFollow: true,
+      listenRaid: true,
     );
 
     final obs = ObsConnect(settings: settings);

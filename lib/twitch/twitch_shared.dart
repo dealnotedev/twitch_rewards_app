@@ -23,6 +23,7 @@ class TwitchShared {
   }
 
   RedemptionDto? findReward(Reward reward) {
+    if (reward.triggerType != RewardTriggerType.reward) return null;
     if (!reward.isLinked) return redemptions.current[reward.name];
     if (broadcasterId != reward.twitchBroadcasterId) return null;
     for (final entry in redemptions.current.values) {

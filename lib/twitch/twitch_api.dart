@@ -236,6 +236,21 @@ class TwitchApi {
     return dio.post('/eventsub/subscriptions', data: data);
   }
 
+  Future<void> subscribeRaidEvents({
+    required String broadcasterUserId,
+    required String sessionId,
+  }) {
+    return dio.post(
+      '/eventsub/subscriptions',
+      data: {
+        'version': '1',
+        'type': 'channel.raid',
+        'condition': {'to_broadcaster_user_id': broadcasterUserId},
+        'transport': {'session_id': sessionId, 'method': 'websocket'},
+      },
+    );
+  }
+
   Future<void> subscribeFollowEvents({
     required String? broadcasterUserId,
     required String sessionId,

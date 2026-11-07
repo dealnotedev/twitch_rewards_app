@@ -9,6 +9,7 @@ import 'package:twitch_listener/twitch/dto.dart';
 import 'package:twitch_listener/twitch/reward_catalog.dart';
 import 'package:twitch_listener/twitch/reward_editor.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 
 class ApplicationRouter extends NavigatorObserver {
   final ServiceLocator locator;
@@ -122,6 +123,9 @@ class ApplicationRouter extends NavigatorObserver {
                 executor: locator.provide(),
                 youtubeConnection: locator.provide(),
                 musicRequests: locator.provide(),
+                reauthorizationRequired: locator
+                    .provide<WebSocketManager>()
+                    .reauthorizationRequired,
                 reward: args.reward,
               );
             },

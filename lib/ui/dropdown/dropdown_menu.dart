@@ -18,8 +18,12 @@ class DropdownPopupMenu<T> extends StatelessWidget {
 
   final void Function(T id) onTap;
 
-  const DropdownPopupMenu(
-      {super.key, required this.items, this.selected, required this.onTap});
+  const DropdownPopupMenu({
+    super.key,
+    required this.items,
+    this.selected,
+    required this.onTap,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -31,19 +35,20 @@ class DropdownPopupMenu<T> extends StatelessWidget {
       elevation: 6,
       shadowColor: Colors.black.withValues(alpha: theme.dark ? 0.42 : 0.12),
       child: DecoratedBox(
-          decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(8),
-              border: Border.all(color: theme.border, width: 0.5)),
-          child: SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.all(4),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children:
-                    items.map((i) => _createItemWidget(theme, i)).toList(),
-              ),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: theme.border, width: 0.5),
+        ),
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(4),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: items.map((i) => _createItemWidget(theme, i)).toList(),
             ),
-          )),
+          ),
+        ),
+      ),
     );
   }
 
@@ -61,20 +66,33 @@ class DropdownPopupMenu<T> extends StatelessWidget {
         child: Row(
           children: [
             if (icon != null) ...[
-              SimpleIcon.simpleSquare(icon,
-                  size: 16, color: theme.textColorPrimary),
-              const Gap(8)
+              SimpleIcon.simpleSquare(
+                icon,
+                size: 16,
+                color: theme.textColorPrimary,
+              ),
+              const Gap(8),
             ],
             Expanded(
-                child: Text(
-              e.title,
-              style: TextStyle(fontSize: 12, color: theme.textColorPrimary),
-            )),
-            if (checked) ...[
+              child: Text(
+                e.title,
+                style: TextStyle(fontSize: 12, color: theme.textColorPrimary),
+              ),
+            ),
+            if (selected != null) ...[
               const Gap(8),
-              SimpleIcon.simpleSquare(Assets.assetsIcCheckWhite16dp,
-                  size: 16, color: theme.textColorSecondary),
-            ]
+              // Keep content-sized menus stable when the selected item changes.
+              SizedBox.square(
+                dimension: 16,
+                child: checked
+                    ? SimpleIcon.simpleSquare(
+                        Assets.assetsIcCheckWhite16dp,
+                        size: 16,
+                        color: theme.textColorSecondary,
+                      )
+                    : null,
+              ),
+            ],
           ],
         ),
       ),

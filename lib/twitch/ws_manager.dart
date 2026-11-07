@@ -15,13 +15,19 @@ import 'package:web_socket_channel/io.dart';
 class WebSocketManager {
   final bool _listenChat;
   final bool _listenFollow;
+  final bool _listenRaid;
   final String _url;
   final Settings _settings;
+  final TwitchApi Function(String broadcasterId)? _createApi;
 
   final _registrations = <_Registration>{};
 
   final _messagesSubject = StreamController<WsMessage>.broadcast();
   final _stateSubject = StreamController<WsStateEvent>.broadcast();
+  final _reauthorizationRequired = ValueNotifier<Set<TwitchEventType>>(
+    const {},
+  );
+  String? _authorizationBroadcasterId;
 
   WsState _state = WsState.idle;
 
@@ -39,11 +45,16 @@ class WebSocketManager {
 
   Stream<WsMessage> get messages => _messagesSubject.stream;
 
+  ValueListenable<Set<TwitchEventType>> get reauthorizationRequired =>
+      _reauthorizationRequired;
+
   WebSocketManager(
     this._url,
     this._settings, {
     required this._listenChat,
     required this._listenFollow,
+    this._listenRaid = false,
+    this._createApi,
   }) {
     _settings.twitchAuthStream.listen(_handleAuth);
   }
@@ -131,6 +142,11 @@ class WebSocketManager {
       final encoded = jsonEncode(json);
       debugPrint('WEBSOCKET $encoded');
 
+      if (json['metadata']?['message_type'] == 'revocation' &&
+          _channel == channel) {
+        _handleRevocation(json['payload']?['subscription']);
+      }
+
       final msg = WsMessage.fromJson(json);
       _messagesSubject.add(msg);
     }, onDone: _onClosed);
@@ -165,6 +181,12 @@ class WebSocketManager {
   }
 
   void _handleAuth(TwitchCreds? auth) {
+    if (_authorizationBroadcasterId != auth?.broadcasterId) {
+      _authorizationBroadcasterId = auth?.broadcasterId;
+      if (_reauthorizationRequired.value.isNotEmpty) {
+        _reauthorizationRequired.value = const {};
+      }
+    }
     if (auth == null) {
       _destroyCurrentConnection(WsState.idle);
       return;
@@ -196,11 +218,7 @@ class WebSocketManager {
 
     final completer = _registrationCompleter = Completer<void>();
 
-    final api = TwitchApi(
-      broadcasterId: broadcasterId,
-      settings: _settings,
-      clientSecret: twitchClientSecret,
-    );
+    final api = _apiFor(broadcasterId);
 
     try {
       final cleaned = await api.cleanupInactiveEventSubs();
@@ -208,53 +226,96 @@ class WebSocketManager {
     } catch (_) {}
 
     try {
-      await _registerInternal(
-        api,
-        _Registration(
-          _RegistrationType.rewards,
+      for (final type in [
+        if (_listenRaid) _RegistrationType.raid,
+        _RegistrationType.rewards,
+        _RegistrationType.rewardUpdates,
+        if (_listenFollow) _RegistrationType.follow,
+        if (_listenChat) _RegistrationType.chat,
+      ]) {
+        final registration = _Registration(
+          type,
           sessionId: sessionId,
           broadcasterId: broadcasterId,
-        ),
-      );
-      await _registerInternal(
-        api,
-        _Registration(
-          _RegistrationType.rewardUpdates,
-          sessionId: sessionId,
-          broadcasterId: broadcasterId,
-        ),
-      );
-
-      if (_listenFollow) {
-        await _registerInternal(
-          api,
-          _Registration(
-            _RegistrationType.follow,
-            sessionId: sessionId,
-            broadcasterId: broadcasterId,
-          ),
         );
+        final eventType = switch (type) {
+          _RegistrationType.raid => TwitchEventType.raid,
+          _RegistrationType.follow => TwitchEventType.follow,
+          _ => null,
+        };
+        try {
+          await _registerInternal(api, registration);
+          if (eventType != null && _isCurrentRegistration(registration)) {
+            _setReauthorizationRequired(eventType, false);
+          }
+        } on DioException catch (e) {
+          if (eventType != null &&
+              _isCurrentRegistration(registration) &&
+              (e.response?.statusCode == 401 ||
+                  e.response?.statusCode == 403)) {
+            _setReauthorizationRequired(eventType, true);
+          }
+          debugPrint(
+            'EventSub ${type.name}: ${e.response?.statusCode} ${e.message}',
+          );
+        }
       }
-
-      if (_listenChat) {
-        await _registerInternal(
-          api,
-          _Registration(
-            _RegistrationType.chat,
-            sessionId: sessionId,
-            broadcasterId: broadcasterId,
-          ),
-        );
-      }
-    } on DioException catch (e) {
-      debugPrint(
-        'Api Error ${e.response?.statusCode} with message ${e.message}',
-      );
-      rethrow;
     } finally {
       completer.complete();
     }
   }
+
+  bool _isCurrentRegistration(_Registration registration) =>
+      _channel?.sessionId == registration.sessionId &&
+      _settings.twitchAuth?.broadcasterId == registration.broadcasterId;
+
+  void _setReauthorizationRequired(TwitchEventType type, bool needed) {
+    final current = _reauthorizationRequired.value;
+    if (current.contains(type) == needed) return;
+    final updated = {...current};
+    if (needed) {
+      updated.add(type);
+    } else {
+      updated.remove(type);
+    }
+    _reauthorizationRequired.value = Set.unmodifiable(updated);
+  }
+
+  void _handleRevocation(dynamic subscription) {
+    if (subscription is! Map) return;
+    final type = switch (subscription['type']) {
+      'channel.raid' => TwitchEventType.raid,
+      'channel.follow' => TwitchEventType.follow,
+      _ => null,
+    };
+    if (type == null) return;
+    final targetId =
+        subscription['condition']?[type == TwitchEventType.raid
+            ? 'to_broadcaster_user_id'
+            : 'broadcaster_user_id'];
+    if (targetId == null || targetId != _settings.twitchAuth?.broadcasterId) {
+      return;
+    }
+    final registrationType = type == TwitchEventType.raid
+        ? _RegistrationType.raid
+        : _RegistrationType.follow;
+    _registrations.removeWhere(
+      (registration) =>
+          registration.type == registrationType &&
+          _isCurrentRegistration(registration),
+    );
+    if (subscription['status'] == 'authorization_revoked') {
+      _setReauthorizationRequired(type, true);
+    }
+  }
+
+  TwitchApi _apiFor(String broadcasterId) =>
+      _createApi?.call(broadcasterId) ??
+      TwitchApi(
+        broadcasterId: broadcasterId,
+        settings: _settings,
+        clientSecret: twitchClientSecret,
+      );
 
   Future<void> _registerInternal(
     TwitchApi api,
@@ -285,6 +346,13 @@ class WebSocketManager {
         );
         break;
 
+      case _RegistrationType.raid:
+        await api.subscribeRaidEvents(
+          broadcasterUserId: registration.broadcasterId,
+          sessionId: registration.sessionId,
+        );
+        break;
+
       case _RegistrationType.follow:
         await api.subscribeFollowEvents(
           broadcasterUserId: registration.broadcasterId,
@@ -300,11 +368,7 @@ class WebSocketManager {
     final broadcasterId = _settings.twitchAuth?.broadcasterId;
 
     if (messageId != null && broadcasterId != null) {
-      final api = TwitchApi(
-        broadcasterId: broadcasterId,
-        settings: _settings,
-        clientSecret: twitchClientSecret,
-      );
+      final api = _apiFor(broadcasterId);
       api.deleteChatMessage(
         broadcasterUserId: broadcasterId,
         messageId: messageId,
@@ -321,7 +385,9 @@ class _Channel {
   _Channel({required this.channel});
 }
 
-enum _RegistrationType { rewards, rewardUpdates, follow, chat }
+enum _RegistrationType { rewards, rewardUpdates, follow, chat, raid }
+
+enum TwitchEventType { raid, follow }
 
 class _Registration {
   final _RegistrationType type;

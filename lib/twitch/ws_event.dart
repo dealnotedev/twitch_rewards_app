@@ -1,10 +1,14 @@
 class WsMessage {
   final WsMessagePayload payload;
+  final String? notificationId;
 
-  WsMessage({required this.payload});
+  WsMessage({required this.payload, this.notificationId});
 
   static WsMessage fromJson(dynamic json) {
-    return WsMessage(payload: WsMessagePayload.fromJson(json['payload']));
+    return WsMessage(
+      payload: WsMessagePayload.fromJson(json['payload']),
+      notificationId: json['metadata']?['message_id'] as String?,
+    );
   }
 }
 
@@ -58,6 +62,10 @@ class WsMessageEvent {
   final String? chatterUserName;
   final String? chatterUserId;
 
+  final String? fromBroadcasterUserId;
+  final String? fromBroadcasterUserName;
+  final String? toBroadcasterUserId;
+
   /*Example: text, power_ups_gigantified_emote, power_ups_message_effect, channel_points_highlighted*/
   final String? messageType;
 
@@ -68,6 +76,9 @@ class WsMessageEvent {
     this.broadcasterUserId,
     this.redemptionStatus,
     this.redeemedAt,
+    this.fromBroadcasterUserId,
+    this.fromBroadcasterUserName,
+    this.toBroadcasterUserId,
     required this.id,
     required this.userName,
     required this.userId,
@@ -86,6 +97,9 @@ class WsMessageEvent {
     final messageJson = json['message'];
     return WsMessageEvent(
       broadcasterUserId: json['broadcaster_user_id'] as String?,
+      fromBroadcasterUserId: json['from_broadcaster_user_id'] as String?,
+      fromBroadcasterUserName: json['from_broadcaster_user_name'] as String?,
+      toBroadcasterUserId: json['to_broadcaster_user_id'] as String?,
       redemptionStatus: json['status'] as String?,
       redeemedAt: DateTime.tryParse(json['redeemed_at'] as String? ?? ''),
       id: json['id'] as String?,

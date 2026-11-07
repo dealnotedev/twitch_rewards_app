@@ -9,6 +9,62 @@ import 'package:twitch_listener/twitch/twitch_api.dart';
 import 'rewards_fakes.dart';
 
 void main() {
+  test(
+    'Raid subscribes to incoming raids on the current WebSocket session',
+    () async {
+      final settings = RewardTestSettings();
+      addTearDown(settings.authChanges.close);
+      final adapter = _RewardAdapter();
+      final api = TwitchApi(
+        settings: settings,
+        clientSecret: 'test-secret',
+        broadcasterId: 'channel',
+      );
+      api.dio.httpClientAdapter = adapter;
+      addTearDown(api.close);
+      await api.subscribeRaidEvents(
+        broadcasterUserId: 'channel',
+        sessionId: 'session',
+      );
+      expect(adapter.last.method, 'POST');
+      expect(adapter.last.uri.path, '/helix/eventsub/subscriptions');
+      expect(adapter.last.data, {
+        'type': 'channel.raid',
+        'version': '1',
+        'condition': {'to_broadcaster_user_id': 'channel'},
+        'transport': {'method': 'websocket', 'session_id': 'session'},
+      });
+    },
+  );
+
+  test('Follow uses v2 and the broadcaster as its own moderator', () async {
+    final settings = RewardTestSettings();
+    addTearDown(settings.authChanges.close);
+    final adapter = _RewardAdapter();
+    final api = TwitchApi(
+      settings: settings,
+      clientSecret: 'test-secret',
+      broadcasterId: 'channel',
+    );
+    api.dio.httpClientAdapter = adapter;
+    addTearDown(api.close);
+    await api.subscribeFollowEvents(
+      broadcasterUserId: 'channel',
+      sessionId: 'session',
+    );
+    expect(adapter.last.method, 'POST');
+    expect(adapter.last.uri.path, '/helix/eventsub/subscriptions');
+    expect(adapter.last.data, {
+      'type': 'channel.follow',
+      'version': '2',
+      'condition': {
+        'broadcaster_user_id': 'channel',
+        'moderator_user_id': 'channel',
+      },
+      'transport': {'method': 'websocket', 'session_id': 'session'},
+    });
+  });
+
   test('Helix discovery and writes use channel IDs and the documented reward fields', () async {
     final settings = RewardTestSettings();
     addTearDown(settings.authChanges.close);

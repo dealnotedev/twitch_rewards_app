@@ -13,6 +13,7 @@ import 'package:twitch_listener/rewards/reward_executor.dart';
 import 'package:twitch_listener/ui/ripple_icon.dart';
 import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/twitch_shared.dart';
+import 'package:twitch_listener/twitch/ws_manager.dart';
 
 void main() {
   Future<Reward> showConfigurator(
@@ -43,6 +44,8 @@ void main() {
       addTearDown(action.dispose);
     }
     final reward = Reward(name: 'Random sound', handlers: actions);
+    final reauthorizationRequired = ValueNotifier(<TwitchEventType>{});
+    addTearDown(reauthorizationRequired.dispose);
     final dropdowns = DropdownManager();
     addTearDown(dropdowns.clear);
 
@@ -73,6 +76,7 @@ void main() {
                 youtubeConnection: _Connection(),
                 musicRequests: _Requests(),
                 autosaver: Autosaver(delay: Duration.zero),
+                reauthorizationRequired: reauthorizationRequired,
               ),
             ),
           ),

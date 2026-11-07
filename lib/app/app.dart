@@ -16,6 +16,8 @@ import 'package:twitch_listener/music/music_player_panel.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
+import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/rewards/reward_executor.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
@@ -90,12 +92,30 @@ class _ListenerAppState extends State<ListenerApp> {
   }
 
   final _chatMessages = <WsMessage>[];
+  final _processedTriggers = <String>{};
+  static const _recentTriggersLimit = 1000;
 
   void _handleWebSocketMessage(WsMessage json) {
-    final chatMessageId = json.payload.event?.messageId;
-    final chatterId = json.payload.event?.chatterUserId;
+    final event = json.payload.event;
+    if (event == null) return;
+    final type = json.payload.subscription?.type;
+    if (type == 'channel.raid') {
+      _dispatchRaids(json, event);
+      return;
+    }
+    if (type == 'channel.follow') {
+      _dispatchFollows(json, event);
+      return;
+    }
+    if (type != 'channel.chat.message') return;
+    final chatMessageId = event.messageId;
+    final chatterId = event.chatterUserId;
 
-    if (json.payload.event?.message?.text == '!удолі' && chatterId != null) {
+    if (chatMessageId != null && chatterId != null) {
+      _dispatchChatCommands(event);
+    }
+
+    if (event.message?.text == '!удолі' && chatterId != null) {
       final previous = _chatMessages.lastWhereOrNull(
         (m) => m.payload.event?.chatterUserId == chatterId,
       );
@@ -109,10 +129,106 @@ class _ListenerAppState extends State<ListenerApp> {
       return;
     }
 
-    if (json.payload.subscription?.type == 'channel.chat.message' &&
-        chatMessageId != null &&
-        chatterId != null) {
+    if (chatMessageId != null && chatterId != null) {
       _chatMessages.add(json);
+    }
+  }
+
+  void _dispatchChatCommands(WsMessageEvent event) {
+    final broadcasterId = _settings.twitchAuth?.broadcasterId;
+    final messageId = event.messageId;
+    if (broadcasterId == null ||
+        event.broadcasterUserId != broadcasterId ||
+        messageId == null) {
+      return;
+    }
+    _dispatchReactions(
+      _settings.rewards.rewards.where(
+        (reward) => reward.matchesChatMessage(event.message?.text),
+      ),
+      eventKey: '$broadcasterId:chat:$messageId',
+      userInput: event.message?.text,
+      requester: event.chatterUserName ?? '',
+    );
+  }
+
+  void _dispatchRaids(WsMessage notification, WsMessageEvent event) {
+    final broadcasterId = _settings.twitchAuth?.broadcasterId;
+    final notificationId = notification.notificationId;
+    final raiderId = event.fromBroadcasterUserId;
+    if (broadcasterId == null ||
+        event.toBroadcasterUserId != broadcasterId ||
+        raiderId == null ||
+        raiderId.isEmpty ||
+        notificationId == null ||
+        notificationId.isEmpty) {
+      return;
+    }
+
+    _dispatchReactions(
+      _settings.rewards.rewards.where(
+        (reward) =>
+            !reward.disabled && reward.triggerType == RewardTriggerType.raid,
+      ),
+      eventKey: '$broadcasterId:raid:$notificationId',
+      requester: event.fromBroadcasterUserName ?? raiderId,
+    );
+  }
+
+  void _dispatchFollows(WsMessage notification, WsMessageEvent event) {
+    final broadcasterId = _settings.twitchAuth?.broadcasterId;
+    final notificationId = notification.notificationId;
+    final followerId = event.userId;
+    if (broadcasterId == null ||
+        event.broadcasterUserId != broadcasterId ||
+        followerId == null ||
+        followerId.isEmpty ||
+        notificationId == null ||
+        notificationId.isEmpty) {
+      return;
+    }
+
+    _dispatchReactions(
+      _settings.rewards.rewards.where(
+        (reward) =>
+            !reward.disabled && reward.triggerType == RewardTriggerType.follow,
+      ),
+      eventKey: '$broadcasterId:follow:$notificationId',
+      requester: event.userName ?? followerId,
+    );
+  }
+
+  void _dispatchReactions(
+    Iterable<Reward> rewards, {
+    required String eventKey,
+    required String requester,
+    String? userInput,
+  }) {
+    final matches = rewards.toList();
+    if (matches.isEmpty || !_processedTriggers.add(eventKey)) return;
+    if (_processedTriggers.length > _recentTriggersLimit) {
+      _processedTriggers.remove(_processedTriggers.first);
+    }
+    for (final reward in matches) {
+      unawaited(
+        _executeReaction(reward, requester: requester, userInput: userInput),
+      );
+    }
+  }
+
+  Future<void> _executeReaction(
+    Reward reward, {
+    required String requester,
+    String? userInput,
+  }) async {
+    try {
+      await widget.locator.provide<RewardExecutor>().execute(
+        reward,
+        userInput: userInput,
+        requester: requester,
+      );
+    } catch (error) {
+      debugPrint('${reward.triggerType.name} reaction: $error');
     }
   }
 
