@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:dio/dio.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:twitch_listener/rewards/reward_execution.dart';
 import 'package:twitch_listener/twitch/redemption.dart';
 import 'package:twitch_listener/twitch/redemption_queue_entry.dart';
 import 'package:twitch_listener/twitch/rewards_controller.dart';
@@ -235,23 +236,57 @@ void main() {
     },
   );
 
-  test(
-    'manual refund during execution cannot later turn into confirmation',
-    () async {
+  for (final status in [
+    RedemptionStatus.fulfilled,
+    RedemptionStatus.canceled,
+  ]) {
+    test('manual $status leaves chains and background effects running', () async {
       final h = await QueueHarness.create();
       addTearDown(h.close);
+      final nextAction = Completer<void>();
       final effect = Completer<void>();
-      h.executor.run = (_) => effect.future;
+      late RewardExecution execution;
+      var effectCanceled = false;
+      var chainContinued = false;
+      h.executor.run = (running) async {
+        execution = running!;
+        execution.track(effect.future, cancel: () async => effectCanceled = true);
+        await nextAction.future;
+        if (!execution.canceled) chainContinued = true;
+      };
       final handled = h.queue.handleMessage(redemptionMessage('one'));
       await flushQueue();
-      await h.queue.refund('one');
+      final response = Completer<void>();
+      h.api.beforePatch = () => response.future;
+      addTearDown(() async {
+        if (!response.isCompleted) response.complete();
+        if (!nextAction.isCompleted) nextAction.complete();
+        if (!effect.isCompleted) effect.complete();
+        await handled;
+      });
+      final deciding = status == RedemptionStatus.fulfilled
+          ? h.queue.confirmNow('one')
+          : h.queue.refund('one');
+      expect(execution.canceled, isFalse);
+      expect(effectCanceled, isFalse);
+      response.complete();
+      await deciding;
+      expect(execution.canceled, isFalse);
+      expect(effectCanceled, isFalse);
+      expect(h.queue.entries, isEmpty);
+
+      nextAction.complete();
+      await flushQueue();
+      expect(chainContinued, isTrue);
       effect.complete();
       await handled;
       h.clock = h.clock.add(const Duration(hours: 1));
       await h.queue.tick();
-      expect(h.api.patches, [('one', RedemptionStatus.canceled)]);
-    },
-  );
+      expect(h.api.patches, [('one', status)]);
+      expect(h.executor.calls, 1);
+      expect(h.queue.find('one')!.terminal, isTrue);
+    });
+  }
 
   test('live terminal update resolves a lost PATCH response without reading history', () async {
     final h = await QueueHarness.create();

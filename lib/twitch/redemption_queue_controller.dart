@@ -398,9 +398,6 @@ class RedemptionQueueController extends ChangeNotifier {
     // Claim the decision before yielding, so opposing clicks cannot race.
     entry.intent = status;
     entry.error = null;
-    if (status == RedemptionStatus.canceled) {
-      unawaited(_executions[id]?.cancel() ?? Future.value());
-    }
     _notify();
     await _send(entry, _generation);
   }
@@ -499,9 +496,6 @@ class RedemptionQueueController extends ChangeNotifier {
     entry.intent = null;
     entry.error = null;
     _retryAt.remove(entry.id);
-    if (status == RedemptionStatus.canceled) {
-      unawaited(_executions[entry.id]?.cancel() ?? Future.value());
-    }
     _notify();
   }
 
