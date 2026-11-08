@@ -29,12 +29,13 @@ if ($Publish) {
 }
 
 Invoke-Checked { flutter pub get }
-Invoke-Checked { flutter test }
+# Keep Windows app/widget suites in a single worker during release checks.
+Invoke-Checked { flutter test --concurrency=1 }
 Invoke-Checked { flutter analyze --no-fatal-infos }
 Push-Location (Join-Path $projectRoot 'updater')
 try {
     Invoke-Checked { flutter pub get }
-    Invoke-Checked { flutter test }
+    Invoke-Checked { flutter test --concurrency=1 }
     Invoke-Checked { flutter analyze --no-fatal-infos }
     Invoke-Checked { flutter build windows --release }
 } finally { Pop-Location }

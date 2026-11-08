@@ -1,5 +1,26 @@
 # Changelog
 
+## 2.6.0
+
+Changes since [2.5.3](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.3).
+
+- Choose Reward, Command, Raid or Follow from the compact type menu in the
+  Basic Settings header, preserving the configured reaction chain.
+- Run active Command chains when a chat message exactly matches the Chat
+  Command name, without a separate command field.
+- Run active Raid and Follow chains for incoming raids and new followers on
+  the connected channel. Repeated deliveries of an event do not replay it.
+- Add dedicated Raid and Follow content with an editable reaction name,
+  an event description and the Active switch.
+- Show missing-access warnings inside Basic Settings for the selected event
+  type. Sign out and back in to Twitch after updating to grant Follow access.
+- Let compact dropdown menus fit all available options independently of the
+  selected value, while staying within the window and supporting larger text.
+- Keep existing configurations as Reward triggers and preserve linked rewards
+  when switching trigger types.
+- Synchronized Flutter and Windows application version metadata at **2.6.0**
+  (build **11**).
+
 ## 2.5.3
 
 Changes since [2.5.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.2).
