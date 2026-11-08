@@ -644,6 +644,8 @@ class _State extends State<RewardConfiguratorWidget> {
         );
       },
       key: _addKey,
+      menuWidth: DropdownMenuWidth.content,
+      alignment: AlignmentDirectional.topEnd,
     );
   }
 
