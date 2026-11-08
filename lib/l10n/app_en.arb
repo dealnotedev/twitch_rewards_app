@@ -35,7 +35,7 @@
   "obs_websocket_password_title": "Password",
   "obs_websocket_password_hint": "Enter password",
   "button_apply": "Apply",
-  "channel_points_config_title": "Channel Points Configuration",
+  "channel_points_config_title": "Reactions & automation",
   "x_total": "{count} total",
   "@x_total": {
     "placeholders": {

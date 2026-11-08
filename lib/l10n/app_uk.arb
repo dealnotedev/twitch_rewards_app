@@ -33,7 +33,7 @@
   "obs_websocket_password_title": "Пароль",
   "obs_websocket_password_hint": "Введіть пароль",
   "button_apply": "Застосувати",
-  "channel_points_config_title": "Налаштування нагород за бали каналу",
+  "channel_points_config_title": "Реакції та автоматизація",
   "x_total": "Усього: {count}",
   "x_active": "Активних: {count}",
   "x_actions": "{actions, plural, one{{actions} дія} few{{actions} дії} many{{actions} дій} other{{actions} дії}}",
