@@ -101,6 +101,34 @@ void main() {
     expect(route.settings.arguments, same(arguments));
   });
 
+  for (final dark in [false, true]) {
+    testWidgets('Ukrainian home fits at 640px, dark=$dark', (tester) async {
+      tester.view.devicePixelRatio = 1;
+      tester.view.physicalSize = const Size(640, 720);
+      addTearDown(tester.view.resetDevicePixelRatio);
+      addTearDown(tester.view.resetPhysicalSize);
+      final router = ApplicationRouter(locator: locator);
+      final dropdowns = DropdownManager();
+      addTearDown(dropdowns.clear);
+      await tester.pumpWidget(MaterialApp(
+        locale: const Locale('uk'),
+        theme: dark ? Themes.dark : Themes.light,
+        localizationsDelegates: AppLocalizations.localizationsDelegates,
+        supportedLocales: AppLocalizations.supportedLocales,
+        initialRoute: ApplicationRouter.routeRoot,
+        onGenerateRoute: router.routerFactory,
+        navigatorObservers: [router],
+        builder: (context, child) => Scaffold(
+          body: DropdownScope(manager: dropdowns, child: child!),
+        ),
+      ));
+      await tester.pumpAndSettle();
+      expect(find.text('Підключення до Twitch'), findsOneWidget);
+      expect(find.text('Доступна версія 9.0.0'), findsOneWidget);
+      await tester.pumpWidget(const SizedBox.shrink());
+    });
+  }
+
   testWidgets('home screen renders panels and navigation returns to root', (
     tester,
   ) async {

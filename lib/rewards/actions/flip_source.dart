@@ -122,33 +122,52 @@ class _State extends State<FlipSourceWidget> {
           ],
         ),
         const Gap(12),
-        Row(
+        Wrap(
+          spacing: 12,
+          runSpacing: 8,
           children: [
-            CustomSwitch(
-                onToggle: _handleXToggled,
-                value: _action.horizontal,
-                theme: theme),
-            const Gap(8),
-            Text(
-              context.localizations.reaction_flip_source_x,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textColorPrimary),
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomSwitch(
+                  onToggle: _handleXToggled,
+                  value: _action.horizontal,
+                  theme: theme,
+                ),
+                const Gap(8),
+                Flexible(
+                  child: Text(
+                    context.localizations.reaction_flip_source_x,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: theme.textColorPrimary,
+                    ),
+                  ),
+                ),
+              ],
             ),
-            const Gap(12),
-            CustomSwitch(
-                onToggle: _handleYToggled,
-                value: _action.vertical,
-                theme: theme),
-            const Gap(8),
-            Text(
-              context.localizations.reaction_flip_source_y,
-              style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: theme.textColorPrimary),
-            )
+            Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                CustomSwitch(
+                  onToggle: _handleYToggled,
+                  value: _action.vertical,
+                  theme: theme,
+                ),
+                const Gap(8),
+                Flexible(
+                  child: Text(
+                    context.localizations.reaction_flip_source_y,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                      color: theme.textColorPrimary,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ],
         )
       ],

@@ -1,4 +1,9 @@
 {
+  "@@locale": "en",
+  "language_switch_tooltip": "Language: {current}. Switch to {next}",
+  "@language_switch_tooltip": {"placeholders": {"current": {"type": "String"}, "next": {"type": "String"}}},
+  "author_tooltip": "Created by dealnoteDev",
+  "action_not_implemented": "This action is not supported yet",
   "updateAvailable": "Version {version} is available",
   "@updateAvailable": {"placeholders": {"version": {"type": "String"}}},
   "updateNoticeDetail": "See what's new and update Twitch Listener.",

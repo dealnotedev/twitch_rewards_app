@@ -120,10 +120,13 @@ class _State extends State<ObsStateWidget> {
                       ],
                     ),
                     const Gap(16),
-                    Row(
+                    OverflowBar(
+                      alignment: MainAxisAlignment.spaceBetween,
+                      overflowAlignment: OverflowBarAlignment.end,
+                      spacing: 12,
+                      overflowSpacing: 8,
                       children: [
                         _createConnectionState(theme, state: state),
-                        const Expanded(child: SizedBox.shrink()),
                         _createButton(context, theme, state: state)
                       ],
                     ),

@@ -282,7 +282,7 @@ class _ListenerAppState extends State<ListenerApp> {
           theme: Themes.light,
           darkTheme: Themes.dark,
           themeMode: themeMode,
-          locale: const Locale('en'),
+          locale: Locale(appearance.language.code),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           home: DropdownScope(
@@ -376,7 +376,7 @@ class _ListenerAppState extends State<ListenerApp> {
                 child: Row(
                   children: [
                     Tooltip(
-                      message: 'It\'s dealnoteDev',
+                      message: context.localizations.author_tooltip,
                       child: SimpleIcon.simpleSquare(
                         Assets.assetsIcLogo20dp,
                         size: 20,
@@ -417,6 +417,30 @@ class _ListenerAppState extends State<ListenerApp> {
             onTap: () {
               _settings.toggleBrightness(appearance.brightness);
             },
+          ),
+          Semantics(
+            button: true,
+            label: context.localizations.language_switch_tooltip(
+              appearance.language.nativeName,
+              appearance.language.next.nativeName,
+            ),
+            child: RippleIcon(
+              key: const ValueKey('language-switch'),
+              size: 16,
+              borderRadius: BorderRadius.circular(8),
+              iconWidget: SimpleIcon.simpleSquare(
+                switch (appearance.language) {
+                  AppLanguage.english => 'assets/ic_locale_en_16dp.svg',
+                  AppLanguage.ukrainian => 'assets/ic_locale_uk_16dp.svg',
+                },
+                size: 16,
+                color: theme.textColorPrimary,
+              ),
+              onTap: () {
+                _dropdownManager.clear();
+                unawaited(_settings.toggleLanguage());
+              },
+            ),
           ),
           RippleIcon(
             borderRadius: BorderRadius.circular(8),

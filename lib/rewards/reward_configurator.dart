@@ -704,6 +704,9 @@ class _ActionWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final attrs = RewardActionAtts.forType(context, action.type);
+    final hasInlineControls =
+        action.type == RewardAction.typeDelay ||
+        action.type == RewardAction.typeSendInput;
 
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
@@ -742,18 +745,20 @@ class _ActionWidget extends StatelessWidget {
                     color: theme.textColorPrimary,
                   ),
                   const Gap(12),
-                  Text(
-                    _getActionTitle(context, attrs: attrs),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                      fontSize: 13,
-                      color: theme.textColorPrimary,
+                  Expanded(
+                    child: Text(
+                      _getActionTitle(context, attrs: attrs),
+                      style: TextStyle(
+                        fontSize: 13,
+                        color: theme.textColorPrimary,
+                      ),
                     ),
                   ),
-                  Expanded(
-                    child: _createAdditionalHeaderWidget(context, theme),
-                  ),
+                  if (hasInlineControls)
+                    Expanded(
+                      flex: 2,
+                      child: _createAdditionalHeaderWidget(context, theme),
+                    ),
                   RippleIcon(
                     borderRadius: BorderRadius.circular(8),
                     icon: Assets.assetsIcDeleteWhite16dp,
@@ -911,7 +916,7 @@ class _ActionWidget extends StatelessWidget {
       padding: const EdgeInsets.all(8),
       width: double.infinity,
       child: Text(
-        'Not yet implemented',
+        context.localizations.action_not_implemented,
         textAlign: TextAlign.center,
         style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
       ),

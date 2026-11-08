@@ -21,6 +21,7 @@ void main() {
     WidgetTester tester, {
     bool dark = true,
     double textScale = 1,
+    Locale locale = const Locale('en'),
     List<RewardAction>? initialActions,
   }) async {
     tester.view.devicePixelRatio = 1;
@@ -60,6 +61,7 @@ void main() {
           display: tester.view.display,
         ),
         child: MaterialApp(
+          locale: locale,
           theme: dark ? Themes.dark : Themes.light,
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
@@ -92,6 +94,29 @@ void main() {
   }
 
   for (final dark in [false, true]) {
+    for (final actionType in [
+      RewardAction.typePlayAudios,
+      RewardAction.typeFlipSource,
+      RewardAction.typeSendInput,
+      RewardAction.typeToggleFilter,
+      RewardAction.typeToggleSource,
+      RewardAction.typeSetScene,
+      RewardAction.typeCrashProcess,
+      RewardAction.typeCreditPoints,
+    ]) {
+      testWidgets(
+        'Ukrainian $actionType fits at 640px, dark=$dark',
+        (tester) async {
+          await showConfigurator(
+            tester,
+            dark: dark,
+            locale: const Locale('uk'),
+            initialActions: [RewardAction(type: actionType)],
+          );
+          expect(find.text('Додати реакцію'), findsOneWidget);
+        },
+      );
+    }
     testWidgets(
       'random audio configuration renders without display data, dark=$dark',
       (tester) async {

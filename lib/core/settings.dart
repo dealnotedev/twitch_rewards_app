@@ -18,6 +18,7 @@ class Settings {
   static const _kObsWsPassword = 'obs_ws_password';
   static const _kRewards = 'rewards';
   static const _kBrightness = 'brightness';
+  static const _kLanguage = 'language';
   static const _kMusicVolume = 'music_volume';
 
   double get musicVolume {
@@ -194,7 +195,9 @@ class Settings {
 
   static Appearance _extractAppearance(SharedPreferences prefs) {
     return Appearance(
-        brightness: AppBrightness.findByName(prefs.getString(_kBrightness)));
+      brightness: AppBrightness.findByName(prefs.getString(_kBrightness)),
+      language: AppLanguage.findByCode(prefs.getString(_kLanguage)),
+    );
   }
 
   void toggleBrightness(AppBrightness current) {
@@ -208,6 +211,14 @@ class Settings {
     _appearanceSubject.add(appearance);
 
     await _prefs.setString(_kBrightness, brightness.name);
+  }
+
+  Future<void> toggleLanguage() => setLanguage(appearance.language.next);
+
+  Future<void> setLanguage(AppLanguage language) async {
+    appearance = appearance.copy(language: language);
+    _appearanceSubject.add(appearance);
+    await _prefs.setString(_kLanguage, language.code);
   }
 }
 
@@ -231,12 +242,31 @@ class ObsPrefs {
 
 class Appearance {
   final AppBrightness brightness;
+  final AppLanguage language;
 
-  Appearance({required this.brightness});
+  Appearance({required this.brightness, this.language = AppLanguage.english});
 
-  Appearance copy({AppBrightness? brightness}) {
-    return Appearance(brightness: brightness ?? this.brightness);
+  Appearance copy({AppBrightness? brightness, AppLanguage? language}) {
+    return Appearance(
+      brightness: brightness ?? this.brightness,
+      language: language ?? this.language,
+    );
   }
+}
+
+enum AppLanguage {
+  english('en', 'English'),
+  ukrainian('uk', 'Українська');
+
+  const AppLanguage(this.code, this.nativeName);
+
+  final String code;
+  final String nativeName;
+
+  AppLanguage get next => values[(index + 1) % values.length];
+
+  static AppLanguage findByCode(String? code) =>
+      values.firstWhereOrNull((language) => language.code == code) ?? english;
 }
 
 enum AppBrightness {
