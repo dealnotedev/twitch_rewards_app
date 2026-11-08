@@ -1,7 +1,7 @@
 {
   "@@locale": "uk",
   "language_switch_tooltip": "Мова: {current}. Перемкнути на {next}",
-  "author_tooltip": "Автор — dealnoteDev",
+  "author_tooltip": "Це dealnoteDev",
   "action_not_implemented": "Ця дія поки що не підтримується",
   "twitch_auth_success_title": "Вхід виконано",
   "twitch_auth_success_heading": "Twitch підключено",

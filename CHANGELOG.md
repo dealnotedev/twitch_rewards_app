@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.7.1
+
+Changes since [2.7.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.0).
+
+- Give Twitch account details the full card width, with a larger avatar and a
+  single-line display name. Move connection status, viewer count and the account
+  action into a separate row that adapts to narrow windows.
+- Match connection-status and viewer-count badge heights, icon sizes, typography
+  and padding, including when text is scaled up.
+- Synchronized Flutter and Windows application version metadata at **2.7.1**
+  (build **13**).
+
 ## 2.7.0
 
 Changes since [2.6.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.6.0).

@@ -2,7 +2,7 @@
   "@@locale": "en",
   "language_switch_tooltip": "Language: {current}. Switch to {next}",
   "@language_switch_tooltip": {"placeholders": {"current": {"type": "String"}, "next": {"type": "String"}}},
-  "author_tooltip": "Created by dealnoteDev",
+  "author_tooltip": "It's dealnoteDev",
   "action_not_implemented": "This action is not supported yet",
   "twitch_auth_success_title": "Authorization successful",
   "twitch_auth_success_heading": "Twitch is connected",
