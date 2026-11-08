@@ -193,7 +193,7 @@
   "reaction_credit_points": "Credit viewer points",
   "reaction_credit_points_amount": "Amount, internal points",
   "reaction_credit_points_hint": "Reward cost",
-  "reaction_credit_points_description": "Credits the triggering {balanceLink}. Leave empty to use the actual Twitch reward cost, or enter a fixed whole number. For commands, follows and raids, set a fixed amount. Balances are saved between launches. Requires a real Twitch event with a viewer ID.",
+  "reaction_credit_points_description": "Credits the triggering {balanceLink}. Leave empty to use the actual Twitch reward cost, or enter a fixed whole number.",
   "@reaction_credit_points_description": {"placeholders": {"balanceLink": {"type": "String"}}},
   "reaction_credit_points_test_unavailable": "To test viewer points, trigger this chain on Twitch. A real viewer ID is required.",
   "reaction_credit_points_balance_link": "viewer's internal balance",
