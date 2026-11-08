@@ -12,6 +12,7 @@ class RewardsStore {
 
   static const _databaseName = 'rewards.db';
   static const _migrationKey = 'shared_preferences_imported';
+  static const _schemaVersion = 2;
 
   final Database _database;
 
@@ -32,31 +33,37 @@ class RewardsStore {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 2,
-        onCreate: (database, version) async {
-          await database.execute('''
-            CREATE TABLE rewards (
-              position INTEGER PRIMARY KEY,
-              payload TEXT NOT NULL
-            )
-          ''');
-          await database.execute('''
-            CREATE TABLE metadata (
-              key TEXT PRIMARY KEY,
-              value TEXT NOT NULL
-            )
-          ''');
-          await ViewerBalancesStore.createTable(database);
-        },
-        onUpgrade: (database, oldVersion, newVersion) async {
-          if (oldVersion < 2) {
-            await ViewerBalancesStore.createTable(database);
-          }
-        },
+        version: _schemaVersion,
+        onCreate: (database, version) => _migrateSchema(database, 0, version),
+        onUpgrade: _migrateSchema,
       ),
     );
 
     return RewardsStore._(database);
+  }
+
+  static Future<void> _migrateSchema(
+    Database database,
+    int oldVersion,
+    int newVersion,
+  ) async {
+    if (oldVersion < 1 && newVersion >= 1) {
+      await database.execute('''
+        CREATE TABLE rewards (
+          position INTEGER PRIMARY KEY,
+          payload TEXT NOT NULL
+        )
+      ''');
+      await database.execute('''
+        CREATE TABLE metadata (
+          key TEXT PRIMARY KEY,
+          value TEXT NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 2 && newVersion >= 2) {
+      await ViewerBalancesStore.createTable(database);
+    }
   }
 
   static DatabaseFactory _defaultDatabaseFactory() {

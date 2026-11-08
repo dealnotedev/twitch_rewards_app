@@ -11,6 +11,8 @@ Changes since [2.6.0](https://github.com/dealnotedev/twitch_rewards_app/releases
   points from a reaction using a fixed whole number or the actual reward cost.
 - Add a searchable viewer balance screen, opened from the balance link in the
   credit-points action.
+- Use the same versioned schema migrations for database creation and upgrades;
+  reopening a current database preserves its rewards and viewer balances.
 - Keep running reaction chains active when their reward requests are confirmed
   or refunded, including changes received from Twitch.
 - Rename the main section to Reactions & automation and simplify its settings

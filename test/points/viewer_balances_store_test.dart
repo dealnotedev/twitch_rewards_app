@@ -261,6 +261,56 @@ void main() {
     expect(row['username'], 'login');
     expect(row['display_name'], 'Display Name');
   });
+
+  test(
+    'creates schema v2 once and preserves its data when reopening',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'listener-schema-v2-',
+      );
+      final databasePath =
+          '${directory.path}${Platform.pathSeparator}rewards.db';
+      addTearDown(() async {
+        await databaseFactoryFfi.deleteDatabase(databasePath);
+        await directory.delete();
+      });
+      final created = await RewardsStore.open(
+        factory: databaseFactoryFfi,
+        databasePath: databasePath,
+      );
+      await created.loadAndMigrate(null);
+      await created.save(
+        Rewards(
+          rewards: [Reward(name: 'Existing reward', handlers: [])],
+        ),
+      );
+      await created.viewerBalances.credit(
+        'existing-viewer',
+        125,
+        username: 'existing_login',
+        displayName: 'Existing Viewer',
+      );
+      await created.close();
+
+      final reopened = await RewardsStore.open(
+        factory: databaseFactoryFfi,
+        databasePath: databasePath,
+      );
+      addTearDown(reopened.close);
+      expect(
+        (await reopened.loadAndMigrate(null)).rewards.single.name,
+        'Existing reward',
+      );
+      final viewer = (await reopened.viewerBalances.loadBalances()).single;
+      expect(viewer.viewerId, 'existing-viewer');
+      expect(viewer.username, 'existing_login');
+      expect(viewer.displayName, 'Existing Viewer');
+      expect(viewer.balance, 125);
+      expect(await reopened.viewerBalances.credit('existing-viewer', 5), 130);
+      final connection = await databaseFactoryFfi.openDatabase(databasePath);
+      expect(await connection.getVersion(), 2);
+    },
+  );
 }
 
 Future<bool> _attempt(Future<int> operation) async {
