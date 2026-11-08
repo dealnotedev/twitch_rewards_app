@@ -1,6 +1,8 @@
 import 'dart:async';
 import 'dart:io';
 
+import 'package:flutter/widgets.dart';
+import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
@@ -189,11 +191,16 @@ class AppServiceLocator extends ServiceLocator {
         broadcasterId: creds.broadcasterId,
         expectedCredentials: creds,
       ),
-      authorize: () => TwitchAuthenticator(
-        clientId: twitchClientId,
-        clientSecret: twitchClientSecret,
-        oauthRedirectUrl: twitchOauthRedirectUrl,
-      ).login(),
+      authorize: () =>
+          TwitchAuthenticator(
+            clientId: twitchClientId,
+            clientSecret: twitchClientSecret,
+            oauthRedirectUrl: twitchOauthRedirectUrl,
+          ).login(
+            strings: lookupAppLocalizations(
+              Locale(settings.appearance.language.code),
+            ),
+          ),
     );
     map[Autosaver] = autosaver;
     map[RedemptionQueueController] = RedemptionQueueController(

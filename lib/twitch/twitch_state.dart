@@ -298,7 +298,7 @@ class _State extends State<TwitchStateWidget> {
   }
 
   Future<void> _login2Twitch() async {
-    final creds = await _authenticator.login();
+    final creds = await _authenticator.login(strings: context.localizations);
     await widget.settings.saveTwitchAuth(creds);
   }
 }

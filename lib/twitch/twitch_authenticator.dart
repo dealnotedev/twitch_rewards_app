@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:dio/dio.dart';
+import 'package:flutter/services.dart';
 import 'package:open_url/open_url.dart';
+import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
 
 //import 'package:url_launcher/url_launcher.dart';
@@ -20,8 +23,8 @@ class TwitchAuthenticator {
     required this.oauthRedirectUrl,
   });
 
-  Future<TwitchCreds?> login() async {
-    final authorizationCode = await _startOauth();
+  Future<TwitchCreds?> login({required AppLocalizations strings}) async {
+    final authorizationCode = await _startOauth(strings);
 
     if (authorizationCode == null) return null;
 
@@ -65,7 +68,7 @@ class TwitchAuthenticator {
     );
   }
 
-  Future<String?> _startOauth() async {
+  Future<String?> _startOauth(AppLocalizations strings) async {
     final server = await HttpServer.bind('localhost', 3000);
 
     try {
@@ -77,7 +80,7 @@ class TwitchAuthenticator {
 
       try {
         final code = request.requestedUri.queryParameters['code'];
-        _writeHtml(request);
+        await _writeHtml(request, strings);
         await request.response.close();
 
         return code;
@@ -91,23 +94,26 @@ class TwitchAuthenticator {
     }
   }
 
-  void _writeHtml(HttpRequest request) {
+  Future<void> _writeHtml(HttpRequest request, AppLocalizations strings) async {
+    final template = await rootBundle.loadString(
+      'assets/twitch_auth_success.html',
+    );
+    final messages = {
+      'language': strings.localeName,
+      'title': strings.twitch_auth_success_title,
+      'heading': strings.twitch_auth_success_heading,
+      'detail': strings.twitch_auth_success_detail,
+      'close_hint': strings.twitch_auth_success_close_hint,
+      'status': strings.status_connected,
+    };
+    const escape = HtmlEscape();
+    final html = template.replaceAllMapped(
+      RegExp(r'\{\{(\w+)\}\}'),
+      (match) => escape.convert(messages[match[1]]!),
+    );
     request.response
       ..statusCode = 200
       ..headers.set('content-type', 'text/html; charset=UTF-8')
-      ..write('''
-<!DOCTYPE html>
-
-<html>
-  <head>
-    <meta charset="utf-8">
-    <title>Authorization successful.</title>
-  </head>
-
-  <body>
-    <h2 style="text-align: center">Dealnote Rewards App is ready</h2>
-    <p style="text-align: center">This window can be closed now.</p>
-  </body>
-</html>''');
+      ..write(html);
   }
 }
