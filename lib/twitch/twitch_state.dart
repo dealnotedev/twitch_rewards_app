@@ -24,11 +24,11 @@ class TwitchStateWidget extends StatefulWidget {
   final Settings settings;
   final TwitchRewardsController rewardsController;
 
-  const TwitchStateWidget(
-      {super.key,
-      required this.webSocketManager,
-      required this.settings,
-      required this.rewardsController,
+  const TwitchStateWidget({
+    super.key,
+    required this.webSocketManager,
+    required this.settings,
+    required this.rewardsController,
   });
 
   @override
@@ -105,98 +105,96 @@ class _State extends State<TwitchStateWidget> {
               SimpleIcon.simpleSquare(Assets.assetsIcTwitch16dp, size: 16),
               const Gap(8),
               Expanded(
-                  child: Text(
-                context.localizations.twitch_connection_title,
-                style: TextStyle(fontSize: 14, color: theme.textColorPrimary),
-              ))
+                child: Text(
+                  context.localizations.twitch_connection_title,
+                  style: TextStyle(fontSize: 14, color: theme.textColorPrimary),
+                ),
+              ),
             ],
           ),
           const Gap(16),
           Row(
             children: [
-              SizedBox(
-                height: 32,
-                width: 32,
-                child: Stack(
-                  children: [
-                    if (avatar != null) ...[
-                      ClipOval(
-                        child: CachedNetworkImage(
-                          imageUrl: avatar,
-                          width: 32,
-                          height: 32,
-                          filterQuality: FilterQuality.medium,
-                        ),
+              ClipOval(
+                child: avatar != null
+                    ? CachedNetworkImage(
+                        imageUrl: avatar,
+                        width: 40,
+                        height: 40,
+                        filterQuality: FilterQuality.medium,
                       )
-                    ] else ...[
-                      Container(
+                    : Container(
                         alignment: Alignment.center,
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                            borderRadius: BorderRadius.circular(16),
-                            color: theme.buttonColorAlternative),
-                        child: Text(
-                          '?',
-                          style: TextStyle(
-                              fontSize: 12,
-                              color: theme.textColorPrimary,
-                              height: 1),
+                        width: 40,
+                        height: 40,
+                        color: theme.buttonColorAlternative,
+                        child: Icon(
+                          Icons.person_outline_rounded,
+                          size: 24,
+                          color: theme.textColorSecondary,
                         ),
-                      )
-                    ]
+                      ),
+              ),
+              const Gap(12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(
+                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        color: theme.textColorPrimary,
+                      ),
+                    ),
+                    const Gap(4),
+                    Text(
+                      subtitle,
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: theme.textColorSecondary,
+                      ),
+                    ),
                   ],
                 ),
               ),
-              const Gap(16),
-              Expanded(
-                  child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: TextStyle(
-                        fontWeight: FontWeight.w500,
-                        fontSize: 13,
-                        color: theme.textColorPrimary),
-                  ),
-                  Text(
-                    subtitle,
-                    style: TextStyle(
-                        fontSize: 12, color: theme.textColorSecondary),
-                  )
-                ],
-              )),
-              const Gap(16),
-              ConnectionStatusWidget(theme: theme, status: _connectionStatus),
-              if (viewers != null) ...[
-                const Gap(8),
-                ViewersCounter(theme: theme, count: viewers)
-              ]
             ],
           ),
-          const Gap(8),
-          if (_twitchCreds != null) ...[
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: CustomButton(
-                text: context.localizations.button_logout,
-                style: CustomButtonStyle.secondary,
-                theme: theme,
-                onTap: _twitchLogout,
+          const Gap(16),
+          OverflowBar(
+            alignment: MainAxisAlignment.spaceBetween,
+            overflowAlignment: OverflowBarAlignment.start,
+            spacing: 12,
+            overflowSpacing: 12,
+            children: [
+              Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                crossAxisAlignment: WrapCrossAlignment.center,
+                children: [
+                  ConnectionStatusWidget(
+                    theme: theme,
+                    status: _connectionStatus,
+                  ),
+                  if (viewers != null)
+                    ViewersCounter(theme: theme, count: viewers),
+                ],
               ),
-            )
-          ] else ...[
-            Align(
-              alignment: AlignmentDirectional.centerEnd,
-              child: CustomButton(
-                text: context.localizations.button_connect,
-                style: CustomButtonStyle.primary,
+              CustomButton(
+                text: _twitchCreds != null
+                    ? context.localizations.button_logout
+                    : context.localizations.button_connect,
+                style: _twitchCreds != null
+                    ? CustomButtonStyle.secondary
+                    : CustomButtonStyle.primary,
                 theme: theme,
-                onTap: _login2Twitch,
+                onTap: _twitchCreds != null ? _twitchLogout : _login2Twitch,
               ),
-            )
-          ]
+            ],
+          ),
         ],
       ),
     );
@@ -233,7 +231,9 @@ class _State extends State<TwitchStateWidget> {
     _timer?.cancel();
 
     _timer = Timer.periodic(
-        const Duration(minutes: 1), (_) => _handleTimerTick(api, dto: data));
+      const Duration(minutes: 1),
+      (_) => _handleTimerTick(api, dto: data),
+    );
   }
 
   void _handleWsChanges(WsState event) {
@@ -249,9 +249,10 @@ class _State extends State<TwitchStateWidget> {
 
     if (creds != null) {
       final api = TwitchApi(
-          broadcasterId: creds.broadcasterId,
-          settings: _settings,
-          clientSecret: twitchClientSecret);
+        broadcasterId: creds.broadcasterId,
+        settings: _settings,
+        clientSecret: twitchClientSecret,
+      );
       _fetchUserInfo(api);
     } else {
       _timer?.cancel();
@@ -276,8 +277,12 @@ class _State extends State<TwitchStateWidget> {
   }
 
   void _handleTimerTick(TwitchApi api, {required UserDto dto}) async {
-    final steam = await api.getStreams(broadcasterId: dto.id).then((value) =>
-        value.firstWhereOrNull((element) => element.userId == dto.id));
+    final steam = await api
+        .getStreams(broadcasterId: dto.id)
+        .then(
+          (value) =>
+              value.firstWhereOrNull((element) => element.userId == dto.id),
+        );
 
     await _refreshRedemptions(api);
 
@@ -289,9 +294,10 @@ class _State extends State<TwitchStateWidget> {
   }
 
   final _authenticator = TwitchAuthenticator(
-      clientId: twitchClientId,
-      clientSecret: twitchClientSecret,
-      oauthRedirectUrl: twitchOauthRedirectUrl);
+    clientId: twitchClientId,
+    clientSecret: twitchClientSecret,
+    oauthRedirectUrl: twitchOauthRedirectUrl,
+  );
 
   void _twitchLogout() {
     _settings.saveTwitchAuth(null);
