@@ -352,123 +352,136 @@ class _RewardState extends State<_RewardWidget> {
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
-      decoration: BoxDecoration(
+      child: Material(
         color: theme.surfaceTertiary,
-        border: Border.all(
-          color: theme.border,
-          width: 0.5,
-          strokeAlign: BorderSide.strokeAlignOutside,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+          side: BorderSide(color: theme.border, width: 0.5),
         ),
-        borderRadius: BorderRadius.circular(8),
-      ),
-      padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
-      child: Row(
-        children: [
-          const Gap(8),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+        clipBehavior: Clip.antiAlias,
+        child: InkWell(
+          onTap: widget.onConfigure,
+          borderRadius: BorderRadius.circular(8),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            child: Row(
               children: [
-                ListenableBuilder(
-                  listenable: widget.rewardsController,
-                  builder: (context, _) => StreamBuilder(
-                    stream: _twitchShared.redemptions.changes,
-                    initialData: _twitchShared.redemptions.current,
-                    builder: (cntx, snapshot) {
-                      final redemption = _twitchShared.findReward(reward);
-                      final listenerReward =
-                          reward.isLinked &&
-                          redemption != null &&
-                          widget.rewardsController.isManageable(redemption.id);
-                      return Row(
-                        children: [
-                          if (listenerReward) ...[
-                            const _ListenerRewardBadge(),
-                            const Gap(4),
-                          ],
-                          Flexible(
-                            child: Text(
-                              unnamed
-                                  ? context.localizations.reward_no_name
-                                  : reward.name.trim(),
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontStyle: unnamed ? FontStyle.italic : null,
-                                fontWeight: unnamed
-                                    ? FontWeight.w400
-                                    : FontWeight.w600,
-                                color: theme.textColorPrimary,
-                              ),
-                            ),
-                          ),
-                          const Gap(8),
-                          if (redemption != null) ...[
-                            SimpleIndicator(
-                              text: context.localizations.x_points(
-                                redemption.cost,
-                              ),
-                              theme: theme,
-                              style: IndicatorStyle.neutral,
-                            ),
-                            const Gap(4),
-                          ],
-                          SimpleIndicator(
-                            text: reward.disabled
-                                ? context.localizations.channel_points_inactive
-                                : context.localizations.channel_points_active,
-                            theme: theme,
-                            style: reward.disabled
-                                ? IndicatorStyle.outlined
-                                : IndicatorStyle.bold,
-                          ),
-                        ],
-                      );
-                    },
+                const Gap(8),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      ListenableBuilder(
+                        listenable: widget.rewardsController,
+                        builder: (context, _) => StreamBuilder(
+                          stream: _twitchShared.redemptions.changes,
+                          initialData: _twitchShared.redemptions.current,
+                          builder: (cntx, snapshot) {
+                            final redemption = _twitchShared.findReward(reward);
+                            final listenerReward =
+                                reward.isLinked &&
+                                redemption != null &&
+                                widget.rewardsController.isManageable(
+                                  redemption.id,
+                                );
+                            return Row(
+                              children: [
+                                if (listenerReward) ...[
+                                  const _ListenerRewardBadge(),
+                                  const Gap(4),
+                                ],
+                                Flexible(
+                                  child: Text(
+                                    unnamed
+                                        ? context.localizations.reward_no_name
+                                        : reward.name.trim(),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontStyle: unnamed
+                                          ? FontStyle.italic
+                                          : null,
+                                      fontWeight: unnamed
+                                          ? FontWeight.w400
+                                          : FontWeight.w600,
+                                      color: theme.textColorPrimary,
+                                    ),
+                                  ),
+                                ),
+                                const Gap(8),
+                                if (redemption != null) ...[
+                                  SimpleIndicator(
+                                    text: context.localizations.x_points(
+                                      redemption.cost,
+                                    ),
+                                    theme: theme,
+                                    style: IndicatorStyle.neutral,
+                                  ),
+                                  const Gap(4),
+                                ],
+                                SimpleIndicator(
+                                  text: reward.disabled
+                                      ? context
+                                            .localizations
+                                            .channel_points_inactive
+                                      : context
+                                            .localizations
+                                            .channel_points_active,
+                                  theme: theme,
+                                  style: reward.disabled
+                                      ? IndicatorStyle.outlined
+                                      : IndicatorStyle.bold,
+                                ),
+                              ],
+                            );
+                          },
+                        ),
+                      ),
+                      const Gap(4),
+                      Text(
+                        context.localizations.channel_points_reactions_info(
+                          reactions,
+                          reactionsEnabled,
+                        ),
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: theme.textColorSecondary,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-                const Gap(4),
-                Text(
-                  context.localizations.channel_points_reactions_info(
-                    reactions,
-                    reactionsEnabled,
+                const Gap(12),
+                Semantics(
+                  label: context.localizations.button_configure,
+                  button: true,
+                  child: CustomButton(
+                    prefixIcon: Assets.assetsIcSettingsWhite16dp,
+                    text: '',
+                    style: CustomButtonStyle.secondary,
+                    theme: theme,
+                    onTap: widget.onConfigure,
                   ),
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: theme.textColorSecondary,
-                  ),
+                ),
+                const Gap(8),
+                CustomButton(
+                  prefixIcon: Assets.assetsIcPlayWhite16dp,
+                  text: '',
+                  style: CustomButtonStyle.secondary,
+                  theme: theme,
+                  onTap: widget.onPlay,
+                ),
+                const Gap(8),
+                RippleIcon(
+                  borderRadius: BorderRadius.circular(8),
+                  icon: Assets.assetsIcDeleteWhite16dp,
+                  onTap: widget.onDelete,
+                  size: 16,
+                  color: theme.textColorPrimary,
                 ),
               ],
             ),
           ),
-          const Gap(12),
-          Semantics(
-            label: context.localizations.button_configure,
-            button: true,
-            child: CustomButton(
-              prefixIcon: Assets.assetsIcSettingsWhite16dp,
-              text: '',
-              style: CustomButtonStyle.secondary,
-              theme: theme,
-              onTap: widget.onConfigure,
-            ),
-          ),
-          const Gap(8),
-          CustomButton(
-            prefixIcon: Assets.assetsIcPlayWhite16dp,
-            text: '',
-            style: CustomButtonStyle.secondary,
-            theme: theme,
-            onTap: widget.onPlay,
-          ),
-          const Gap(8),
-          RippleIcon(
-            borderRadius: BorderRadius.circular(8),
-            icon: Assets.assetsIcDeleteWhite16dp,
-            onTap: widget.onDelete,
-            size: 16,
-            color: theme.textColorPrimary,
-          ),
-        ],
+        ),
       ),
     );
   }
