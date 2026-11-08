@@ -263,6 +263,9 @@ class RedemptionQueueController extends ChangeNotifier {
               reward,
               userInput: redemption.userInput,
               requester: redemption.userName,
+              requesterId: redemption.userId,
+              requesterLogin: redemption.userLogin,
+              rewardCost: redemption.cost,
             );
           } catch (error) {
             debugPrint('Reward reaction: $error');
@@ -293,6 +296,9 @@ class RedemptionQueueController extends ChangeNotifier {
             reward,
             userInput: redemption.userInput,
             requester: redemption.userName,
+            requesterId: redemption.userId,
+            requesterLogin: redemption.userLogin,
+            rewardCost: redemption.cost,
             execution: execution,
           ),
         ),
@@ -334,6 +340,7 @@ class RedemptionQueueController extends ChangeNotifier {
         cost: event.reward!.cost,
         userId: event.userId ?? '',
         userName: event.userName ?? '',
+        userLogin: event.userLogin,
         userInput: event.userInput ?? '',
         redeemedAt: event.redeemedAt ?? now(),
         status: status,

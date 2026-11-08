@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
@@ -44,7 +45,9 @@ void main() {
       addTearDown(action.dispose);
     }
     final reward = Reward(name: 'Random sound', handlers: actions);
-    final reauthorizationRequired = ValueNotifier(<TwitchEventType>{});
+    final reauthorizationRequired = ObservableValue<Set<TwitchEventType>>(
+      current: const {},
+    );
     addTearDown(reauthorizationRequired.dispose);
     final dropdowns = DropdownManager();
     addTearDown(dropdowns.clear);
@@ -137,6 +140,25 @@ void main() {
   ) async {
     await showConfigurator(tester, textScale: 2);
     expect(find.text('Link Twitch reward'), findsOneWidget);
+    expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('viewer points action can be added and configured from the menu', (
+    tester,
+  ) async {
+    final reward = await showConfigurator(tester, initialActions: []);
+    await tester.tap(find.text('Add New Reaction'));
+    await tester.pump();
+    await tester.tap(find.text('Credit viewer points'));
+    await tester.pumpAndSettle();
+    final action = reward.handlers.single;
+    addTearDown(action.dispose);
+    expect(action.type, RewardAction.typeCreditPoints);
+    expect(action.pointsAmount, isNull);
+    final amount = find.byKey(const ValueKey('credit-points-amount'));
+    await tester.ensureVisible(amount);
+    await tester.enterText(amount, '125');
+    expect(action.pointsAmount, 125);
     expect(tester.takeException(), isNull);
   });
 

@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/app/app_router.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/ui/custom_switch.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
@@ -33,7 +34,7 @@ void main() {
   late Reward reward;
   late RewardTestApi api;
   late TwitchRewardsController controller;
-  late ValueNotifier<Set<TwitchEventType>> reauthorizationRequired;
+  late ObservableValue<Set<TwitchEventType>> reauthorizationRequired;
 
   Future<void> showEditor(
     WidgetTester tester, {
@@ -46,7 +47,7 @@ void main() {
     tester.view.physicalSize = const Size(640, 720);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
-    reauthorizationRequired = ValueNotifier({...missingPermissions});
+    reauthorizationRequired = ObservableValue(current: {...missingPermissions});
     addTearDown(reauthorizationRequired.dispose);
     final action = RewardAction(type: RewardAction.typeDelay, millis: 3000);
     reward = Reward(name: 'Manual', handlers: [action]);
@@ -332,15 +333,17 @@ void main() {
           final eventType = type == RewardTriggerType.raid
               ? TwitchEventType.raid
               : TwitchEventType.follow;
-          reauthorizationRequired.value = TwitchEventType.values
-              .where((event) => event != eventType)
-              .toSet();
+          reauthorizationRequired.set(
+            TwitchEventType.values
+                .where((event) => event != eventType)
+                .toSet(),
+          );
           await tester.pumpAndSettle();
           expect(warning, findsNothing);
-          reauthorizationRequired.value = {eventType};
+          reauthorizationRequired.set({eventType});
           await tester.pumpAndSettle();
           expect(warning, findsOneWidget);
-          reauthorizationRequired.value = {};
+          reauthorizationRequired.set({});
           await tester.pumpAndSettle();
           expect(warning, findsNothing);
           expect(find.text('Linked to Twitch'), findsNothing);

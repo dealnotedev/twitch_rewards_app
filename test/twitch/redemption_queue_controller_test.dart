@@ -11,6 +11,15 @@ import 'redemption_fakes.dart';
 import 'rewards_fakes.dart';
 
 void main() {
+  test('passes immutable viewer ID, login, display name and actual cost to actions', () async {
+    final h = await QueueHarness.create();
+    addTearDown(h.close);
+    await h.queue.handleMessage(redemptionMessage('one'));
+    expect(h.executor.lastRequesterId, 'viewer');
+    expect(h.executor.lastRequesterLogin, 'viewer_login');
+    expect(h.executor.lastRequesterName, 'Viewer');
+    expect(h.executor.lastRewardCost, 750);
+  });
   test('pauses one countdown and resumes its exact remaining time', () async {
     final h = await QueueHarness.create();
     addTearDown(h.close);
@@ -333,6 +342,10 @@ void main() {
     h.settings.rewards.rewards.single.unlinkFromTwitch();
     await h.queue.handleMessage(redemptionMessage('other', rewardId: 'other'));
     expect(h.executor.calls, 1);
+    expect(h.executor.lastRequesterId, 'viewer');
+    expect(h.executor.lastRequesterLogin, 'viewer_login');
+    expect(h.executor.lastRequesterName, 'Viewer');
+    expect(h.executor.lastRewardCost, 750);
     expect(h.queue.entries, isEmpty);
     expect(h.api.patches, isEmpty);
   });

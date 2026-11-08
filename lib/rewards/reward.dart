@@ -100,6 +100,7 @@ class RewardAction {
   static const typePlayAudio = 'play_audio';
   static const typePlayAudios = 'play_audios';
   static const typeQueueTrack = 'queue_track';
+  static const typeCreditPoints = 'credit_points';
   static const typeEnableFilter = 'enable_filter';
   static const typeToggleFilter = 'toggle_filter';
   static const typeInvertFilter = 'invert_filter';
@@ -116,6 +117,7 @@ class RewardAction {
     typePlayAudio,
     typePlayAudios,
     typeQueueTrack,
+    typeCreditPoints,
     typeToggleFilter,
     typeToggleSource,
     typeFlipSource,
@@ -161,6 +163,9 @@ class RewardAction {
 
   int? count;
 
+  /// Null uses the actual redeemed reward cost; zero is an explicit amount.
+  int? pointsAmount;
+
   bool randomize;
 
   ObservableValue<double> volume;
@@ -194,6 +199,7 @@ class RewardAction {
     this.sceneName,
     this.target,
     this.count,
+    this.pointsAmount,
     this.action,
     double? volume,
     this.randomize = false,
@@ -232,6 +238,7 @@ class RewardAction {
       'vertical': vertical,
       'targets': targets,
       'count': count,
+      'pointsAmount': pointsAmount,
       'volume': volume.current,
       'randomize': randomize,
       'awaitCompletion': awaitCompletion,
@@ -251,6 +258,7 @@ class RewardAction {
       disabled: json['disabled'] as bool? ?? false,
       randomize: json['randomize'] as bool? ?? false,
       count: json['count'] as int?,
+      pointsAmount: json['pointsAmount'] as int?,
       type: json['type'] as String,
       horizontal: json['horizontal'] as bool? ?? false,
       vertical: json['vertical'] as bool? ?? false,

@@ -15,6 +15,13 @@ import 'package:twitch_listener/ui/themes.dart';
 /// Manual tests need the same viewer input that a real redemption carries.
 Future<void> testReward(
     BuildContext context, Reward reward, RewardExecutor executor) async {
+  if (reward.handlers.any(
+      (a) => !a.disabled && a.type == RewardAction.typeCreditPoints)) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(context.localizations.reaction_credit_points_test_unavailable),
+    ));
+    return;
+  }
   String? input;
   if (reward.handlers
       .any((a) => !a.disabled && a.type == RewardAction.typeQueueTrack)) {

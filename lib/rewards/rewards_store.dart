@@ -4,6 +4,7 @@ import 'dart:io';
 import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:sqflite_common_ffi/sqflite_ffi.dart';
+import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 
 class RewardsStore {
@@ -13,6 +14,8 @@ class RewardsStore {
   static const _migrationKey = 'shared_preferences_imported';
 
   final Database _database;
+
+  late final viewerBalances = ViewerBalancesStore(_database);
 
   static Future<RewardsStore> open({
     DatabaseFactory? factory,
@@ -29,7 +32,7 @@ class RewardsStore {
     final database = await factory.openDatabase(
       databasePath,
       options: OpenDatabaseOptions(
-        version: 1,
+        version: 2,
         onCreate: (database, version) async {
           await database.execute('''
             CREATE TABLE rewards (
@@ -43,6 +46,12 @@ class RewardsStore {
               value TEXT NOT NULL
             )
           ''');
+          await ViewerBalancesStore.createTable(database);
+        },
+        onUpgrade: (database, oldVersion, newVersion) async {
+          if (oldVersion < 2) {
+            await ViewerBalancesStore.createTable(database);
+          }
         },
       ),
     );
@@ -117,5 +126,8 @@ class RewardsStore {
     await batch.commit(noResult: true);
   }
 
-  Future<void> close() => _database.close();
+  Future<void> close() async {
+    await _database.close();
+    viewerBalances.dispose();
+  }
 }

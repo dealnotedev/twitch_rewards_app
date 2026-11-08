@@ -26,6 +26,7 @@ TwitchRedemption redemption(
   cost: cost,
   userId: 'viewer',
   userName: 'Viewer',
+  userLogin: 'viewer_login',
   userInput: 'hello',
   redeemedAt: DateTime.utc(2026, 10, 25),
   status: status,
@@ -125,15 +126,26 @@ class RedemptionTestApi extends RewardTestApi {
 
 class RedemptionTestExecutor implements RewardExecutor {
   int calls = 0;
+  String? lastRequesterId;
+  String? lastRequesterLogin;
+  String? lastRequesterName;
+  int? lastRewardCost;
   Future<void> Function(RewardExecution?)? run;
   @override
   Future<void> execute(
     Reward reward, {
     String? userInput,
     String requester = '',
+    String? requesterId,
+    String? requesterLogin,
+    int? rewardCost,
     RewardExecution? execution,
   }) async {
     calls++;
+    lastRequesterId = requesterId;
+    lastRequesterLogin = requesterLogin;
+    lastRequesterName = requester;
+    lastRewardCost = rewardCost;
     await run?.call(execution);
   }
 

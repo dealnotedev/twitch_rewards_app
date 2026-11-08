@@ -1,14 +1,14 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/core/extensions.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/ui/simple_icon.dart';
 import 'package:twitch_listener/ui/themes.dart';
 
 class EventSubPermissionNotice extends StatelessWidget {
-  final ValueListenable<Set<TwitchEventType>> reauthorizationRequired;
+  final ObservableValue<Set<TwitchEventType>> reauthorizationRequired;
   final TwitchEventType type;
 
   const EventSubPermissionNotice({
@@ -18,9 +18,11 @@ class EventSubPermissionNotice extends StatelessWidget {
   });
 
   @override
-  Widget build(BuildContext context) => ValueListenableBuilder(
-    valueListenable: reauthorizationRequired,
-    builder: (context, requiredEvents, _) {
+  Widget build(BuildContext context) => StreamBuilder<Set<TwitchEventType>>(
+    stream: reauthorizationRequired.value,
+    initialData: reauthorizationRequired.current,
+    builder: (context, snapshot) {
+      final requiredEvents = snapshot.requireData;
       if (!requiredEvents.contains(type)) return const SizedBox.shrink();
       final theme = Theme.of(context);
       final l10n = context.localizations;

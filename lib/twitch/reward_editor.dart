@@ -5,7 +5,6 @@ import 'package:twitch_listener/ui/buttons.dart';
 import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/ui/themes.dart';
-import 'package:twitch_listener/ui/simple_widgets.dart';
 import 'package:twitch_listener/twitch/reward_color_picker.dart';
 import 'package:twitch_listener/twitch/reward_delete_dialog.dart';
 import 'package:twitch_listener/twitch/reward_form_field.dart';
@@ -356,8 +355,6 @@ class _TwitchRewardEditorState extends State<TwitchRewardEditor> {
                     ),
                     const Gap(8),
                   ],
-                  const Gap(16),
-                  SimpleDivider(theme: theme),
                   const Gap(16),
                   _field(
                     _cooldown,

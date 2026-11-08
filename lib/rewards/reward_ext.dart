@@ -13,6 +13,11 @@ class RewardActionAtts {
 
   static RewardActionAtts forType(BuildContext context, String type) {
     switch (type) {
+      case RewardAction.typeCreditPoints:
+        return RewardActionAtts(
+            type: type,
+            title: context.localizations.reaction_credit_points,
+            icon: 'assets/ic_coins_white_16dp.svg');
       case RewardAction.typeQueueTrack:
         return RewardActionAtts(
             type: type,

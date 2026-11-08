@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/app/home_screen.dart';
 import 'package:twitch_listener/di/service_locator.dart';
+import 'package:twitch_listener/points/viewer_balances_screen.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/reward_configurator.dart';
 import 'package:twitch_listener/twitch/dto.dart';
@@ -20,6 +21,7 @@ class ApplicationRouter extends NavigatorObserver {
   static const _routeRewardConfig = '/reward/config';
   static const _routeTwitchRewards = '/reward/twitch';
   static const _routeTwitchRewardEditor = '/reward/twitch/edit';
+  static const _routeViewerBalances = '/viewers/balances';
 
   static final _changes = StreamController<_RouteChange>.broadcast();
   static Route? _current;
@@ -50,6 +52,9 @@ class ApplicationRouter extends NavigatorObserver {
       arguments: _RewardConfigArgs(reward: reward),
     );
   }
+
+  static Future<void> openViewerBalances(BuildContext context) =>
+      Navigator.pushNamed(context, _routeViewerBalances);
 
   static String? getCurrentRoute(BuildContext context) {
     String? currentPath;
@@ -95,6 +100,11 @@ class ApplicationRouter extends NavigatorObserver {
   RouteFactory get routerFactory {
     return (settings) {
       switch (settings.name) {
+        case _routeViewerBalances:
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => ViewerBalancesScreen(store: locator.provide()),
+          );
         case _routeTwitchRewards:
           return MaterialPageRoute<TwitchRewardSelection>(
             settings: settings,

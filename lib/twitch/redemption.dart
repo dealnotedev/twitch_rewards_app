@@ -22,6 +22,7 @@ class TwitchRedemption {
   final int cost;
   final String userId;
   final String userName;
+  final String? userLogin;
   final String userInput;
   final DateTime redeemedAt;
   final RedemptionStatus status;
@@ -34,6 +35,7 @@ class TwitchRedemption {
     required this.cost,
     required this.userId,
     required this.userName,
+    this.userLogin,
     required this.userInput,
     required this.redeemedAt,
     required this.status,
@@ -48,6 +50,7 @@ class TwitchRedemption {
     cost: json['reward']['cost'] as int,
     userId: json['user_id'] as String,
     userName: json['user_name'] as String,
+    userLogin: json['user_login'] as String?,
     userInput: json['user_input'] as String? ?? '',
     redeemedAt: DateTime.parse(json['redeemed_at'] as String),
     status: RedemptionStatus.parse(json['status'] as String),
@@ -59,6 +62,7 @@ class TwitchRedemption {
     'reward': {'id': rewardId, 'title': title, 'cost': cost},
     'user_id': userId,
     'user_name': userName,
+    'user_login': userLogin,
     'user_input': userInput,
     'redeemed_at': redeemedAt.toUtc().toIso8601String(),
     'status': status.wireValue,

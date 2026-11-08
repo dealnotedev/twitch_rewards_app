@@ -5,6 +5,7 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/secrets.dart';
 import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/twitch/twitch_api.dart';
@@ -24,8 +25,8 @@ class WebSocketManager {
 
   final _messagesSubject = StreamController<WsMessage>.broadcast();
   final _stateSubject = StreamController<WsStateEvent>.broadcast();
-  final _reauthorizationRequired = ValueNotifier<Set<TwitchEventType>>(
-    const {},
+  final _reauthorizationRequired = ObservableValue<Set<TwitchEventType>>(
+    current: const {},
   );
   String? _authorizationBroadcasterId;
 
@@ -45,7 +46,7 @@ class WebSocketManager {
 
   Stream<WsMessage> get messages => _messagesSubject.stream;
 
-  ValueListenable<Set<TwitchEventType>> get reauthorizationRequired =>
+  ObservableValue<Set<TwitchEventType>> get reauthorizationRequired =>
       _reauthorizationRequired;
 
   WebSocketManager(
@@ -183,9 +184,7 @@ class WebSocketManager {
   void _handleAuth(TwitchCreds? auth) {
     if (_authorizationBroadcasterId != auth?.broadcasterId) {
       _authorizationBroadcasterId = auth?.broadcasterId;
-      if (_reauthorizationRequired.value.isNotEmpty) {
-        _reauthorizationRequired.value = const {};
-      }
+      _reauthorizationRequired.set(const {});
     }
     if (auth == null) {
       _destroyCurrentConnection(WsState.idle);
@@ -270,7 +269,7 @@ class WebSocketManager {
       _settings.twitchAuth?.broadcasterId == registration.broadcasterId;
 
   void _setReauthorizationRequired(TwitchEventType type, bool needed) {
-    final current = _reauthorizationRequired.value;
+    final current = _reauthorizationRequired.current;
     if (current.contains(type) == needed) return;
     final updated = {...current};
     if (needed) {
@@ -278,7 +277,7 @@ class WebSocketManager {
     } else {
       updated.remove(type);
     }
-    _reauthorizationRequired.value = Set.unmodifiable(updated);
+    _reauthorizationRequired.set(Set.unmodifiable(updated));
   }
 
   void _handleRevocation(dynamic subscription) {

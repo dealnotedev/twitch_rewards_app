@@ -1,9 +1,9 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:gap/gap.dart';
 import 'package:twitch_listener/rewards/actions/crash_process.dart';
+import 'package:twitch_listener/rewards/actions/credit_points.dart';
 import 'package:twitch_listener/rewards/actions/delay.dart';
 import 'package:twitch_listener/rewards/actions/enable_input.dart';
 import 'package:twitch_listener/rewards/actions/flip_source.dart';
@@ -16,6 +16,7 @@ import 'package:twitch_listener/rewards/actions/toggle_source.dart';
 import 'package:twitch_listener/app/app_router.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/ui/back_button.dart';
 import 'package:twitch_listener/ui/buttons.dart';
 import 'package:twitch_listener/ui/custom_switch.dart';
@@ -51,7 +52,7 @@ class RewardConfiguratorWidget extends StatefulWidget {
   final Autosaver autosaver;
   final YoutubeConnectionController youtubeConnection;
   final MusicRequestManager musicRequests;
-  final ValueListenable<Set<TwitchEventType>> reauthorizationRequired;
+  final ObservableValue<Set<TwitchEventType>> reauthorizationRequired;
 
   const RewardConfiguratorWidget({
     super.key,
@@ -835,6 +836,11 @@ class _ActionWidget extends StatelessWidget {
 
   Widget _createInternal(BuildContext context, ThemeData theme) {
     switch (action.type) {
+      case RewardAction.typeCreditPoints:
+        return CreditPointsWidget(
+          action: action,
+          changesCallback: changesCallback,
+        );
       case RewardAction.typeQueueTrack:
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,

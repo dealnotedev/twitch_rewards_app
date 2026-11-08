@@ -5,6 +5,7 @@ import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/music/media_kit_music_track_player.dart';
 import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
@@ -161,6 +162,7 @@ class AppServiceLocator extends ServiceLocator {
       audioplayer: audioplayer,
       obs: obs,
       musicRequests: musicRequests,
+      viewerBalances: settings.viewerBalances,
     );
 
     final autosaver = Autosaver(delay: const Duration(seconds: 2));
@@ -171,6 +173,7 @@ class AppServiceLocator extends ServiceLocator {
     map[WebSocketManager] = wsManager;
     map[ObsConnect] = obs;
     map[RewardExecutor] = executor;
+    map[ViewerBalancesStore] = settings.viewerBalances;
     map[MusicRequestManager] = musicRequests;
     map[YoutubeConnectionController] = youtubeConnection;
     map[Audioplayer] = audioplayer;

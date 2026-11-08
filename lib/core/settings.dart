@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/rewards_store.dart';
 import 'package:twitch_listener/twitch/twitch_creds.dart';
@@ -31,6 +32,8 @@ class Settings {
   late Rewards rewards;
   late final SharedPreferences _prefs;
   late final RewardsStore _rewardsStore;
+
+  ViewerBalancesStore get viewerBalances => _rewardsStore.viewerBalances;
 
   Future<void> init() async {
     final prefs = _prefs = await _loadPreferences();

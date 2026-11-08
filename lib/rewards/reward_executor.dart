@@ -2,6 +2,7 @@ import 'package:flutter/foundation.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
+import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/reward_execution.dart';
 import 'package:twitch_listener/utils/input_sender.dart';
@@ -12,17 +13,22 @@ class RewardExecutor {
   final Audioplayer audioplayer;
   final ObsConnect obs;
   final MusicRequestManager musicRequests;
+  final ViewerBalancesStore? viewerBalances;
 
   RewardExecutor({
     required this.audioplayer,
     required this.obs,
     required this.musicRequests,
+    this.viewerBalances,
   });
 
   Future<void> execute(
     Reward reward, {
     String? userInput,
     String requester = '',
+    String? requesterId,
+    String? requesterLogin,
+    int? rewardCost,
     RewardExecution? execution,
   }) async {
     for (var action in reward.handlers) {
@@ -30,6 +36,26 @@ class RewardExecutor {
       if (action.disabled) continue;
       if (execution != null) _validateAction(action);
       switch (action.type) {
+        case RewardAction.typeCreditPoints:
+          final balances = viewerBalances;
+          if (balances == null) throw StateError('Viewer balances unavailable');
+          if (requesterId == null || requesterId.trim().isEmpty) {
+            throw StateError('A Twitch viewer ID is required to credit points');
+          }
+          final amount = action.pointsAmount ?? rewardCost;
+          if (amount == null) {
+            throw StateError(
+              'Set a points amount for triggers without a reward',
+            );
+          }
+          await balances.credit(
+            requesterId,
+            amount,
+            username: requesterLogin,
+            displayName: requester.isEmpty ? null : requester,
+          );
+          break;
+
         case RewardAction.typeQueueTrack:
           if (execution == null) {
             musicRequests.enqueue(userInput, requester: requester);
@@ -278,6 +304,8 @@ class RewardExecutor {
     final invalid = switch (action.type) {
       RewardAction.typeDelay => action.millis < 0,
       RewardAction.typeQueueTrack => false,
+      RewardAction.typeCreditPoints =>
+        action.pointsAmount != null && action.pointsAmount! < 0,
       RewardAction.typeEnableInput => empty(action.inputName),
       RewardAction.typeToggleFilter =>
         empty(action.sourceName) ||

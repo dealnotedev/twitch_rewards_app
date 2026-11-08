@@ -107,7 +107,7 @@ void main() {
             listenFollow: true,
             eventErrors: {type: status},
           );
-          expect(h.manager.reauthorizationRequired.value, {type});
+          expect(h.manager.reauthorizationRequired.current, {type});
           expect(h.api.subscriptions.keys, contains('chat'));
           h.api.eventErrors.clear();
           final cleared = _waitForAuthorization(h.manager, {});
@@ -156,7 +156,7 @@ void main() {
       listenFollow: true,
       eventErrors: {TwitchEventType.raid: 500, TwitchEventType.follow: 500},
     );
-    expect(h.manager.reauthorizationRequired.value, isEmpty);
+    expect(h.manager.reauthorizationRequired.current, isEmpty);
     expect(h.api.subscriptions.keys, contains('chat'));
   });
 
@@ -169,13 +169,13 @@ void main() {
         eventErrors: {TwitchEventType.raid: 403, TwitchEventType.follow: 403},
       );
       expect(
-        h.manager.reauthorizationRequired.value,
+        h.manager.reauthorizationRequired.current,
         TwitchEventType.values.toSet(),
       );
       final cleared = _waitForAuthorization(h.manager, {});
       await h.settings.saveTwitchAuth(null);
       await cleared;
-      expect(h.manager.reauthorizationRequired.value, isEmpty);
+      expect(h.manager.reauthorizationRequired.current, isEmpty);
     },
   );
 }
@@ -185,18 +185,11 @@ Future<void> _waitForAuthorization(
   Set<TwitchEventType> expected,
 ) {
   final state = manager.reauthorizationRequired;
-  if (setEquals(state.value, expected)) return Future.value();
-  final ready = Completer<void>();
-  void onChange() {
-    if (!ready.isCompleted && setEquals(state.value, expected)) {
-      ready.complete();
-    }
-  }
-
-  state.addListener(onChange);
-  return ready.future
+  if (setEquals(state.current, expected)) return Future.value();
+  return state.changes
+      .firstWhere((value) => setEquals(value, expected))
       .timeout(const Duration(seconds: 5))
-      .whenComplete(() => state.removeListener(onChange));
+      .then((_) {});
 }
 
 Future<

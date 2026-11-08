@@ -51,6 +51,7 @@ class WsMessageEvent {
   final String? broadcasterUserId;
   final String? id;
   final String? userName;
+  final String? userLogin;
   final String? userId;
   final String? userInput;
   final String? redemptionStatus;
@@ -60,10 +61,12 @@ class WsMessageEvent {
   final WsChatMessage? message;
 
   final String? chatterUserName;
+  final String? chatterUserLogin;
   final String? chatterUserId;
 
   final String? fromBroadcasterUserId;
   final String? fromBroadcasterUserName;
+  final String? fromBroadcasterUserLogin;
   final String? toBroadcasterUserId;
 
   /*Example: text, power_ups_gigantified_emote, power_ups_message_effect, channel_points_highlighted*/
@@ -74,6 +77,9 @@ class WsMessageEvent {
 
   WsMessageEvent({
     this.broadcasterUserId,
+    this.userLogin,
+    this.chatterUserLogin,
+    this.fromBroadcasterUserLogin,
     this.redemptionStatus,
     this.redeemedAt,
     this.fromBroadcasterUserId,
@@ -99,11 +105,13 @@ class WsMessageEvent {
       broadcasterUserId: json['broadcaster_user_id'] as String?,
       fromBroadcasterUserId: json['from_broadcaster_user_id'] as String?,
       fromBroadcasterUserName: json['from_broadcaster_user_name'] as String?,
+      fromBroadcasterUserLogin: json['from_broadcaster_user_login'] as String?,
       toBroadcasterUserId: json['to_broadcaster_user_id'] as String?,
       redemptionStatus: json['status'] as String?,
       redeemedAt: DateTime.tryParse(json['redeemed_at'] as String? ?? ''),
       id: json['id'] as String?,
       userName: json['user_name'] as String?,
+      userLogin: json['user_login'] as String?,
       userId: json['user_id'] as String?,
       userInput: json['user_input'] as String?,
       message: messageJson != null ? WsChatMessage.fromJson(messageJson) : null,
@@ -111,6 +119,7 @@ class WsMessageEvent {
       messageType: json['message_type'] as String?,
       chatterUserId: json['chatter_user_id'] as String?,
       chatterUserName: json['chatter_user_name'] as String?,
+      chatterUserLogin: json['chatter_user_login'] as String?,
       messageId: json['message_id'] as String?,
       color: json['color'] as String?,
     );

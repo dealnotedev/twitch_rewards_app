@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/app/app.dart';
 import 'package:twitch_listener/app/app_router.dart';
 import 'package:twitch_listener/core/autosaver.dart';
+import 'package:twitch_listener/core/observable_value.dart';
 import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/music/music_requests.dart';
@@ -31,6 +32,7 @@ WsMessage _chatMessage(
       'broadcaster_user_id': broadcasterId,
       'chatter_user_id': 'viewer',
       'chatter_user_name': 'Viewer',
+      'chatter_user_login': 'viewer_login',
       'message_id': id,
       'message_type': 'text',
       'message': {'text': text, 'fragments': []},
@@ -77,6 +79,14 @@ void main() {
       h.websocket.events.add(_followNotification('follow-1'));
       await tester.pumpAndSettle();
       expect(h.executor.calls.map((call) => call.reward), [follow, unnamed]);
+      expect(
+        h.executor.calls.map((call) => call.requesterId),
+        everyElement('follower'),
+      );
+      expect(
+        h.executor.calls.map((call) => call.requesterLogin),
+        everyElement('follower'),
+      );
       expect(
         h.executor.calls.map((call) => call.requester),
         everyElement('Follower'),
@@ -161,16 +171,16 @@ void main() {
         const ValueKey('twitch-events-permission-warning'),
       );
       expect(warning, findsNothing);
-      h.websocket.reauthorizationRequired.value = {TwitchEventType.follow};
+      h.websocket.reauthorizationRequired.set({TwitchEventType.follow});
       await tester.pumpAndSettle();
       expect(warning, findsNothing);
-      h.websocket.reauthorizationRequired.value = {
+      h.websocket.reauthorizationRequired.set({
         TwitchEventType.follow,
         TwitchEventType.raid,
-      };
+      });
       await tester.pumpAndSettle();
       expect(warning, findsNothing);
-      h.websocket.reauthorizationRequired.value = {};
+      h.websocket.reauthorizationRequired.set({});
       await tester.pumpAndSettle();
       expect(warning, findsNothing);
       expect(tester.takeException(), isNull);
@@ -217,6 +227,14 @@ void main() {
       h.websocket.events.add(_raidNotification('raid-1'));
       await tester.pumpAndSettle();
       expect(h.executor.calls.map((call) => call.reward), [raid, unnamed]);
+      expect(
+        h.executor.calls.map((call) => call.requesterId),
+        everyElement('raider'),
+      );
+      expect(
+        h.executor.calls.map((call) => call.requesterLogin),
+        everyElement('raider'),
+      );
       expect(
         h.executor.calls.map((call) => call.requester),
         everyElement('Raider'),
@@ -340,6 +358,8 @@ void main() {
 
     expect(h.executor.calls.map((call) => call.reward), [same(command)]);
     expect(h.executor.calls.single.requester, 'Viewer');
+    expect(h.executor.calls.single.requesterId, 'viewer');
+    expect(h.executor.calls.single.requesterLogin, 'viewer_login');
     expect(h.executor.calls.single.userInput, '!hello');
     expect(tester.takeException(), isNull);
   });
@@ -665,8 +685,9 @@ class _WebSocketManager implements WebSocketManager {
   final deleted = <String?>[];
 
   @override
-  final ValueNotifier<Set<TwitchEventType>> reauthorizationRequired =
-      ValueNotifier({});
+  final reauthorizationRequired = ObservableValue<Set<TwitchEventType>>(
+    current: const {},
+  );
 
   @override
   Stream<WsMessage> get messages => events.stream;
@@ -679,7 +700,16 @@ class _WebSocketManager implements WebSocketManager {
 }
 
 class _Executor implements RewardExecutor {
-  final calls = <({Reward reward, String? userInput, String requester})>[];
+  final calls =
+      <
+        ({
+          Reward reward,
+          String? userInput,
+          String requester,
+          String? requesterId,
+          String? requesterLogin,
+        })
+      >[];
   Future<void> Function(Reward)? run;
 
   @override
@@ -687,9 +717,18 @@ class _Executor implements RewardExecutor {
     Reward reward, {
     String? userInput,
     String requester = '',
+    String? requesterId,
+    String? requesterLogin,
+    int? rewardCost,
     RewardExecution? execution,
   }) async {
-    calls.add((reward: reward, userInput: userInput, requester: requester));
+    calls.add((
+      reward: reward,
+      userInput: userInput,
+      requester: requester,
+      requesterId: requesterId,
+      requesterLogin: requesterLogin,
+    ));
     await run?.call(reward);
   }
 

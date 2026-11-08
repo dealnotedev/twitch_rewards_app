@@ -33,6 +33,7 @@ For example, a **Helium voice** reward can enable an OBS microphone filter, wait
 | **Delay** | Waits for a configurable number of milliseconds before the next reaction. |
 | **Play audio files** | Plays one or more local audio files, with volume, shuffle, track-count, and wait-for-completion options. |
 | **Play YouTube Track** | Adds the YouTube link from the viewer's reward message to the shared music queue, then immediately continues the reaction chain. |
+| **Credit viewer points** | Adds whole internal points to the triggering viewer's saved balance. Leave the amount empty to use the redeemed reward's cost, or enter a fixed amount. |
 | **Toggle filter** | Enables, disables, or toggles an OBS source filter. |
 | **Toggle source** | Shows, hides, or toggles a source, including sources inside OBS groups. |
 | **Flip source** | Mirrors an OBS source horizontally, vertically, or both. |
@@ -41,6 +42,22 @@ For example, a **Helium voice** reward can enable an OBS microphone filter, wait
 | **Crash process** | Force-terminates a selected Windows process. Use with care. |
 
 Reaction chains and connection settings are stored locally. Reward configurations use SQLite, and older configurations are migrated automatically.
+
+Internal points are stored in the `viewer_balances` table in `rewards.db`, with
+one row per Twitch user ID. The nonunique `username` (Twitch login) and
+`display_name` fields are refreshed with each successful balance change and are
+indexed for lookup. Credits and debits are atomic and reject insufficient
+funds or integer overflow. Commands, follows and raids require a fixed amount
+because they have no reward cost. Test this action through a real Twitch event;
+the manual play button shows a notice for these chains because no real viewer ID is available.
+
+Select **viewer's internal balance** in the description of a **Credit viewer points**
+action to see display names, Twitch usernames, IDs and balances in a table.
+Search matches any part of either name or the ID without case sensitivity,
+including Cyrillic display names. Each row shows the ID on the left, display
+name and highlighted @username together under **Viewer name**, and the balance
+on the right. The table updates after balance changes and also has a **Refresh**
+button. Larger lists scroll vertically; the columns fit the window width.
 
 ### Music requests
 

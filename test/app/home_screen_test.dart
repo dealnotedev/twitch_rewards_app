@@ -1,4 +1,3 @@
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/app/app_router.dart';
@@ -13,6 +12,9 @@ import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/obs/obs_state.dart';
+import 'package:twitch_listener/points/viewer_balance.dart';
+import 'package:twitch_listener/points/viewer_balances_screen.dart';
+import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/reward_configurator.dart';
 import 'package:twitch_listener/rewards/reward_executor.dart';
@@ -24,6 +26,7 @@ import 'package:twitch_listener/twitch/twitch_shared.dart';
 import 'package:twitch_listener/twitch/twitch_state.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
+import 'package:twitch_listener/ui/back_button.dart';
 import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
 import 'package:twitch_listener/updates/update_notice.dart';
@@ -73,6 +76,7 @@ void main() {
       WebSocketManager: _WebSocketManager(),
       YoutubeConnectionController: _Connection(),
       MusicRequestManager: _Requests(),
+      ViewerBalancesStore: _Balances(),
     });
   });
 
@@ -82,6 +86,7 @@ void main() {
     updates.dispose();
     obs.state.dispose();
     shared.redemptions.dispose();
+    locator.provide<WebSocketManager>().reauthorizationRequired.dispose();
     await settings.authChanges.close();
   });
 
@@ -129,19 +134,43 @@ void main() {
     expect(find.byType(RewardsStateWidget), findsOneWidget);
     expect(find.text('Version 9.0.0 is available'), findsOneWidget);
     expect(ApplicationRouter.current, ApplicationRouter.routeRoot);
+    expect(find.text('Viewer balances'), findsNothing);
 
     final addReward = find.text('Add New Reward');
     await tester.ensureVisible(addReward);
     await tester.tap(addReward);
     await tester.pumpAndSettle();
     expect(find.byType(RewardConfiguratorWidget), findsOneWidget);
-
+    await tester.tap(find.text('Add New Reaction'));
+    await tester.pump();
+    await tester.tap(find.text('Credit viewer points'));
+    await tester.pumpAndSettle();
+    final amount = find.byKey(const ValueKey('credit-points-amount'));
+    await tester.ensureVisible(amount);
+    await tester.enterText(amount, '125');
+    final balancesLink = find.byKey(
+      const ValueKey('credit-points-balances-link'),
+    );
+    expect(find.text("viewer's internal balance"), findsOneWidget);
+    expect(find.text('View viewer balances'), findsNothing);
+    await tester.ensureVisible(balancesLink);
+    await tester.tap(balancesLink);
+    await tester.pumpAndSettle();
+    expect(find.byType(ViewerBalancesScreen), findsOneWidget);
+    expect(find.text('Viewer Login (@viewer_login)'), findsOneWidget);
+    expect(ApplicationRouter.current, '/viewers/balances');
+    await tester.tap(find.byType(AppBackButton));
+    await tester.pumpAndSettle();
+    expect(find.byType(RewardConfiguratorWidget), findsOneWidget);
+    expect(tester.widget<TextField>(amount).controller!.text, '125');
+    expect(find.byType(ViewerBalancesScreen), findsNothing);
     ApplicationRouter.popToRoot(
       tester.element(find.byType(RewardConfiguratorWidget)),
     );
     await tester.pumpAndSettle();
     expect(find.byType(HomeScreen), findsOneWidget);
     expect(find.byType(RewardConfiguratorWidget), findsNothing);
+    expect(find.text('Viewer balances'), findsNothing);
     expect(ApplicationRouter.current, ApplicationRouter.routeRoot);
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox.shrink());
@@ -163,10 +192,29 @@ class _Settings extends RewardTestSettings {
   }
 }
 
+class _Balances implements ViewerBalancesStore {
+  @override
+  Stream<void> get changes => const Stream.empty();
+
+  @override
+  Future<List<ViewerBalance>> loadBalances() async => const [
+    ViewerBalance(
+      viewerId: 'viewer',
+      username: 'viewer_login',
+      displayName: 'Viewer Login',
+      balance: 50,
+    ),
+  ];
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 class _WebSocketManager implements WebSocketManager {
   @override
-  ValueListenable<Set<TwitchEventType>> get reauthorizationRequired =>
-      const AlwaysStoppedAnimation({});
+  final reauthorizationRequired = ObservableValue<Set<TwitchEventType>>(
+    current: const {},
+  );
 
   @override
   WsState get currentState => WsState.idle;

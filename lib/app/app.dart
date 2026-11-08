@@ -149,6 +149,8 @@ class _ListenerAppState extends State<ListenerApp> {
       eventKey: '$broadcasterId:chat:$messageId',
       userInput: event.message?.text,
       requester: event.chatterUserName ?? '',
+      requesterId: event.chatterUserId!,
+      requesterLogin: event.chatterUserLogin,
     );
   }
 
@@ -172,6 +174,8 @@ class _ListenerAppState extends State<ListenerApp> {
       ),
       eventKey: '$broadcasterId:raid:$notificationId',
       requester: event.fromBroadcasterUserName ?? raiderId,
+      requesterId: raiderId,
+      requesterLogin: event.fromBroadcasterUserLogin,
     );
   }
 
@@ -195,6 +199,8 @@ class _ListenerAppState extends State<ListenerApp> {
       ),
       eventKey: '$broadcasterId:follow:$notificationId',
       requester: event.userName ?? followerId,
+      requesterId: followerId,
+      requesterLogin: event.userLogin,
     );
   }
 
@@ -202,6 +208,8 @@ class _ListenerAppState extends State<ListenerApp> {
     Iterable<Reward> rewards, {
     required String eventKey,
     required String requester,
+    required String requesterId,
+    String? requesterLogin,
     String? userInput,
   }) {
     final matches = rewards.toList();
@@ -211,7 +219,13 @@ class _ListenerAppState extends State<ListenerApp> {
     }
     for (final reward in matches) {
       unawaited(
-        _executeReaction(reward, requester: requester, userInput: userInput),
+        _executeReaction(
+          reward,
+          requester: requester,
+          requesterId: requesterId,
+          requesterLogin: requesterLogin,
+          userInput: userInput,
+        ),
       );
     }
   }
@@ -219,6 +233,8 @@ class _ListenerAppState extends State<ListenerApp> {
   Future<void> _executeReaction(
     Reward reward, {
     required String requester,
+    required String requesterId,
+    String? requesterLogin,
     String? userInput,
   }) async {
     try {
@@ -226,6 +242,8 @@ class _ListenerAppState extends State<ListenerApp> {
         reward,
         userInput: userInput,
         requester: requester,
+        requesterId: requesterId,
+        requesterLogin: requesterLogin,
       );
     } catch (error) {
       debugPrint('${reward.triggerType.name} reaction: $error');
