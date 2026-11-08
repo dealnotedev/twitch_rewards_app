@@ -1,5 +1,29 @@
 # Changelog
 
+## 2.7.0
+
+Changes since [2.6.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.6.0).
+
+- Add a complete Ukrainian translation and an EN/UK language button next to
+  the theme control. Remember the selected language between launches and pass
+  it to the updater.
+- Add persistent internal viewer balances, tracked by Twitch user ID. Credit
+  points from a reaction using a fixed whole number or the actual reward cost.
+- Add a searchable viewer balance screen, opened from the balance link in the
+  credit-points action.
+- Keep running reaction chains active when their reward requests are confirmed
+  or refunded, including changes received from Twitch.
+- Rename the main section to Reactions & automation and simplify its settings
+  button. Open the configurator by clicking anywhere on a reaction card, with
+  ripple feedback and independent settings, playback and delete controls.
+- Size the add-reaction menu to its contents and adapt longer localized labels
+  to narrow windows. Use Ukrainian plural forms for reaction and point counts.
+- Shorten the viewer-points guidance in both languages.
+- Restyle the Twitch sign-in confirmation page with self-contained HTML/CSS,
+  English and Ukrainian text, light/dark themes and a responsive layout.
+- Synchronized Flutter and Windows application version metadata at **2.7.0**
+  (build **12**).
+
 ## 2.6.0
 
 Changes since [2.5.3](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.5.3).
