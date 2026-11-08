@@ -441,12 +441,16 @@ class _RewardState extends State<_RewardWidget> {
             ),
           ),
           const Gap(12),
-          CustomButton(
-            prefixIcon: Assets.assetsIcSettingsWhite16dp,
-            text: context.localizations.button_configure,
-            style: CustomButtonStyle.secondary,
-            theme: theme,
-            onTap: widget.onConfigure,
+          Semantics(
+            label: context.localizations.button_configure,
+            button: true,
+            child: CustomButton(
+              prefixIcon: Assets.assetsIcSettingsWhite16dp,
+              text: '',
+              style: CustomButtonStyle.secondary,
+              theme: theme,
+              onTap: widget.onConfigure,
+            ),
           ),
           const Gap(8),
           CustomButton(
