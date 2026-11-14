@@ -2,45 +2,72 @@
 FROM debian:bookworm-slim@sha256:3783cc01769c7b2b1b83a5c5ad96c815348e28ed7da68e2e3687004faa906251 AS builder
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    gcc libc6-dev gcc-mingw-w64-x86-64-win32 binutils-mingw-w64-x86-64 make nasm xz-utils \
+    gcc libc6-dev gcc-mingw-w64-x86-64-win32 binutils-mingw-w64-x86-64 make nasm pkg-config xz-utils \
     && rm -rf /var/lib/apt/lists/*
 
-COPY ffmpeg-9.0.2.tar.xz lame-3.100.tar.gz /sources/
+COPY ffmpeg-9.0.2.tar.xz lame-3.100.tar.gz opus-1.6.1.tar.gz libogg-1.3.6.tar.xz libvorbis-1.3.7.tar.xz /sources/
 RUN cd /sources && \
     echo '8c3850283eb25fa026482078a04051e0be17347b09ef81a0849bec15a96e002e  ffmpeg-9.0.2.tar.xz' | sha256sum -c - && \
     echo 'ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e  lame-3.100.tar.gz' | sha256sum -c - && \
-    tar -xf ffmpeg-9.0.2.tar.xz && tar -xf lame-3.100.tar.gz
+    echo '6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1  opus-1.6.1.tar.gz' | sha256sum -c - && \
+    echo '5c8253428e181840cd20d41f3ca16557a9cc04bad4a3d04cce84808677fa1061  libogg-1.3.6.tar.xz' | sha256sum -c - && \
+    echo 'b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b  libvorbis-1.3.7.tar.xz' | sha256sum -c - && \
+    tar -xf ffmpeg-9.0.2.tar.xz && tar -xf lame-3.100.tar.gz && \
+    tar -xf opus-1.6.1.tar.gz && tar -xf libogg-1.3.6.tar.xz && tar -xf libvorbis-1.3.7.tar.xz
 
 ARG JOBS=4
+ENV PKG_CONFIG_LIBDIR=/opt/audio/lib/pkgconfig
 WORKDIR /sources/lame-3.100
 RUN ./configure --host=x86_64-w64-mingw32 --prefix=/opt/audio \
     --disable-shared --enable-static --disable-frontend --disable-decoder \
     CFLAGS='-Os -ffunction-sections -fdata-sections' \
     && make -j${JOBS} && make install
 
+WORKDIR /sources/opus-1.6.1
+RUN ./configure --host=x86_64-w64-mingw32 --prefix=/opt/audio \
+    --disable-shared --enable-static --disable-extra-programs --disable-doc \
+    CFLAGS='-Os -ffunction-sections -fdata-sections' \
+    && make -j${JOBS} && make install
+
+WORKDIR /sources/libogg-1.3.6
+RUN ./configure --host=x86_64-w64-mingw32 --prefix=/opt/audio \
+    --disable-shared --enable-static CFLAGS='-Os -ffunction-sections -fdata-sections' \
+    && make -j${JOBS} && make install
+
+WORKDIR /sources/libvorbis-1.3.7
+RUN ./configure --host=x86_64-w64-mingw32 --prefix=/opt/audio \
+    --disable-shared --enable-static --disable-examples \
+    CFLAGS='-Os -ffunction-sections -fdata-sections' \
+    && make -j${JOBS} && make install
+
 WORKDIR /sources/ffmpeg-9.0.2
-# PCM/WAV are retained for deterministic tests and the null analysis output.
 # Keep audio only: no networking, video, GPU libraries, devices or extra tools.
 RUN ./configure --prefix=/opt/ffmpeg --target-os=mingw32 --arch=x86_64 \
     --enable-cross-compile --cross-prefix=x86_64-w64-mingw32- \
     --disable-everything --disable-autodetect --disable-network \
     --disable-doc --disable-debug --disable-shared --enable-static --enable-small \
     --disable-ffplay --disable-ffprobe --disable-avdevice --disable-swscale \
-    --enable-libmp3lame \
+    --enable-libmp3lame --enable-libopus --enable-libvorbis \
+    --pkg-config=pkg-config --pkg-config-flags=--static \
     --enable-decoder=aac,opus,vorbis,mp3float,pcm_s16le,pcm_f32le \
     --enable-demuxer=mov,matroska,ogg,mp3,wav,aac \
     --enable-parser=aac,opus,vorbis,mpegaudio \
-    --enable-encoder=libmp3lame,pcm_s16le \
-    --enable-muxer=mp3,null --enable-protocol=file,pipe \
+    --enable-encoder=aac,libopus,libvorbis,libmp3lame,pcm_s16le,pcm_f32le \
+    --enable-muxer=adts,ipod,matroska,mov,mp3,mp4,null,ogg,wav,webm --enable-protocol=file,pipe \
     --enable-filter=abuffer,abuffersink,aformat,aresample,anull,atrim,loudnorm \
     --extra-cflags='-I/opt/audio/include -Os -ffunction-sections -fdata-sections' \
     --extra-ldflags='-L/opt/audio/lib -static -Wl,--gc-sections -Wl,--no-insert-timestamp' \
-    && make -j${JOBS} ffmpeg.exe \
+    --extra-libs=-lssp \
+    || { tail -n 80 ffbuild/config.log; exit 1; }
+RUN make -j${JOBS} ffmpeg.exe \
     && x86_64-w64-mingw32-strip ffmpeg.exe
 
 RUN mkdir -p /out/ffmpeg-notices && cp ffmpeg.exe /out/ && \
     cp COPYING.LGPLv2.1 /out/ffmpeg-notices/FFmpeg-LGPL-2.1.txt && \
     cp /sources/lame-3.100/COPYING /out/ffmpeg-notices/LAME-LGPL-2.0.txt && \
+    cp /sources/opus-1.6.1/COPYING /out/ffmpeg-notices/Opus-BSD.txt && \
+    cp /sources/libogg-1.3.6/COPYING /out/ffmpeg-notices/libogg-BSD.txt && \
+    cp /sources/libvorbis-1.3.7/COPYING /out/ffmpeg-notices/libvorbis-BSD.txt && \
     cp ffbuild/config.log /out/ffmpeg-config.log && \
     x86_64-w64-mingw32-objdump -p ffmpeg.exe | grep 'DLL Name:' > /out/ffmpeg-imports.txt && \
     dpkg-query -W > /out/build-packages.txt

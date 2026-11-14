@@ -76,7 +76,7 @@ try {
   $minimalFfmpegInstalled = $false
   if ((Test-Path -LiteralPath $ffmpegPath) -and (Test-Path -LiteralPath $manifestPath)) {
     $manifest = Get-Content -LiteralPath $manifestPath -Raw | ConvertFrom-Json
-    $minimalFfmpegInstalled = $manifest.profile -eq 'twitch-listener-audio-v1' -and `
+    $minimalFfmpegInstalled = $manifest.profile -eq 'twitch-listener-audio-v2' -and `
       (Get-FileHash -LiteralPath $ffmpegPath -Algorithm SHA256).Hash -eq $manifest.sha256 -and `
       (Get-FileHash -LiteralPath (Join-Path $toolDirectory 'ffmpeg/Dockerfile') -Algorithm SHA256).Hash -eq $manifest.recipeSha256
   }

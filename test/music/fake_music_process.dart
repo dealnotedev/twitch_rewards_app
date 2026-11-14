@@ -2,6 +2,14 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+const fakeOpusInputHeader = '''
+Input #0, matroska,webm, from 'source.webm':
+  Stream #0:0: Video: vp9, yuv420p, 1920x1080
+  Stream #0:1: Audio: opus, 48000 Hz, mono, fltp
+  Stream #0:2: Audio: opus, 48000 Hz, stereo, fltp
+Stream mapping:
+''';
+
 class TestAudioProcess implements Process {
   final _exit = Completer<int>();
   final _stdout = StreamController<List<int>>();

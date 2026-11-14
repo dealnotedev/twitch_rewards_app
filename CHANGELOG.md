@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.7.2
+
+Changes since [2.7.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.1).
+
+- YouTube music requests keep the source audio codec, container, sample rate and
+  channel count after loudness normalization.
+- Rebuild the bundled FFmpeg with AAC, Opus and Vorbis encoders. Tracks use a
+  new cache profile and are downloaded again when requested.
+- Update the app version to **2.7.2** (build **14**).
+
 ## 2.7.1
 
 Changes since [2.7.0](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.0).

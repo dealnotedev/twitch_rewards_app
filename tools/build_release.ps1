@@ -100,7 +100,10 @@ foreach ($zipPath in @($updateZip, $releaseZip)) {
         if (-not $zip.GetEntry('twitch_listener.exe') -or -not $zip.GetEntry('listener-update.json')) {
             throw "Invalid archive root: $zipPath"
         }
-        if ($zipPath -eq $releaseZip -and -not $zip.GetEntry('updater/listener_updater.exe')) {
+        # Windows PowerShell can use backslashes for ZIP entry paths.
+        if ($zipPath -eq $releaseZip -and
+            -not $zip.GetEntry('updater/listener_updater.exe') -and
+            -not $zip.GetEntry('updater\listener_updater.exe')) {
             throw 'The full package is missing the updater.'
         }
     } finally { $zip.Dispose() }

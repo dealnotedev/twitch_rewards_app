@@ -56,7 +56,8 @@ void main() {
             ffmpegCalls++;
             if (ffmpegCalls.isOdd) {
               return TestAudioProcess.completed(
-                  stderr: '{"input_i":"-25","input_tp":"-8","input_lra":"4",'
+                  stderr: '$fakeOpusInputHeader'
+                      '{"input_i":"-25","input_tp":"-8","input_lra":"4",'
                       '"input_thresh":"-35","target_offset":"0"}');
             }
             await File(args.last).writeAsBytes([7, 8, 9]);

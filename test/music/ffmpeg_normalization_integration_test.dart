@@ -20,9 +20,10 @@ void main() {
     test('normalizes the downloaded audio format $name', () async {
       final root = await Directory.systemTemp.createTemp('music_codec_');
       addTearDown(() => root.delete(recursive: true));
+      final input = File('test/music/fixtures/$name').absolute;
       final output = await FfmpegAudioProcessor(executable: ffmpeg.path)
           .normalize(
-              input: File('test/music/fixtures/$name').absolute,
+              input: input,
               stagingDirectory: root,
               duration: const Duration(seconds: 4),
               onProgress: (_) {});
@@ -38,6 +39,14 @@ void main() {
         '-',
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
+      final outputLog = measured.stderr as String;
+      expect(_audioFormat(outputLog), await _probe(ffmpeg, input));
+      expect(output.path, endsWith(name.substring(name.lastIndexOf('.'))));
+      expect(outputLog.split('\nStream mapping:').first, isNot(contains('Video:')));
+      if (name.endsWith('.webm')) {
+        expect(latin1.decode((await output.readAsBytes()).take(64).toList()),
+            contains('webm'));
+      }
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
@@ -50,10 +59,10 @@ void main() {
   }
 
   for (final sample in [
-    (name: 'quiet-mono', amplitude: .03, channels: '1', dynamic: false),
-    (name: 'loud-stereo', amplitude: .8, channels: '2', dynamic: false),
-    (name: 'dynamic-stereo', amplitude: .6, channels: '2', dynamic: true),
-    (name: 'peak-limited', amplitude: .6, channels: '2', dynamic: false),
+    (name: 'quiet-mono', amplitude: .03, channels: 1, rate: 44100, dynamic: false),
+    (name: 'loud-stereo', amplitude: .8, channels: 2, rate: 32000, dynamic: false),
+    (name: 'dynamic-stereo', amplitude: .6, channels: 2, rate: 48000, dynamic: true),
+    (name: 'peak-limited', amplitude: .6, channels: 2, rate: 48000, dynamic: false),
   ]) {
     test('real FFmpeg normalizes ${sample.name} to LUFS', () async {
       final root = await Directory.systemTemp.createTemp('music real ffmpeg_');
@@ -63,7 +72,8 @@ void main() {
       final input = await writeAudioFixture(
           File('${directory.path}/source.wav'),
           amplitude: sample.amplitude,
-          channels: int.parse(sample.channels),
+          channels: sample.channels,
+          sampleRate: sample.rate,
           dynamicVolume: sample.dynamic,
           peaks: sample.name == 'peak-limited');
       final output = await processor.normalize(
@@ -71,7 +81,7 @@ void main() {
           stagingDirectory: directory,
           duration: const Duration(seconds: 12),
           onProgress: (_) {});
-      // Measure the decoded MP3, not the pre-encoder loudnorm report.
+      // Measure the decoded output.
       final measured = await Process.run(ffmpeg.path, [
         '-hide_banner',
         '-nostdin',
@@ -84,13 +94,18 @@ void main() {
         '-',
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
+      expect(_audioFormat(measured.stderr as String), (
+        container: 'wav',
+        codec: 'pcm_f32le',
+        sampleRate: '${sample.rate}',
+        layout: sample.channels == 1 ? 'mono' : 'stereo',
+      ));
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
           .group(0)!) as Map<String, dynamic>;
       final lufs = double.parse(json['input_i'] as String);
       final peak = double.parse(json['input_tp'] as String);
-      // Lossy encoding may slightly change both the loudness and true peak.
       expect(lufs, closeTo(-16, .5), reason: sample.name);
       expect(peak, lessThanOrEqualTo(-1.5), reason: sample.name);
       // ignore: avoid_print
@@ -115,6 +130,40 @@ void main() {
             duration: const Duration(seconds: 2),
             onProgress: (_) {}),
         throwsA(isA<AudioProcessingException>()));
-    expect(await File('${root.path}/normalized.mp3').exists(), isFalse);
+    expect(await File('${root.path}/normalized.wav').exists(), isFalse);
   }, skip: available ? false : 'Install tools/ffmpeg.exe or set MUSIC_FFMPEG');
+}
+
+Future<({String container, String codec, String sampleRate, String layout})>
+    _probe(File ffmpeg, File input) async {
+  final result = await Process.run(ffmpeg.path, [
+    '-hide_banner',
+    '-nostdin',
+    '-i',
+    input.path,
+    '-map',
+    '0:a:0',
+    '-t',
+    '0.1',
+    '-f',
+    'null',
+    '-',
+  ]);
+  expect(result.exitCode, 0, reason: '${result.stderr}');
+  return _audioFormat(result.stderr as String);
+}
+
+({String container, String codec, String sampleRate, String layout})
+    _audioFormat(String log) {
+  final header = log.split('\nStream mapping:').first;
+  final container = RegExp(r'^Input #0, (.+?), from ', multiLine: true)
+      .firstMatch(header)!;
+  final audio = RegExp(r'Audio: (\w+).*?, (\d+) Hz, ([^,\r\n]+)')
+      .firstMatch(header)!;
+  return (
+    container: container[1]!,
+    codec: audio[1]!,
+    sampleRate: audio[2]!,
+    layout: audio[3]!,
+  );
 }
