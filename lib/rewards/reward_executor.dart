@@ -1,3 +1,5 @@
+import 'dart:math';
+
 import 'package:flutter/foundation.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/music/music_requests.dart';
@@ -14,6 +16,7 @@ class RewardExecutor {
   final ObsConnect obs;
   final MusicRequestManager musicRequests;
   final ViewerBalancesStore? viewerBalances;
+  final _audioShuffles = Expando<_AudioShuffle>();
 
   RewardExecutor({
     required this.audioplayer,
@@ -254,13 +257,9 @@ class RewardExecutor {
 
         case RewardAction.typePlayAudios:
           if (action.awaitCompletion) {
-            await _playAudios(action, title: reward.name, userInput: userInput);
+            await _playAudios(action, title: reward.name);
           } else {
-            final effect = _playAudios(
-              action,
-              title: reward.name,
-              userInput: userInput,
-            );
+            final effect = _playAudios(action, title: reward.name);
             if (execution != null) {
               execution.track(effect);
             } else {
@@ -331,57 +330,16 @@ class RewardExecutor {
     if (invalid) throw StateError('Incomplete reaction: ${action.type}');
   }
 
-  static int _stableRandomFromText(String text, int max) {
-    if (max <= 0) {
-      throw ArgumentError('max must be > 0');
-    }
-
-    final hash = _fnv1a32(text);
-
-    final positive = hash & 0x7fffffff;
-    return positive % max;
-  }
-
-  static int _fnv1a32(String input) {
-    const int fnvPrime = 0x01000193;
-    int hash = 0x811c9dc5;
-
-    for (final codeUnit in input.codeUnits) {
-      hash ^= codeUnit;
-      hash = (hash * fnvPrime) & 0xffffffff;
-    }
-
-    return hash;
-  }
-
-  Future<void> _playAudios(
-    RewardAction action, {
-    required String title,
-    required String? userInput,
-  }) async {
-    final all = List.of(action.audios);
-    final count = action.count;
-
+  Future<void> _playAudios(RewardAction action, {required String title}) async {
+    final all = action.audios;
     if (all.isEmpty) return;
 
     final List<AudioEntry> audios;
-
-    if (action.randomize &&
-        count == 1 &&
-        userInput != null &&
-        userInput.isNotEmpty) {
-      final index = _stableRandomFromText(userInput, all.length);
-      audios = [all[index]];
-    } else if (action.randomize) {
-      all.shuffle();
-
-      if (count != null) {
-        audios = all.take(count).toList();
-      } else {
-        audios = all;
-      }
+    if (action.randomize) {
+      final shuffle = _audioShuffles[action] ??= _AudioShuffle();
+      audios = shuffle.take(all, action.count);
     } else {
-      audios = all;
+      audios = List.of(all);
     }
 
     for (int i = 0; i < audios.length; i++) {
@@ -395,6 +353,60 @@ class RewardExecutor {
         volume: file.volume,
         title: title,
       );
+    }
+  }
+}
+
+class _AudioShuffle {
+  final _random = Random();
+  var _order = <String>[];
+  var _nextIndex = 0;
+
+  List<AudioEntry> take(List<AudioEntry> audios, int? count) {
+    final byPath = <String, AudioEntry>{};
+    for (final audio in audios) {
+      byPath.putIfAbsent(audio.path, () => audio);
+    }
+
+    final length = min(count ?? byPath.length, byPath.length);
+    RangeError.checkNotNegative(length, 'count');
+    if (length == 0) return [];
+
+    final selected = <String>{};
+    if (_order.length != byPath.length || !_order.every(byPath.containsKey)) {
+      _startCycle(byPath.keys, selected, length);
+    }
+    for (var remaining = length; remaining > 0; remaining--) {
+      if (_nextIndex == _order.length) {
+        _startCycle(byPath.keys, selected, remaining);
+      }
+      selected.add(_order[_nextIndex++]);
+    }
+    return [for (final path in selected) byPath[path]!];
+  }
+
+  void _startCycle(
+    Iterable<String> paths,
+    Set<String> selected,
+    int remaining,
+  ) {
+    final previousPath = _nextIndex == 0 ? null : _order[_nextIndex - 1];
+    _order = paths.toList()..shuffle(_random);
+    _nextIndex = 0;
+
+    if (selected.isNotEmpty) {
+      // Fill the rest of this run with sounds it hasn't selected yet.
+      final prefix = {
+        ..._order.where((path) => !selected.contains(path)).take(remaining),
+      };
+      final rest = _order.where((path) => !prefix.contains(path)).toList()
+        ..shuffle(_random);
+      _order = [...prefix, ...rest];
+    } else if (_order.length > 1 && _order.first == previousPath) {
+      final index = 1 + _random.nextInt(_order.length - 1);
+      final first = _order.first;
+      _order[0] = _order[index];
+      _order[index] = first;
     }
   }
 }

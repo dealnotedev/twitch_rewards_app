@@ -1,5 +1,15 @@
 # Changelog
 
+## 2.7.3
+
+Changes since [2.7.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.2).
+
+- Shuffled audio reactions play each unique file once per cycle. Single- and
+  multi-sound runs share the same queue, including when the track count changes.
+- Runs that span two cycles still play distinct files, and consecutive picks
+  differ when at least two files are available.
+- Update the app version to **2.7.3** (build **15**).
+
 ## 2.7.2
 
 Changes since [2.7.1](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.1).
