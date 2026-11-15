@@ -45,7 +45,7 @@
   "button_add_reward": "Додати нагороду",
   "channel_points_active": "Активна",
   "channel_points_inactive": "Неактивна",
-  "channel_points_reactions_info": "{reactions, plural, one{{reactions} реакція} few{{reactions} реакції} many{{reactions} реакцій} other{{reactions} реакції}} • {enabled, plural, one{{enabled} увімкнена} few{{enabled} увімкнені} many{{enabled} увімкнених} other{{enabled} увімкнених}}",
+  "x_reactions": "{reactions, plural, one{{reactions} реакція} few{{reactions} реакції} many{{reactions} реакцій} other{{reactions} реакції}}",
   "button_configure": "Налаштувати",
   "reward_configure_title": "Налаштування нагороди",
   "reward_configure_title_with_name": "Налаштування: {reward}",

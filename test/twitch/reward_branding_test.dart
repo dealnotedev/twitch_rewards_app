@@ -57,9 +57,9 @@ void main() {
     ),
   );
 
-  void setWindow(WidgetTester tester) {
+  void setWindow(WidgetTester tester, {double width = 1100}) {
     tester.view.devicePixelRatio = 1;
-    tester.view.physicalSize = const Size(1100, 1000);
+    tester.view.physicalSize = Size(width, 1000);
     addTearDown(tester.view.resetDevicePixelRatio);
     addTearDown(tester.view.resetPhysicalSize);
   }
@@ -102,6 +102,51 @@ void main() {
       },
     );
   }
+
+  testWidgets('aligns total reaction counts next to the reward controls', (
+    tester,
+  ) async {
+    setWindow(tester, width: 640);
+    const title = 'A long Twitch reward name that needs to wrap at this width';
+    final reward = _linked('own', title);
+    reward.handlers.addAll(
+      List.generate(
+        12,
+        (i) => RewardAction(type: RewardAction.typeDelay, disabled: i == 0),
+      ),
+    );
+    settings.rewards.rewards.addAll([reward, _linked('other', 'Water')]);
+    api.entries[0] = remoteReward('own', title);
+    await controller.refresh();
+    await tester.pumpWidget(screen());
+    await tester.pumpAndSettle();
+
+    final count = find.byTooltip('12 reactions');
+    final emptyCount = find.byTooltip('0 reactions');
+    final configure = find.descendant(
+      of: find.byKey(ValueKey(reward)),
+      matching: find.byWidgetPredicate(
+        (widget) =>
+            widget is Semantics && widget.properties.label == 'Configure',
+      ),
+    );
+    expect(
+      find.descendant(of: count, matching: find.text('12')),
+      findsOneWidget,
+    );
+    expect(
+      find.descendant(of: emptyCount, matching: find.text('0')),
+      findsOneWidget,
+    );
+    expect(tester.getTopRight(count).dx, tester.getTopRight(emptyCount).dx);
+    expect(
+      tester.getTopRight(count).dx,
+      lessThan(tester.getTopLeft(configure).dx),
+    );
+    expect(tester.getCenter(count).dy, tester.getCenter(configure).dy);
+    expect(tester.takeException(), isNull);
+    await tester.pumpWidget(const SizedBox.shrink());
+  });
 
   testWidgets(
     'branding follows verified ownership, unlinking, and account changes',

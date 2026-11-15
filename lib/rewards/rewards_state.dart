@@ -10,6 +10,7 @@ import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/reward_executor.dart';
 import 'package:twitch_listener/rewards/reward_test.dart';
+import 'package:twitch_listener/ui/outline_icons.dart';
 import 'package:twitch_listener/ui/ripple_icon.dart';
 import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/ui/simple_icon.dart';
@@ -345,10 +346,6 @@ class _RewardState extends State<_RewardWidget> {
     final theme = widget.theme;
     final reward = widget.reward;
 
-    final reactions = reward.handlers.length;
-    final reactionsEnabled = reward.handlers.where((h) => !h.disabled).length;
-    final unnamed = reward.name.trim().isEmpty;
-
     return Container(
       margin: const EdgeInsets.symmetric(vertical: 4),
       width: double.infinity,
@@ -363,94 +360,72 @@ class _RewardState extends State<_RewardWidget> {
           onTap: widget.onConfigure,
           borderRadius: BorderRadius.circular(8),
           child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            padding: const EdgeInsets.fromLTRB(16, 12, 8, 12),
             child: Row(
               children: [
-                const Gap(8),
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      ListenableBuilder(
-                        listenable: widget.rewardsController,
-                        builder: (context, _) => StreamBuilder(
-                          stream: _twitchShared.redemptions.changes,
-                          initialData: _twitchShared.redemptions.current,
-                          builder: (cntx, snapshot) {
-                            final redemption = _twitchShared.findReward(reward);
-                            final listenerReward =
-                                reward.isLinked &&
-                                redemption != null &&
-                                widget.rewardsController.isManageable(
-                                  redemption.id,
-                                );
-                            return Row(
-                              children: [
-                                if (listenerReward) ...[
-                                  const _ListenerRewardBadge(),
-                                  const Gap(4),
-                                ],
-                                Flexible(
-                                  child: Text(
-                                    unnamed
-                                        ? context.localizations.reward_no_name
-                                        : reward.name.trim(),
-                                    style: TextStyle(
-                                      fontSize: 14,
-                                      fontStyle: unnamed
-                                          ? FontStyle.italic
-                                          : null,
-                                      fontWeight: unnamed
-                                          ? FontWeight.w400
-                                          : FontWeight.w600,
-                                      color: theme.textColorPrimary,
-                                    ),
-                                  ),
-                                ),
-                                const Gap(8),
-                                if (redemption != null) ...[
-                                  SimpleIndicator(
-                                    text: context.localizations.x_points(
-                                      redemption.cost,
-                                    ),
-                                    theme: theme,
-                                    style: IndicatorStyle.neutral,
-                                  ),
-                                  const Gap(4),
-                                ],
-                                SimpleIndicator(
-                                  text: reward.disabled
-                                      ? context
-                                            .localizations
-                                            .channel_points_inactive
-                                      : context
-                                            .localizations
-                                            .channel_points_active,
-                                  theme: theme,
-                                  style: reward.disabled
-                                      ? IndicatorStyle.outlined
-                                      : IndicatorStyle.bold,
-                                ),
-                              ],
+                  child: ListenableBuilder(
+                    listenable: widget.rewardsController,
+                    builder: (context, _) => StreamBuilder(
+                      stream: _twitchShared.redemptions.changes,
+                      initialData: _twitchShared.redemptions.current,
+                      builder: (context, _) {
+                        final l10n = context.localizations;
+                        final name = reward.name.trim();
+                        final unnamed = name.isEmpty;
+                        final redemption = _twitchShared.findReward(reward);
+                        final listenerReward =
+                            reward.isLinked &&
+                            redemption != null &&
+                            widget.rewardsController.isManageable(
+                              redemption.id,
                             );
-                          },
-                        ),
-                      ),
-                      const Gap(4),
-                      Text(
-                        context.localizations.channel_points_reactions_info(
-                          reactions,
-                          reactionsEnabled,
-                        ),
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: theme.textColorSecondary,
-                        ),
-                      ),
-                    ],
+                        return Row(
+                          children: [
+                            if (listenerReward) ...[
+                              const _ListenerRewardBadge(),
+                              const Gap(4),
+                            ],
+                            Flexible(
+                              child: Text(
+                                unnamed ? l10n.reward_no_name : name,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontStyle: unnamed ? FontStyle.italic : null,
+                                  fontWeight: unnamed
+                                      ? FontWeight.w400
+                                      : FontWeight.w600,
+                                  color: theme.textColorPrimary,
+                                ),
+                              ),
+                            ),
+                            const Gap(8),
+                            if (redemption != null) ...[
+                              SimpleIndicator(
+                                text: l10n.x_points(redemption.cost),
+                                theme: theme,
+                                style: IndicatorStyle.neutral,
+                              ),
+                              const Gap(4),
+                            ],
+                            SimpleIndicator(
+                              text: reward.disabled
+                                  ? l10n.channel_points_inactive
+                                  : l10n.channel_points_active,
+                              theme: theme,
+                              style: reward.disabled
+                                  ? IndicatorStyle.outlined
+                                  : IndicatorStyle.bold,
+                            ),
+                          ],
+                        );
+                      },
+                    ),
                   ),
                 ),
                 const Gap(12),
+                _RewardReactionCount(count: reward.handlers.length),
+                const Gap(8),
                 Semantics(
                   label: context.localizations.button_configure,
                   button: true,
@@ -480,6 +455,49 @@ class _RewardState extends State<_RewardWidget> {
                 ),
               ],
             ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _RewardReactionCount extends StatelessWidget {
+  final int count;
+
+  const _RewardReactionCount({required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    final color = Theme.of(context).textColorSecondary;
+    final label = context.localizations.x_reactions(count);
+
+    return Tooltip(
+      message: label,
+      excludeFromSemantics: true,
+      child: Semantics(
+        label: label,
+        excludeSemantics: true,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minWidth: 36),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              SimpleIcon.simpleSquare(
+                OutlineIcons.reactions,
+                size: 16,
+                color: color,
+              ),
+              const Gap(4),
+              Text(
+                '$count',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: color,
+                  fontFeatures: const [FontFeature.tabularFigures()],
+                ),
+              ),
+            ],
           ),
         ),
       ),

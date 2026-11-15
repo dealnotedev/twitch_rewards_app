@@ -79,16 +79,12 @@
   "button_add_reward": "Add New Reward",
   "channel_points_active": "Active",
   "channel_points_inactive": "Inactive",
-  "channel_points_reactions_info": "{reactions,plural, =1{{reactions} reaction} other{{reactions} reactions}} • {enabled} enabled",
-  "@channel_points_reactions_info": {
+  "x_reactions": "{reactions,plural, =1{{reactions} reaction} other{{reactions} reactions}}",
+  "@x_reactions": {
     "placeholders": {
       "reactions": {
         "type": "int",
         "example": "5"
-      },
-      "enabled": {
-        "type": "int",
-        "example": "3"
       }
     }
   },

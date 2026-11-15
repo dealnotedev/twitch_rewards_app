@@ -58,37 +58,26 @@ void main() {
 
   test('Ukrainian plurals handle zero, teens and compound numbers', () {
     final strings = lookupAppLocalizations(const Locale('uk'));
-    for (final (count, points, actions, reactions, requests, enabled) in [
-      (0, 'балів', 'дій', 'реакцій', 'запитів', 'увімкнених'),
-      (1, 'бал', 'дія', 'реакція', 'запит', 'увімкнена'),
-      (2, 'бали', 'дії', 'реакції', 'запити', 'увімкнені'),
-      (5, 'балів', 'дій', 'реакцій', 'запитів', 'увімкнених'),
-      (11, 'балів', 'дій', 'реакцій', 'запитів', 'увімкнених'),
-      (21, 'бал', 'дія', 'реакція', 'запит', 'увімкнена'),
-      (22, 'бали', 'дії', 'реакції', 'запити', 'увімкнені'),
-      (25, 'балів', 'дій', 'реакцій', 'запитів', 'увімкнених'),
-      (101, 'бал', 'дія', 'реакція', 'запит', 'увімкнена'),
-      (111, 'балів', 'дій', 'реакцій', 'запитів', 'увімкнених'),
+    for (final (count, points, actions, reactions, requests) in [
+      (0, 'балів', 'дій', 'реакцій', 'запитів'),
+      (1, 'бал', 'дія', 'реакція', 'запит'),
+      (2, 'бали', 'дії', 'реакції', 'запити'),
+      (5, 'балів', 'дій', 'реакцій', 'запитів'),
+      (11, 'балів', 'дій', 'реакцій', 'запитів'),
+      (21, 'бал', 'дія', 'реакція', 'запит'),
+      (22, 'бали', 'дії', 'реакції', 'запити'),
+      (25, 'балів', 'дій', 'реакцій', 'запитів'),
+      (101, 'бал', 'дія', 'реакція', 'запит'),
+      (111, 'балів', 'дій', 'реакцій', 'запитів'),
     ]) {
       expect(strings.x_points(count), '$count $points');
       expect(strings.x_actions(count), '$count $actions');
-      expect(
-        strings.channel_points_reactions_info(count, count),
-        '$count $reactions • $count $enabled',
-      );
+      expect(strings.x_reactions(count), '$count $reactions');
       expect(
         strings.twitch_rewards_delete_pending(count),
         '$count $requests в очікуванні',
       );
     }
-    expect(
-      strings.channel_points_reactions_info(5, 1),
-      '5 реакцій • 1 увімкнена',
-    );
-    expect(
-      strings.channel_points_reactions_info(1, 0),
-      '1 реакція • 0 увімкнених',
-    );
   });
 
   group('saved language', () {
