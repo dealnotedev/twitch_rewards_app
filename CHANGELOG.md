@@ -10,6 +10,8 @@ Changes since [2.7.3](https://github.com/dealnotedev/twitch_rewards_app/releases
 - Use the same shortcut recording dialog and keycaps in player settings and
   the Send input reaction.
 - Show reaction counts next to the reward controls.
+- Leave Twitch redemptions pending when there is no enabled local reaction.
+  Automatically refund only when reaction execution fails.
 - Update the app version to **2.8.0** (build **16**).
 
 ## 2.7.3

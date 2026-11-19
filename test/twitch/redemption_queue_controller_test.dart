@@ -336,6 +336,47 @@ void main() {
     expect(h.queue.find('one'), isNull);
   });
 
+  test(
+    'leaves an owned reward without a local configuration pending on Twitch',
+    () async {
+      final h = await QueueHarness.create();
+      addTearDown(h.close);
+      final removed = h.settings.rewards.rewards.removeLast();
+      for (final action in removed.handlers) {
+        action.dispose();
+      }
+      h.api.statuses['one'] = RedemptionStatus.unfulfilled;
+
+      await h.queue.handleMessage(redemptionMessage('one'));
+      h.clock = h.clock.add(const Duration(hours: 1));
+      await h.queue.tick();
+
+      expect(h.api.patches, isEmpty);
+      expect(h.api.statuses['one'], RedemptionStatus.unfulfilled);
+      expect(h.queue.find('one'), isNull);
+      expect(h.executor.calls, 0);
+    },
+  );
+
+  test(
+    'leaves an owned reward with all reactions disabled pending on Twitch',
+    () async {
+      final h = await QueueHarness.create();
+      addTearDown(h.close);
+      h.settings.rewards.rewards.single.handlers.single.disabled = true;
+      h.api.statuses['one'] = RedemptionStatus.unfulfilled;
+
+      await h.queue.handleMessage(redemptionMessage('one'));
+      h.clock = h.clock.add(const Duration(hours: 1));
+      await h.queue.tick();
+
+      expect(h.api.patches, isEmpty);
+      expect(h.api.statuses['one'], RedemptionStatus.unfulfilled);
+      expect(h.queue.find('one'), isNull);
+      expect(h.executor.calls, 0);
+    },
+  );
+
   test('other applications rewards execute without settlement', () async {
     final h = await QueueHarness.create();
     addTearDown(h.close);

@@ -274,6 +274,11 @@ class RedemptionQueueController extends ChangeNotifier {
       );
       return;
     }
+    if (!matches.any(
+      (reward) => reward.handlers.any((action) => !action.disabled),
+    )) {
+      return;
+    }
     final entry = RedemptionQueueEntry(
       account: accountKey!,
       redemption: redemption,
@@ -285,11 +290,6 @@ class RedemptionQueueController extends ChangeNotifier {
     final execution = RewardExecution();
     _executions[entry.id] = execution;
     try {
-      if (!matches.any(
-        (reward) => reward.handlers.any((action) => !action.disabled),
-      )) {
-        throw StateError('No enabled reactions');
-      }
       final scheduling = Future.wait(
         matches.map(
           (reward) => executor.execute(
@@ -309,13 +309,7 @@ class RedemptionQueueController extends ChangeNotifier {
         execution.failure,
       ]);
       await execution.finish();
-      if (!_active(generation) || entry.terminal || entry.intent != null) {
-        return;
-      }
-      entry.state = RedemptionQueueState.waiting;
-      entry.confirmAt = now().add(confirmationDelay);
-      _notify();
-    } catch (error) {
+    } catch (_) {
       await execution.cancel();
       if (!_active(generation) || entry.terminal || entry.intent != null) {
         return;
@@ -324,11 +318,18 @@ class RedemptionQueueController extends ChangeNotifier {
       entry.intent = RedemptionStatus.canceled;
       _notify();
       await _send(entry, generation);
+      return;
     } finally {
       if (identical(_executions[entry.id], execution)) {
         _executions.remove(entry.id);
       }
     }
+    if (!_active(generation) || entry.terminal || entry.intent != null) {
+      return;
+    }
+    entry.state = RedemptionQueueState.waiting;
+    entry.confirmAt = now().add(confirmationDelay);
+    _notify();
   }
 
   TwitchRedemption _fromEvent(WsMessageEvent event, RedemptionStatus status) =>
