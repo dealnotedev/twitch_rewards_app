@@ -1,5 +1,17 @@
 # Changelog
 
+## 2.8.0
+
+Changes since [2.7.3](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.3).
+
+- Move the language and theme controls from the toolbar to application settings.
+- Add a global play/pause shortcut for the music player on Windows. Assign a
+  single key or a key combination in settings.
+- Use the same shortcut recording dialog and keycaps in player settings and
+  the Send input reaction.
+- Show reaction counts next to the reward controls.
+- Update the app version to **2.8.0** (build **16**).
+
 ## 2.7.3
 
 Changes since [2.7.2](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.2).
