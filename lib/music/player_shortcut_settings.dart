@@ -137,10 +137,44 @@ class _ShortcutDialog extends StatefulWidget {
 }
 
 class _ShortcutDialogState extends State<_ShortcutDialog> {
+  final _focus = FocusNode();
+  final _held = <PhysicalKeyboardKey>{};
+  final _keys = <int>{};
+  late final AppLifecycleListener _lifecycle;
   PlayerShortcut? _candidate;
   MusicHotkeyResult? _error;
-  bool _invalid = false;
+  bool _capturing = true;
+  bool _released = false;
   bool _saving = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _lifecycle = AppLifecycleListener(
+      onInactive: () {
+        if (_capturing && _held.isNotEmpty) _startCapture();
+      },
+    );
+  }
+
+  @override
+  void dispose() {
+    _lifecycle.dispose();
+    _focus.dispose();
+    super.dispose();
+  }
+
+  void _startCapture() {
+    setState(() {
+      _held.clear();
+      _keys.clear();
+      _candidate = null;
+      _error = null;
+      _released = false;
+      _capturing = true;
+    });
+    _focus.requestFocus();
+  }
 
   Future<void> _save() async {
     final shortcut = _candidate;
@@ -156,45 +190,44 @@ class _ShortcutDialogState extends State<_ShortcutDialog> {
   }
 
   // Use the focused Windows event's virtual key to preserve the keyboard layout
-  // and match RegisterHotKey. KeyEvent does not expose that native code.
+  // and match the background Windows listener. KeyEvent lacks the native code.
   // ignore: deprecated_member_use
   KeyEventResult _capture(FocusNode node, RawKeyEvent event) {
     final data = event.data;
     // ignore: deprecated_member_use
-    if (event is! RawKeyDownEvent || data is! RawKeyEventDataWindows) {
+    if (data is! RawKeyEventDataWindows) {
       return KeyEventResult.ignored;
     }
-    final key = data.keyCode;
-    if (key == VK_ESCAPE) {
-      if (!_saving) Navigator.of(context).pop();
-      return KeyEventResult.handled;
-    }
-    final keyboard = HardwareKeyboard.instance;
-    final modifiers =
-        (keyboard.isControlPressed ? MOD_CONTROL : 0) |
-        (keyboard.isAltPressed ? MOD_ALT : 0) |
-        (keyboard.isShiftPressed ? MOD_SHIFT : 0);
-    if (modifiers & (MOD_CONTROL | MOD_ALT) == 0 && key == VK_TAB) {
-      return KeyEventResult.ignored;
-    }
-    if (_saving || event.repeat || PlayerShortcut.isModifierKey(key)) {
-      return KeyEventResult.handled;
-    }
-    if (modifiers == 0 && (key == VK_RETURN || key == VK_SPACE)) {
-      if (!node.hasPrimaryFocus) return KeyEventResult.ignored;
-      if (key == VK_RETURN && _candidate != null) {
-        _save();
+    final key = PlayerShortcut.normalizeKey(data.keyCode);
+    // ignore: deprecated_member_use
+    final down = event is RawKeyDownEvent;
+    if (!_capturing || !node.hasPrimaryFocus) {
+      if (down && key == VK_ESCAPE) {
+        if (!_saving) Navigator.of(context).pop();
         return KeyEventResult.handled;
       }
+      return KeyEventResult.ignored;
     }
-    final candidate = keyboard.isMetaPressed
-        ? null
-        : PlayerShortcut.tryCreate(key, modifiers);
-    setState(() {
-      _candidate = candidate;
-      _error = null;
-      _invalid = candidate == null;
-    });
+    if (down) {
+      if (!event.repeat &&
+          PlayerShortcut.isKeyboardKey(key) &&
+          _held.add(event.physicalKey) &&
+          !_released) {
+        setState(() => _keys.add(key));
+      }
+    } else if (_held.remove(event.physicalKey)) {
+      _released = true;
+      if (_held.isEmpty) {
+        if (_keys.length == 1 && _keys.contains(VK_ESCAPE)) {
+          Navigator.of(context).pop();
+          return KeyEventResult.handled;
+        }
+        setState(() {
+          _candidate = PlayerShortcut.tryCreate(_keys);
+          _capturing = false;
+        });
+      }
+    }
     return KeyEventResult.handled;
   }
 
@@ -202,10 +235,10 @@ class _ShortcutDialogState extends State<_ShortcutDialog> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final strings = context.localizations;
-    final error = _invalid
-        ? strings.player_shortcut_invalid
-        : _errorMessage(strings, _error);
+    final error = _errorMessage(strings, _error);
+    final preview = _candidate ?? PlayerShortcut.tryCreate(_keys);
     return Focus(
+      focusNode: _focus,
       autofocus: true,
       // ignore: deprecated_member_use
       onKey: _capture,
@@ -225,9 +258,9 @@ class _ShortcutDialogState extends State<_ShortcutDialog> {
                 Semantics(
                   liveRegion: true,
                   child: KeyCombinationField(
-                    keys: _candidate?.labels ?? const [],
+                    keys: preview?.labels ?? const [],
                     placeholder: strings.player_shortcut_recording,
-                    recording: true,
+                    recording: _capturing,
                   ),
                 ),
                 if (error != null) ...[const Gap(8), _ShortcutError(error)],
@@ -241,6 +274,13 @@ class _ShortcutDialogState extends State<_ShortcutDialog> {
               text: MaterialLocalizations.of(context).cancelButtonLabel,
               onTap: _saving ? null : () => Navigator.of(context).pop(),
             ),
+            if (!_capturing)
+              CustomButton(
+                theme: theme,
+                style: CustomButtonStyle.secondary,
+                text: strings.player_shortcut_record_again,
+                onTap: _saving ? null : _startCapture,
+              ),
             CustomButton(
               theme: theme,
               style: CustomButtonStyle.primary,

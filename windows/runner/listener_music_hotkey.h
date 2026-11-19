@@ -5,6 +5,7 @@
 #include <flutter/standard_method_codec.h>
 #include <windows.h>
 
+#include <bitset>
 #include <memory>
 
 class ListenerMusicHotkey {
@@ -12,13 +13,19 @@ class ListenerMusicHotkey {
   ListenerMusicHotkey(flutter::BinaryMessenger* messenger, HWND window);
   ~ListenerMusicHotkey();
 
-  bool HandleHotkey(WPARAM id);
+  void HandleInput(HRAWINPUT input);
+  void ResetPressedKeys();
 
  private:
-  bool SetShortcut(UINT modifiers, UINT key);
+  using Keys = std::bitset<256>;
+
+  bool SetShortcut(Keys keys);
+  Keys PressedShortcutKeys() const;
 
   const HWND window_;
-  int active_id_ = 0;
+  Keys shortcut_;
+  Keys pressed_;
+  bool matched_on_press_ = false;
   std::unique_ptr<flutter::MethodChannel<flutter::EncodableValue>> channel_;
 };
 

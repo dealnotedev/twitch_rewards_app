@@ -138,7 +138,7 @@ void main() {
 
     const hotkeyChannel = MethodChannel('listener/music_hotkey');
 
-    test('restores a saved shortcut and toggles the shared player', () async {
+    test('restores a legacy shortcut and toggles the shared player', () async {
       final calls = <Object?>[];
       binding.defaultBinaryMessenger.setMockMethodCallHandler(hotkeyChannel, (
         call,
@@ -153,8 +153,12 @@ void main() {
         ),
       );
 
-      final shortcut = PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL)!;
-      await settings.savePlayPauseShortcut(shortcut);
+      final shortcut = PlayerShortcut.tryCreate([VK_CONTROL, VK_F9])!;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(
+        'music_play_pause_shortcut',
+        jsonEncode({'keyCode': VK_F9, 'modifiers': MOD_CONTROL}),
+      );
       final restarted = Settings();
       await restarted.init();
       expect(restarted.playPauseShortcut, shortcut);
@@ -182,13 +186,17 @@ void main() {
 
       await pressShortcut();
       expect(requests.current.nowPlaying?.paused, isTrue);
+      hotkey.recording = true;
+      await pressShortcut();
+      expect(requests.current.nowPlaying?.paused, isTrue);
+      hotkey.recording = false;
       await pressShortcut();
       expect(requests.current.nowPlaying?.paused, isFalse);
     });
 
     testWidgets(
-      'gear opens settings and rebinding preserves a working shortcut '
-      'when Windows rejects the replacement',
+      'records single keys and chords while keeping the last saved shortcut '
+      'if the listener fails',
       (tester) async {
         tester.view.devicePixelRatio = 1;
         tester.view.physicalSize = const Size(640, 720);
@@ -198,7 +206,7 @@ void main() {
           call,
         ) async {
           final arguments = call.arguments as Map<Object?, Object?>?;
-          return arguments?['keyCode'] != VK_F8;
+          return !(arguments?['keys'] as List<Object?>? ?? []).contains(VK_F8);
         });
         addTearDown(
           () => binding.defaultBinaryMessenger.setMockMethodCallHandler(
@@ -260,25 +268,48 @@ void main() {
         await tester.pumpAndSettle();
         await tester.sendKeyEvent(LogicalKeyboardKey.keyP, platform: 'windows');
         await tester.pump();
-        expect(find.text(strings.player_shortcut_invalid), findsOneWidget);
+        expect(find.text('P', findRichText: true), findsOneWidget);
+        await tester.tap(find.text(strings.player_shortcut_record_again));
+        await tester.pump();
         await tester.sendKeyDownEvent(
-          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.shiftLeft,
           platform: 'windows',
         );
-        await tester.sendKeyEvent(LogicalKeyboardKey.f9, platform: 'windows');
+        await tester.sendKeyEvent(
+          LogicalKeyboardKey.enter,
+          platform: 'windows',
+        );
         await tester.sendKeyUpEvent(
-          LogicalKeyboardKey.controlLeft,
+          LogicalKeyboardKey.shiftLeft,
           platform: 'windows',
         );
         await tester.pump();
-        expect(find.text('Ctrl + F9', findRichText: true), findsOneWidget);
+        expect(find.text('Shift + Enter', findRichText: true), findsOneWidget);
+        await tester.tap(find.text(strings.player_shortcut_record_again));
+        await tester.pump();
+        await tester.sendKeyDownEvent(
+          LogicalKeyboardKey.keyJ,
+          platform: 'windows',
+        );
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyK, platform: 'windows');
+        await tester.sendKeyUpEvent(
+          LogicalKeyboardKey.keyJ,
+          platform: 'windows',
+        );
+        await tester.pump();
+        expect(find.text('J + K', findRichText: true), findsOneWidget);
         await tester.tap(find.text(strings.button_save_changes));
         await tester.pumpAndSettle();
+        final shortcut = PlayerShortcut.tryCreate([VK_J, VK_K])!;
+        expect(settings.playPauseShortcut, shortcut);
+        final prefs = await SharedPreferences.getInstance();
         expect(
-          settings.playPauseShortcut,
-          PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL),
+          PlayerShortcut.fromPreference(
+            prefs.getString('music_play_pause_shortcut'),
+          ),
+          shortcut,
         );
-        expect(find.text('Ctrl + F9', findRichText: true), findsOneWidget);
+        expect(find.text('J + K', findRichText: true), findsOneWidget);
 
         await tester.tap(find.text(strings.player_shortcut_change));
         await tester.pumpAndSettle();
@@ -287,10 +318,7 @@ void main() {
         await tester.tap(find.text(strings.button_save_changes));
         await tester.pumpAndSettle();
         expect(find.text(strings.player_shortcut_unavailable), findsOneWidget);
-        expect(
-          settings.playPauseShortcut,
-          PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL),
-        );
+        expect(settings.playPauseShortcut, shortcut);
         await tester.sendKeyEvent(
           LogicalKeyboardKey.escape,
           platform: 'windows',

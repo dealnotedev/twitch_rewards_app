@@ -1,60 +1,74 @@
 import 'dart:convert';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:win32/win32.dart';
 
-/// A Windows virtual key and the modifiers accepted by RegisterHotKey.
+/// An unordered set of Windows virtual keys pressed together.
 class PlayerShortcut {
-  final int keyCode;
-  final int modifiers;
+  final List<int> keys;
 
-  const PlayerShortcut._(this.keyCode, this.modifiers);
+  PlayerShortcut._(List<int> keys) : keys = List.unmodifiable(keys);
 
-  static PlayerShortcut? tryCreate(int keyCode, int modifiers) {
-    const allowedModifiers = MOD_CONTROL | MOD_ALT | MOD_SHIFT;
-    if (modifiers & ~allowedModifiers != 0) return null;
-    final isFunctionKey = keyCode >= VK_F1 && keyCode <= VK_F24;
-    if (keyCode == VK_F12) return null;
-    if (isFunctionKey || keyCode == VK_MEDIA_PLAY_PAUSE) {
-      return PlayerShortcut._(keyCode, modifiers);
-    }
-
-    // Keep ordinary typing (including Shift with a letter) available system-wide.
-    if (modifiers & (MOD_CONTROL | MOD_ALT) == 0) return null;
-    if (kWindowsToLogicalKey[keyCode] == null ||
-        keyCode == VK_ESCAPE ||
-        isModifierKey(keyCode) ||
-        keyCode == VK_CAPITAL ||
-        keyCode == VK_NUMLOCK ||
-        keyCode == VK_SCROLL) {
+  static PlayerShortcut? tryCreate(Iterable<int> keys) {
+    final normalized = keys.map(normalizeKey).toSet().toList()..sort();
+    if (normalized.isEmpty || normalized.any((key) => !isKeyboardKey(key))) {
       return null;
     }
-    return PlayerShortcut._(keyCode, modifiers);
+    return PlayerShortcut._(normalized);
   }
 
-  static bool isModifierKey(int keyCode) =>
-      keyCode == VK_SHIFT ||
-      keyCode == VK_CONTROL ||
-      keyCode == VK_MENU ||
-      keyCode == VK_LWIN ||
-      keyCode == VK_RWIN ||
-      keyCode >= VK_LSHIFT && keyCode <= VK_RMENU;
+  static bool isKeyboardKey(int key) =>
+      key == VK_CANCEL ||
+      key >= VK_BACK && key < 0xff && key != VK_PACKET && key != VK_PROCESSKEY;
 
-  List<String> get labels => [
-    if (modifiers & MOD_CONTROL != 0) 'Ctrl',
-    if (modifiers & MOD_ALT != 0) 'Alt',
-    if (modifiers & MOD_SHIFT != 0) 'Shift',
-    keyCode == VK_SPACE ? 'Space' : kWindowsToLogicalKey[keyCode]!.keyLabel,
-  ];
+  static int normalizeKey(int key) => switch (key) {
+    VK_LCONTROL || VK_RCONTROL => VK_CONTROL,
+    VK_LMENU || VK_RMENU => VK_MENU,
+    VK_LSHIFT || VK_RSHIFT => VK_SHIFT,
+    VK_RWIN => VK_LWIN,
+    _ => key,
+  };
 
-  Map<String, int> toJson() => {'keyCode': keyCode, 'modifiers': modifiers};
+  static String label(int key) => switch (key) {
+    VK_CONTROL => 'Ctrl',
+    VK_MENU => 'Alt',
+    VK_SHIFT => 'Shift',
+    VK_LWIN => 'Win',
+    VK_SPACE => 'Space',
+    _ => switch (kWindowsToLogicalKey[key]?.keyLabel) {
+      final String name when name.isNotEmpty => name,
+      _ => 'VK 0x${key.toRadixString(16).toUpperCase()}',
+    },
+  };
+
+  List<String> get labels {
+    const modifiers = [VK_CONTROL, VK_MENU, VK_SHIFT, VK_LWIN];
+    return [
+      for (final key in modifiers)
+        if (keys.contains(key)) label(key),
+      for (final key in keys)
+        if (!modifiers.contains(key)) label(key),
+    ];
+  }
+
+  Map<String, List<int>> toJson() => {'keys': keys};
 
   static PlayerShortcut? fromPreference(Object? value) {
     if (value is! String) return null;
     try {
       return switch (jsonDecode(value)) {
-        {'keyCode': final int keyCode, 'modifiers': final int modifiers} =>
-          tryCreate(keyCode, modifiers),
+        {'keys': final List<Object?> keys}
+            when keys.every((key) => key is int) =>
+          tryCreate(keys.cast<int>()),
+        {'keyCode': final int key, 'modifiers': final int modifiers}
+            when modifiers & ~(MOD_CONTROL | MOD_ALT | MOD_SHIFT) == 0 =>
+          tryCreate([
+            if (modifiers & MOD_CONTROL != 0) VK_CONTROL,
+            if (modifiers & MOD_ALT != 0) VK_MENU,
+            if (modifiers & MOD_SHIFT != 0) VK_SHIFT,
+            key,
+          ]),
         _ => null,
       };
     } on FormatException {
@@ -64,10 +78,8 @@ class PlayerShortcut {
 
   @override
   bool operator ==(Object other) =>
-      other is PlayerShortcut &&
-      other.keyCode == keyCode &&
-      other.modifiers == modifiers;
+      other is PlayerShortcut && listEquals(keys, other.keys);
 
   @override
-  int get hashCode => Object.hash(keyCode, modifiers);
+  int get hashCode => Object.hashAll(keys);
 }

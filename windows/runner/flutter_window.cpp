@@ -57,9 +57,13 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
-  if (message == WM_HOTKEY && music_hotkey_ &&
-      music_hotkey_->HandleHotkey(wparam)) {
-    return 0;
+  if (music_hotkey_) {
+    if (message == WM_INPUT) {
+      music_hotkey_->HandleInput(reinterpret_cast<HRAWINPUT>(lparam));
+      // Windows requires DefWindowProc to clean up foreground Raw Input.
+      return DefWindowProc(hwnd, message, wparam, lparam);
+    }
+    if (message == WM_INPUT_DEVICE_CHANGE) music_hotkey_->ResetPressedKeys();
   }
 
   // Give Flutter, including plugins, an opportunity to handle window messages.

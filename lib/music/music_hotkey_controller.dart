@@ -1,5 +1,5 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/widgets.dart';
 import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/player_shortcut.dart';
@@ -79,9 +79,7 @@ class MusicHotkeyController extends ChangeNotifier {
   }
 
   Future<void> _handleMethodCall(MethodCall call) async {
-    if (call.method != 'pressed' || _closed || _active == null) return;
-    if (recording &&
-        WidgetsBinding.instance.lifecycleState == AppLifecycleState.resumed) {
+    if (call.method != 'pressed' || _closed || _active == null || recording) {
       return;
     }
     await _requests.togglePaused();
