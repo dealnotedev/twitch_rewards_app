@@ -58,15 +58,6 @@ add_subdirectory("runner")
 # them to the application.
 include(flutter/generated_plugins.cmake)
 
-# hid_listener 2.0.1 includes dart_api_dl.c in its Windows .cpp file and also
-# lists it as a separate source. Compile it only through the .cpp to avoid
-# duplicate Dart API symbols when linking the plugin.
-if(TARGET hid_listener_plugin)
-  get_target_property(HID_LISTENER_SOURCES hid_listener_plugin SOURCES)
-  list(FILTER HID_LISTENER_SOURCES EXCLUDE REGEX "dart_api_dl\\.c$")
-  set_property(TARGET hid_listener_plugin PROPERTY SOURCES "${HID_LISTENER_SOURCES}")
-endif()
-
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
 # run in place. This is done instead of making a separate bundle (as on Linux)
@@ -83,6 +74,9 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
+
+# Clean up the keyboard hook library left by older incremental builds.
+install(CODE "file(REMOVE \"${CMAKE_INSTALL_PREFIX}/hid_listener.dll\")" COMPONENT Runtime)
 
 # Every Windows build verifies the downloader against its committed release pin.
 set(MUSIC_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools")

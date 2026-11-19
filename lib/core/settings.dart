@@ -219,20 +219,12 @@ class Settings {
     );
   }
 
-  void toggleBrightness(AppBrightness current) {
-    final all = [...AppBrightness.values, ...AppBrightness.values];
-    final next = all[all.indexOf(current) + 1];
-    setBrightness(next);
-  }
-
   Future<void> setBrightness(AppBrightness brightness) async {
     appearance = appearance.copy(brightness: brightness);
     _appearanceSubject.add(appearance);
 
     await _prefs.setString(_kBrightness, brightness.name);
   }
-
-  Future<void> toggleLanguage() => setLanguage(appearance.language.next);
 
   Future<void> setLanguage(AppLanguage language) async {
     appearance = appearance.copy(language: language);
@@ -281,8 +273,6 @@ enum AppLanguage {
 
   final String code;
   final String nativeName;
-
-  AppLanguage get next => values[(index + 1) % values.length];
 
   static AppLanguage findByCode(String? code) =>
       values.firstWhereOrNull((language) => language.code == code) ?? english;

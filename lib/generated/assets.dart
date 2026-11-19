@@ -38,7 +38,6 @@ class Assets {
   static const String assetsIcMicWhite16dp = 'assets/ic_mic_white_16dp.png';
   static const String assetsIcMinimizeWhite16dp =
       'assets/ic_minimize_white_16dp.png';
-  static const String assetsIcMoonWhite16dp = 'assets/ic_moon_white_16dp.png';
   static const String assetsIcMoreWhite12dp = 'assets/ic_more_white_12dp.png';
   static const String assetsIcMoreWhite16dp = 'assets/ic_more_white_16dp.png';
   static const String assetsIcMusicNoteWhite16dp =
@@ -61,7 +60,6 @@ class Assets {
   static const String assetsIcSkullWhite16dp = 'assets/ic_skull_white_16dp.png';
   static const String assetsIcSunMoonWhite16dp =
       'assets/ic_sun_moon_white_16dp.png';
-  static const String assetsIcSunWhite16dp = 'assets/ic_sun_white_16dp.png';
   static const String assetsIcThunderWhite16dp =
       'assets/ic_thunder_white_16dp.png';
   static const String assetsIcToggleWhite16dp =

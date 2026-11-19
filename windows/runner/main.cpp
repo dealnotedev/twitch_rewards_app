@@ -9,7 +9,6 @@ auto bdw = bitsdojo_window_configure(BDW_CUSTOM_FRAME | BDW_HIDE_ON_STARTUP);
 
 #include "flutter_window.h"
 #include "utils.h"
-#include <hid_listener/hid_listener_plugin_windows.h>
 
 int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
                       _In_ wchar_t *command_line, _In_ int show_command) {
@@ -79,8 +78,6 @@ int APIENTRY wWinMain(_In_ HINSTANCE instance, _In_opt_ HINSTANCE prev,
     return EXIT_FAILURE;
   }
   window.SetQuitOnClose(true);
-
-  HidListener listener;
 
   HANDLE activation = activate_event.get();
   bool running = true;

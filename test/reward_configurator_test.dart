@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
 import 'package:twitch_listener/core/autosaver.dart';
@@ -12,9 +13,11 @@ import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/reward_configurator.dart';
 import 'package:twitch_listener/rewards/reward_executor.dart';
 import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/shortcut_recording_dialog.dart';
 import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/twitch/twitch_shared.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
+import 'package:win32/win32.dart';
 
 void main() {
   Future<Reward> showConfigurator(
@@ -166,6 +169,59 @@ void main() {
     await showConfigurator(tester, textScale: 2);
     expect(find.text('Link Twitch reward'), findsOneWidget);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('Send input records and saves a shortcut in a dialog', (
+    tester,
+  ) async {
+    final action = RewardAction(type: RewardAction.typeSendInput);
+    await showConfigurator(tester, initialActions: [action]);
+
+    Future<void> openRecorder() async {
+      await tester.ensureVisible(find.text('Setup'));
+      await tester.tap(find.text('Setup'));
+      await tester.pumpAndSettle();
+      final dialog = find.byType(ShortcutRecordingDialog);
+      expect(dialog, findsOneWidget);
+      expect(
+        find.descendant(of: dialog, matching: find.text('Send input')),
+        findsOneWidget,
+      );
+      expect(find.text('Press your shortcut'), findsOneWidget);
+    }
+
+    await openRecorder();
+    await tester.sendKeyDownEvent(
+      LogicalKeyboardKey.controlRight,
+      platform: 'windows',
+    );
+    await tester.sendKeyEvent(LogicalKeyboardKey.f9, platform: 'windows');
+    await tester.sendKeyUpEvent(
+      LogicalKeyboardKey.controlRight,
+      platform: 'windows',
+    );
+    await tester.pumpAndSettle();
+    expect(find.text('Ctrl'), findsOneWidget);
+    expect(find.text('F9'), findsOneWidget);
+    expect(action.inputs, isEmpty);
+
+    await tester.tap(find.text('Save Changes'));
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    final saved = [
+      InputEntry(code: VK_RCONTROL, type: 0, name: 'Ctrl'),
+      InputEntry(code: VK_F9, type: 0, name: 'F9'),
+    ];
+    final restored = RewardAction.fromJson(action.toJson());
+    addTearDown(restored.dispose);
+    expect(restored.inputs, saved);
+    expect(find.text('F9'), findsOneWidget);
+
+    await openRecorder();
+    await tester.sendKeyEvent(LogicalKeyboardKey.escape, platform: 'windows');
+    await tester.pumpAndSettle();
+    expect(find.byType(AlertDialog), findsNothing);
+    expect(action.inputs, saved);
   });
 
   testWidgets('viewer points action can be added and configured from the menu', (

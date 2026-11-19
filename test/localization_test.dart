@@ -12,7 +12,9 @@ import 'package:twitch_listener/app/app_router.dart';
 import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/core/settings.dart';
+import 'package:twitch_listener/core/windows_keyboard.dart';
 import 'package:twitch_listener/di/service_locator.dart';
+import 'package:twitch_listener/generated/assets.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
 import 'package:twitch_listener/music/music_hotkey_controller.dart';
 import 'package:twitch_listener/music/music_requests.dart';
@@ -22,7 +24,9 @@ import 'package:twitch_listener/rewards/rewards_store.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
 import 'package:twitch_listener/twitch/ws_manager.dart';
 import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
-import 'package:twitch_listener/ui/simple_icon.dart';
+import 'package:twitch_listener/ui/key_combination_field.dart';
+import 'package:twitch_listener/ui/ripple_icon.dart';
+import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
 import 'package:twitch_listener/updates/update_notice.dart';
 import 'package:win32/win32.dart';
@@ -107,26 +111,28 @@ void main() {
       await settings.init();
     });
 
-    test('cycles, persists after restart and keeps the chosen theme', () async {
-      expect(settings.appearance.language, AppLanguage.english);
-      await settings.toggleLanguage();
-      await settings.setBrightness(AppBrightness.dark);
-      final restarted = Settings();
-      await restarted.init();
-      expect(restarted.appearance.language, AppLanguage.ukrainian);
-      expect(restarted.appearance.brightness, AppBrightness.dark);
-      await restarted.toggleLanguage();
-      expect(restarted.appearance.language, AppLanguage.english);
-      final prefs = await SharedPreferences.getInstance();
-      expect(prefs.getString('language'), 'en');
-      // Each click advances from the current setting even before a rebuild.
-      await Future.wait([
-        restarted.toggleLanguage(),
-        restarted.toggleLanguage(),
-      ]);
-      expect(restarted.appearance.language, AppLanguage.english);
-      expect(prefs.getString('language'), 'en');
-    });
+    test(
+      'language persists after restart and keeps the chosen theme',
+      () async {
+        expect(settings.appearance.language, AppLanguage.english);
+        await settings.setLanguage(AppLanguage.ukrainian);
+        await settings.setBrightness(AppBrightness.dark);
+        final restarted = Settings();
+        await restarted.init();
+        expect(restarted.appearance.language, AppLanguage.ukrainian);
+        expect(restarted.appearance.brightness, AppBrightness.dark);
+        await restarted.setLanguage(AppLanguage.english);
+        expect(restarted.appearance.language, AppLanguage.english);
+        final prefs = await SharedPreferences.getInstance();
+        expect(prefs.getString('language'), 'en');
+        await Future.wait([
+          restarted.setLanguage(AppLanguage.ukrainian),
+          restarted.setLanguage(AppLanguage.english),
+        ]);
+        expect(restarted.appearance.language, AppLanguage.english);
+        expect(prefs.getString('language'), 'en');
+      },
+    );
 
     test('unsupported saved languages fall back to English', () async {
       final prefs = await SharedPreferences.getInstance();
@@ -186,10 +192,10 @@ void main() {
 
       await pressShortcut();
       expect(requests.current.nowPlaying?.paused, isTrue);
-      hotkey.recording = true;
-      await pressShortcut();
-      expect(requests.current.nowPlaying?.paused, isTrue);
-      hotkey.recording = false;
+      await ShortcutRecording.run(() async {
+        await pressShortcut();
+        expect(requests.current.nowPlaying?.paused, isTrue);
+      });
       await pressShortcut();
       expect(requests.current.nowPlaying?.paused, isFalse);
     });
@@ -261,15 +267,39 @@ void main() {
         await tester.tap(find.text(strings.app_settings_theme_dark));
         await tester.pumpAndSettle();
         expect(settings.appearance.brightness, AppBrightness.dark);
+        expect(Theme.of(tester.element(gear)).brightness, Brightness.dark);
         await tester.tap(find.text(strings.app_settings_player));
         await tester.pumpAndSettle();
 
         await tester.tap(find.text(strings.player_shortcut_assign));
         await tester.pumpAndSettle();
+        final shortcutPreview = find.descendant(
+          of: find.byType(AlertDialog),
+          matching: find.byType(KeyCombinationField),
+        );
+        final previewBoxes = find.descendant(
+          of: shortcutPreview,
+          matching: find.byType(DecoratedBox),
+        );
+        final previewTheme = Theme.of(tester.element(shortcutPreview));
+        final background =
+            tester.widget<DecoratedBox>(previewBoxes).decoration
+                as BoxDecoration;
+        expect(background.color, previewTheme.surfaceTertiary);
+        expect(background.border, isNull);
+        final hint = find.text(strings.shortcut_recording);
+        expect(
+          tester.getCenter(hint).dx,
+          lessThan(tester.getCenter(shortcutPreview).dx),
+        );
+        final previewHeight = tester.getSize(shortcutPreview).height;
+
         await tester.sendKeyEvent(LogicalKeyboardKey.keyP, platform: 'windows');
         await tester.pump();
-        expect(find.text('P', findRichText: true), findsOneWidget);
-        await tester.tap(find.text(strings.player_shortcut_record_again));
+        expect(find.text('P'), findsOneWidget);
+        expect(previewBoxes, findsNWidgets(2));
+        expect(tester.getSize(shortcutPreview).height, previewHeight);
+        await tester.tap(find.text(strings.shortcut_record_again));
         await tester.pump();
         await tester.sendKeyDownEvent(
           LogicalKeyboardKey.shiftLeft,
@@ -284,8 +314,11 @@ void main() {
           platform: 'windows',
         );
         await tester.pump();
-        expect(find.text('Shift + Enter', findRichText: true), findsOneWidget);
-        await tester.tap(find.text(strings.player_shortcut_record_again));
+        expect(find.text('Shift'), findsOneWidget);
+        expect(find.text('Enter'), findsOneWidget);
+        expect(previewBoxes, findsNWidgets(3));
+        expect(tester.getSize(shortcutPreview).height, previewHeight);
+        await tester.tap(find.text(strings.shortcut_record_again));
         await tester.pump();
         await tester.sendKeyDownEvent(
           LogicalKeyboardKey.keyJ,
@@ -297,7 +330,8 @@ void main() {
           platform: 'windows',
         );
         await tester.pump();
-        expect(find.text('J + K', findRichText: true), findsOneWidget);
+        expect(find.text('J'), findsOneWidget);
+        expect(find.text('K'), findsOneWidget);
         await tester.tap(find.text(strings.button_save_changes));
         await tester.pumpAndSettle();
         final shortcut = PlayerShortcut.tryCreate([VK_J, VK_K])!;
@@ -309,7 +343,21 @@ void main() {
           ),
           shortcut,
         );
-        expect(find.text('J + K', findRichText: true), findsOneWidget);
+        final savedCombination = find.byType(KeyCombinationField);
+        expect(savedCombination, findsOneWidget);
+        for (final label in ['J', 'K']) {
+          expect(
+            find.descendant(of: savedCombination, matching: find.text(label)),
+            findsOneWidget,
+          );
+        }
+        expect(
+          find.descendant(
+            of: savedCombination,
+            matching: find.byType(DecoratedBox),
+          ),
+          findsNWidgets(3),
+        );
 
         await tester.tap(find.text(strings.player_shortcut_change));
         await tester.pumpAndSettle();
@@ -341,8 +389,10 @@ void main() {
     );
 
     for (final language in AppLanguage.values) {
+      final nextLanguage =
+          AppLanguage.values[(language.index + 1) % AppLanguage.values.length];
       testWidgets(
-        'toolbar cycles from ${language.code}, preserves edits and passes locale to updater',
+        'changing ${language.code} in settings preserves edits and passes locale to updater',
         (tester) async {
           tester.view.devicePixelRatio = 1;
           tester.view.physicalSize = const Size(640, 720);
@@ -351,14 +401,17 @@ void main() {
           await settings.setLanguage(language);
           final websocket = _WebSocketManager();
           final launches = <String>[];
+          final requests = MusicRequestManager(
+            fetcher: FakeFetcher(),
+            player: FakePlayer(),
+          );
+          final hotkey = MusicHotkeyController(settings, requests);
           final locator = _Locator({
             Settings: settings,
             WebSocketManager: websocket,
             Autosaver: Autosaver(delay: Duration.zero),
-            MusicRequestManager: MusicRequestManager(
-              fetcher: FakeFetcher(),
-              player: FakePlayer(),
-            ),
+            MusicRequestManager: requests,
+            MusicHotkeyController: hotkey,
             YoutubeConnectionController: _Connection(),
             UpdateController: UpdateController(
               check: () async => '9.0.0',
@@ -368,6 +421,9 @@ void main() {
           addTearDown(() async {
             await tester.pumpWidget(const SizedBox.shrink());
             await tester.pumpAndSettle();
+            final close = hotkey.close();
+            await tester.pump();
+            await close;
             await websocket.events.close();
           });
           final router = _Router(locator: locator);
@@ -379,28 +435,45 @@ void main() {
           await tester.pumpAndSettle();
           await tester.enterText(find.byType(TextField), 'Незбережені зміни');
 
-          Future<void> checkLanguage(AppLanguage current) async {
+          void checkLanguage(AppLanguage current) {
             final strings = lookupAppLocalizations(Locale(current.code));
             expect(find.text(strings.reward_configure_title), findsOneWidget);
             expect(find.text('Незбережені зміни'), findsOneWidget);
-            final icon = tester.widget<SimpleIcon>(
-              find.descendant(
-                of: find.byKey(const ValueKey('language-switch')),
-                matching: find.byType(SimpleIcon),
-              ),
-            );
-            expect(icon.icon, 'assets/ic_locale_${current.code}_16dp.svg');
+            expect(find.byKey(const ValueKey('language-switch')), findsNothing);
             expect(
-              find.ancestor(
-                of: find.byKey(const ValueKey('language-switch')),
-                matching: find.byType(Tooltip),
+              find.byWidgetPredicate(
+                (widget) =>
+                    widget is RippleIcon &&
+                    widget.icon == Assets.assetsIcSunMoonWhite16dp,
               ),
               findsNothing,
             );
-            expect(tester.takeException(), isNull);
           }
 
-          await checkLanguage(language);
+          Future<void> changeLanguage(
+            AppLanguage current,
+            AppLanguage next,
+          ) async {
+            final strings = lookupAppLocalizations(Locale(current.code));
+            await tester.tap(find.byKey(const ValueKey('app-settings')));
+            await tester.pumpAndSettle();
+            expect(find.text('Open language-dependent menu'), findsNothing);
+            await tester.tap(find.text(strings.app_settings_appearance));
+            await tester.pumpAndSettle();
+            expect(find.text(strings.app_settings_language), findsOneWidget);
+            await tester.tap(find.text(current.nativeName));
+            await tester.pumpAndSettle();
+            await tester.tap(find.text(next.nativeName));
+            await tester.pumpAndSettle();
+            expect(settings.appearance.language, next);
+
+            final translated = lookupAppLocalizations(Locale(next.code));
+            expect(find.text(translated.app_settings_language), findsOneWidget);
+            await tester.tap(find.text(translated.button_back));
+            await tester.pumpAndSettle();
+          }
+
+          checkLanguage(language);
           final editorContext = tester.element(find.byType(TextField));
           DropdownScope.of(editorContext).show(
             editorContext,
@@ -409,20 +482,18 @@ void main() {
           );
           await tester.pumpAndSettle();
           expect(find.text('Open language-dependent menu'), findsOneWidget);
-          await tester.tap(find.byKey(const ValueKey('language-switch')));
-          await tester.pumpAndSettle();
-          expect(find.text('Open language-dependent menu'), findsNothing);
-          await checkLanguage(language.next);
-          final strings = lookupAppLocalizations(Locale(language.next.code));
+          await changeLanguage(language, nextLanguage);
+          checkLanguage(nextLanguage);
+          final strings = lookupAppLocalizations(Locale(nextLanguage.code));
           await tester.tap(find.text(strings.updateOpen));
           await tester.pumpAndSettle();
-          expect(launches, [language.next.code]);
+          expect(launches, [nextLanguage.code]);
           await settings.setBrightness(AppBrightness.dark);
           await tester.pumpAndSettle();
-          await checkLanguage(language.next);
-          await tester.tap(find.byKey(const ValueKey('language-switch')));
-          await tester.pumpAndSettle();
-          await checkLanguage(language);
+          checkLanguage(nextLanguage);
+          await changeLanguage(nextLanguage, language);
+          checkLanguage(language);
+          expect(tester.takeException(), isNull);
         },
       );
     }

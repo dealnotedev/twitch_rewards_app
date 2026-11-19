@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:twitch_listener/core/settings.dart';
+import 'package:twitch_listener/core/windows_keyboard.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/player_shortcut.dart';
 
@@ -22,7 +23,6 @@ class MusicHotkeyController extends ChangeNotifier {
 
   PlayerShortcut? get shortcut => _settings.playPauseShortcut;
   bool get registrationFailed => shortcut != null && shortcut != _active;
-  bool recording = false;
 
   Future<void> _restore() async {
     final saved = shortcut;
@@ -79,7 +79,10 @@ class MusicHotkeyController extends ChangeNotifier {
   }
 
   Future<void> _handleMethodCall(MethodCall call) async {
-    if (call.method != 'pressed' || _closed || _active == null || recording) {
+    if (call.method != 'pressed' ||
+        _closed ||
+        _active == null ||
+        ShortcutRecording.isActive) {
       return;
     }
     await _requests.togglePaused();

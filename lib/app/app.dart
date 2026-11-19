@@ -298,13 +298,7 @@ class _ListenerAppState extends State<ListenerApp> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          child: _createWindowTitleBarBox(
-                            context,
-                            theme,
-                            appearance: appearance,
-                          ),
-                        ),
+                        _createWindowTitleBarBox(context, theme),
                         SimpleDivider(theme: theme),
                         Expanded(
                           child: Navigator(
@@ -335,23 +329,7 @@ class _ListenerAppState extends State<ListenerApp> {
 
   static const _toolbarHeight = 42.0;
 
-  Widget _createWindowTitleBarBox(
-    BuildContext context,
-    ThemeData theme, {
-    required Appearance appearance,
-  }) {
-    final String brigthessIcon;
-    switch (appearance.brightness) {
-      case AppBrightness.system:
-        brigthessIcon = Assets.assetsIcSunMoonWhite16dp;
-        break;
-      case AppBrightness.dark:
-        brigthessIcon = Assets.assetsIcMoonWhite16dp;
-        break;
-      case AppBrightness.light:
-        brigthessIcon = Assets.assetsIcSunWhite16dp;
-        break;
-    }
+  Widget _createWindowTitleBarBox(BuildContext context, ThemeData theme) {
     return Container(
       decoration: BoxDecoration(
         color: theme.surfaceSecondary,
@@ -407,39 +385,6 @@ class _ListenerAppState extends State<ListenerApp> {
               borderRadius: BorderRadius.circular(8),
               background: theme.accentSubtle,
               color: theme.accentColor,
-            ),
-          ),
-          RippleIcon(
-            size: 16,
-            icon: brigthessIcon,
-            borderRadius: BorderRadius.circular(8),
-            color: theme.textColorPrimary,
-            onTap: () {
-              _settings.toggleBrightness(appearance.brightness);
-            },
-          ),
-          Semantics(
-            button: true,
-            label: context.localizations.language_switch_tooltip(
-              appearance.language.nativeName,
-              appearance.language.next.nativeName,
-            ),
-            child: RippleIcon(
-              key: const ValueKey('language-switch'),
-              size: 16,
-              borderRadius: BorderRadius.circular(8),
-              iconWidget: SimpleIcon.simpleSquare(
-                switch (appearance.language) {
-                  AppLanguage.english => 'assets/ic_locale_en_16dp.svg',
-                  AppLanguage.ukrainian => 'assets/ic_locale_uk_16dp.svg',
-                },
-                size: 16,
-                color: theme.textColorPrimary,
-              ),
-              onTap: () {
-                _dropdownManager.clear();
-                unawaited(_settings.toggleLanguage());
-              },
             ),
           ),
           Semantics(
