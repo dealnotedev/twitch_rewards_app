@@ -14,7 +14,9 @@ import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/core/settings.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/l10n/app_localizations.dart';
+import 'package:twitch_listener/music/music_hotkey_controller.dart';
 import 'package:twitch_listener/music/music_requests.dart';
+import 'package:twitch_listener/music/player_shortcut.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
 import 'package:twitch_listener/rewards/rewards_store.dart';
 import 'package:twitch_listener/twitch/ws_event.dart';
@@ -23,6 +25,7 @@ import 'package:twitch_listener/ui/dropdown/dropdown_scope.dart';
 import 'package:twitch_listener/ui/simple_icon.dart';
 import 'package:twitch_listener/updates/update_controller.dart';
 import 'package:twitch_listener/updates/update_notice.dart';
+import 'package:win32/win32.dart';
 
 import 'music/fakes.dart';
 
@@ -80,7 +83,7 @@ void main() {
     }
   });
 
-  group('saved language', () {
+  group('application settings', () {
     late Settings settings;
 
     setUp(() async {
@@ -132,6 +135,182 @@ void main() {
       await restarted.init();
       expect(restarted.appearance.language, AppLanguage.english);
     });
+
+    const hotkeyChannel = MethodChannel('listener/music_hotkey');
+
+    test('restores a saved shortcut and toggles the shared player', () async {
+      final calls = <Object?>[];
+      binding.defaultBinaryMessenger.setMockMethodCallHandler(hotkeyChannel, (
+        call,
+      ) async {
+        calls.add(call.arguments);
+        return true;
+      });
+      addTearDown(
+        () => binding.defaultBinaryMessenger.setMockMethodCallHandler(
+          hotkeyChannel,
+          null,
+        ),
+      );
+
+      final shortcut = PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL)!;
+      await settings.savePlayPauseShortcut(shortcut);
+      final restarted = Settings();
+      await restarted.init();
+      expect(restarted.playPauseShortcut, shortcut);
+
+      final player = FakePlayer();
+      final requests = MusicRequestManager(
+        fetcher: FakeFetcher(),
+        player: player,
+      );
+      final hotkey = MusicHotkeyController(restarted, requests);
+      addTearDown(requests.close);
+      addTearDown(hotkey.close);
+      requests.enqueue(firstUrl);
+      await flush();
+      expect(calls, [shortcut.toJson()]);
+
+      Future<void> pressShortcut() =>
+          binding.defaultBinaryMessenger.handlePlatformMessage(
+            hotkeyChannel.name,
+            const StandardMethodCodec().encodeMethodCall(
+              const MethodCall('pressed'),
+            ),
+            (_) {},
+          );
+
+      await pressShortcut();
+      expect(requests.current.nowPlaying?.paused, isTrue);
+      await pressShortcut();
+      expect(requests.current.nowPlaying?.paused, isFalse);
+    });
+
+    testWidgets(
+      'gear opens settings and rebinding preserves a working shortcut '
+      'when Windows rejects the replacement',
+      (tester) async {
+        tester.view.devicePixelRatio = 1;
+        tester.view.physicalSize = const Size(640, 720);
+        addTearDown(tester.view.resetDevicePixelRatio);
+        addTearDown(tester.view.resetPhysicalSize);
+        binding.defaultBinaryMessenger.setMockMethodCallHandler(hotkeyChannel, (
+          call,
+        ) async {
+          final arguments = call.arguments as Map<Object?, Object?>?;
+          return arguments?['keyCode'] != VK_F8;
+        });
+        addTearDown(
+          () => binding.defaultBinaryMessenger.setMockMethodCallHandler(
+            hotkeyChannel,
+            null,
+          ),
+        );
+
+        final websocket = _WebSocketManager();
+        final requests = MusicRequestManager(
+          fetcher: FakeFetcher(),
+          player: FakePlayer(),
+        );
+        final hotkey = MusicHotkeyController(settings, requests);
+        final locator = _Locator({
+          Settings: settings,
+          WebSocketManager: websocket,
+          Autosaver: Autosaver(delay: Duration.zero),
+          MusicRequestManager: requests,
+          MusicHotkeyController: hotkey,
+          YoutubeConnectionController: _Connection(),
+          UpdateController: UpdateController(check: () async => null),
+        });
+        addTearDown(() async {
+          await tester.pumpWidget(const SizedBox.shrink());
+          await websocket.events.close();
+        });
+        final strings = lookupAppLocalizations(const Locale('en'));
+        await tester.pumpWidget(
+          ListenerApp(
+            locator: locator,
+            router: _Router(locator: locator),
+          ),
+        );
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const ValueKey('open-editor')));
+        await tester.pumpAndSettle();
+        await tester.enterText(find.byType(TextField), 'Draft');
+
+        final gear = find.byKey(const ValueKey('app-settings'));
+        await tester.tap(gear);
+        await tester.pumpAndSettle();
+        expect(find.text(strings.player_shortcut_play_pause), findsOneWidget);
+        await tester.tap(gear);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(strings.app_settings_appearance));
+        await tester.pumpAndSettle();
+        expect(find.text(strings.app_settings_theme), findsOneWidget);
+        await tester.tap(find.text(strings.app_settings_theme_system));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(strings.app_settings_theme_dark));
+        await tester.pumpAndSettle();
+        expect(settings.appearance.brightness, AppBrightness.dark);
+        await tester.tap(find.text(strings.app_settings_player));
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(strings.player_shortcut_assign));
+        await tester.pumpAndSettle();
+        await tester.sendKeyEvent(LogicalKeyboardKey.keyP, platform: 'windows');
+        await tester.pump();
+        expect(find.text(strings.player_shortcut_invalid), findsOneWidget);
+        await tester.sendKeyDownEvent(
+          LogicalKeyboardKey.controlLeft,
+          platform: 'windows',
+        );
+        await tester.sendKeyEvent(LogicalKeyboardKey.f9, platform: 'windows');
+        await tester.sendKeyUpEvent(
+          LogicalKeyboardKey.controlLeft,
+          platform: 'windows',
+        );
+        await tester.pump();
+        expect(find.text('Ctrl + F9', findRichText: true), findsOneWidget);
+        await tester.tap(find.text(strings.button_save_changes));
+        await tester.pumpAndSettle();
+        expect(
+          settings.playPauseShortcut,
+          PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL),
+        );
+        expect(find.text('Ctrl + F9', findRichText: true), findsOneWidget);
+
+        await tester.tap(find.text(strings.player_shortcut_change));
+        await tester.pumpAndSettle();
+        await tester.sendKeyEvent(LogicalKeyboardKey.f8, platform: 'windows');
+        await tester.pump();
+        await tester.tap(find.text(strings.button_save_changes));
+        await tester.pumpAndSettle();
+        expect(find.text(strings.player_shortcut_unavailable), findsOneWidget);
+        expect(
+          settings.playPauseShortcut,
+          PlayerShortcut.tryCreate(VK_F9, MOD_CONTROL),
+        );
+        await tester.sendKeyEvent(
+          LogicalKeyboardKey.escape,
+          platform: 'windows',
+        );
+        await tester.pumpAndSettle();
+        expect(find.byType(AlertDialog), findsNothing);
+
+        await tester.tap(find.text(strings.player_shortcut_remove));
+        await tester.pumpAndSettle();
+        expect(settings.playPauseShortcut, isNull);
+        expect(find.text(strings.player_shortcut_unassigned), findsOneWidget);
+        await tester.tap(find.text(strings.button_back));
+        await tester.pumpAndSettle();
+        expect(find.text('Draft'), findsOneWidget);
+        expect(tester.takeException(), isNull);
+        final close = hotkey.close();
+        await tester.pump();
+        await close;
+      },
+    );
 
     for (final language in AppLanguage.values) {
       testWidgets(
@@ -236,22 +415,25 @@ class _Router extends ApplicationRouter {
 
   @override
   RouteFactory get routerFactory =>
-      (settings) => MaterialPageRoute<void>(
-        settings: settings,
-        builder: (context) => settings.name == '/editor'
-            ? Column(
-                children: [
-                  Text(context.localizations.reward_configure_title),
-                  TextField(key: editorKey),
-                  UpdateNotice(controller: locator.provide()),
-                ],
-              )
-            : TextButton(
-                key: const ValueKey('open-editor'),
-                onPressed: () => Navigator.of(context).pushNamed('/editor'),
-                child: Text(context.localizations.button_configure),
-              ),
-      );
+      (settings) => switch (settings.name) {
+        '/' || '/editor' => MaterialPageRoute<void>(
+          settings: settings,
+          builder: (context) => settings.name == '/editor'
+              ? Column(
+                  children: [
+                    Text(context.localizations.reward_configure_title),
+                    TextField(key: editorKey),
+                    UpdateNotice(controller: locator.provide()),
+                  ],
+                )
+              : TextButton(
+                  key: const ValueKey('open-editor'),
+                  onPressed: () => Navigator.of(context).pushNamed('/editor'),
+                  child: Text(context.localizations.button_configure),
+                ),
+        ),
+        _ => super.routerFactory(settings),
+      };
 }
 
 class _WebSocketManager implements WebSocketManager {

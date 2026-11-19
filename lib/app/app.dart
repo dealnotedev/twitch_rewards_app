@@ -442,6 +442,25 @@ class _ListenerAppState extends State<ListenerApp> {
               },
             ),
           ),
+          Semantics(
+            button: true,
+            label: context.localizations.app_settings_title,
+            child: Tooltip(
+              message: context.localizations.app_settings_title,
+              excludeFromSemantics: true,
+              child: RippleIcon(
+                key: const ValueKey('app-settings'),
+                size: 16,
+                borderRadius: BorderRadius.circular(8),
+                iconWidget: SimpleIcon.simpleSquare(
+                  'assets/ic_gear_white_16dp.svg',
+                  size: 16,
+                  color: theme.textColorPrimary,
+                ),
+                onTap: _router.openSettings,
+              ),
+            ),
+          ),
           RippleIcon(
             borderRadius: BorderRadius.circular(8),
             icon: Assets.assetsIcMinimizeWhite16dp,

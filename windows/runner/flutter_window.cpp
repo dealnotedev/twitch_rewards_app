@@ -26,6 +26,8 @@ bool FlutterWindow::OnCreate() {
   }
   RegisterPlugins(flutter_controller_->engine());
   SetChildContent(flutter_controller_->view()->GetNativeWindow());
+  music_hotkey_ = std::make_unique<ListenerMusicHotkey>(
+      flutter_controller_->engine()->messenger(), GetHandle());
   listener_update_ = std::make_unique<ListenerUpdate>(
       flutter_controller_->engine()->messenger(), GetHandle());
 
@@ -42,6 +44,7 @@ bool FlutterWindow::OnCreate() {
 }
 
 void FlutterWindow::OnDestroy() {
+  music_hotkey_.reset();
   listener_update_.reset();
   if (flutter_controller_) {
     flutter_controller_ = nullptr;
@@ -54,6 +57,11 @@ LRESULT
 FlutterWindow::MessageHandler(HWND hwnd, UINT const message,
                               WPARAM const wparam,
                               LPARAM const lparam) noexcept {
+  if (message == WM_HOTKEY && music_hotkey_ &&
+      music_hotkey_->HandleHotkey(wparam)) {
+    return 0;
+  }
+
   // Give Flutter, including plugins, an opportunity to handle window messages.
   if (flutter_controller_) {
     std::optional<LRESULT> result =

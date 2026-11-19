@@ -3,6 +3,7 @@ import 'package:gap/gap.dart';
 import 'package:twitch_listener/ui/buttons.dart';
 import 'package:twitch_listener/core/extensions.dart';
 import 'package:twitch_listener/rewards/reward.dart';
+import 'package:twitch_listener/ui/key_combination_field.dart';
 import 'package:twitch_listener/ui/themes.dart';
 import 'package:twitch_listener/utils/keys_logger.dart';
 
@@ -38,7 +39,11 @@ class _State extends State<SendInputWidget> {
         Expanded(
           child: _recording
               ? _KeylogWidget(onCompleted: _handleEntriesRecorded)
-              : _createConbinationState(context, theme),
+              : KeyCombinationField(
+                  keys: _action.inputs.map((entry) => entry.name),
+                  placeholder:
+                      context.localizations.reaction_send_input_hint_default,
+                ),
         ),
         const Gap(8),
         CustomButton(
@@ -48,41 +53,6 @@ class _State extends State<SendInputWidget> {
           onTap: _recording ? null : () => _handleSetupClick(context),
         ),
       ],
-    );
-  }
-
-  Widget _createConbinationState(BuildContext context, ThemeData theme) {
-    final entries = _action.inputs;
-
-    final TextSpan text;
-    if (entries.isEmpty) {
-      text = TextSpan(
-        text: context.localizations.reaction_send_input_hint_default,
-        style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
-      );
-    } else {
-      text = TextSpan(
-        style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
-        children: _createKeysSpans(
-          entries,
-          style: TextStyle(
-            color: theme.textColorPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-          delimiter: ' + ',
-        ),
-      );
-    }
-
-    return Container(
-      alignment: Alignment.center,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.inputBackground,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.border, width: 0.5),
-      ),
-      child: RichText(text: text),
     );
   }
 
@@ -101,26 +71,6 @@ class _State extends State<SendInputWidget> {
       widget.changesCallback();
     });
   }
-}
-
-List<TextSpan> _createKeysSpans(
-  List<InputEntry> entries, {
-  required TextStyle style,
-  required String delimiter,
-}) {
-  final spans = <TextSpan>[];
-
-  for (int i = 0; i < entries.length; i++) {
-    final entry = entries[i];
-
-    if (i > 0) {
-      spans.add(TextSpan(text: delimiter));
-    }
-
-    spans.add(TextSpan(text: entry.name, style: style));
-  }
-
-  return spans;
 }
 
 class _KeylogWidget extends StatefulWidget {
@@ -161,48 +111,17 @@ class _KeylogState extends State<_KeylogWidget> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
-    final TextSpan text;
-    if (_entries.isEmpty) {
-      text = TextSpan(
-        text: context.localizations.reaction_send_input_hint_recording,
-        style: TextStyle(fontSize: 12, color: theme.textColorSecondary),
-      );
-    } else {
-      text = TextSpan(
-        style: TextStyle(color: theme.textColorSecondary, fontSize: 12),
-        children: _createKeysSpans(
-          _entries.toList(),
-          style: TextStyle(
-            color: theme.textColorPrimary,
-            fontWeight: FontWeight.w600,
-          ),
-          delimiter: ' + ',
+    return KeyCombinationField(
+      keys: _entries.map((entry) => entry.name),
+      placeholder: context.localizations.reaction_send_input_hint_recording,
+      recording: true,
+      trailing: SizedBox.square(
+        dimension: 16,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          color: theme.accentColor,
+          value: _controller?.value,
         ),
-      );
-    }
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-      decoration: BoxDecoration(
-        color: theme.inputBackground,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: theme.accentColor, width: 0.5),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            child: RichText(text: text, textAlign: TextAlign.center),
-          ),
-          SizedBox(
-            height: 16,
-            width: 16,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              color: theme.accentColor,
-              value: _controller?.value,
-            ),
-          ),
-        ],
       ),
     );
   }

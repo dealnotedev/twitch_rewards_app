@@ -7,6 +7,7 @@ import 'package:path/path.dart' as path;
 import 'package:path_provider/path_provider.dart';
 import 'package:rxdart/rxdart.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:twitch_listener/music/player_shortcut.dart';
 import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/rewards/reward.dart';
 import 'package:twitch_listener/rewards/rewards_store.dart';
@@ -20,6 +21,21 @@ class Settings {
   static const _kBrightness = 'brightness';
   static const _kLanguage = 'language';
   static const _kMusicVolume = 'music_volume';
+  static const _kPlayPauseShortcut = 'music_play_pause_shortcut';
+
+  PlayerShortcut? _playPauseShortcut;
+  PlayerShortcut? get playPauseShortcut => _playPauseShortcut;
+
+  Future<void> savePlayPauseShortcut(PlayerShortcut? shortcut) async {
+    final saved = shortcut == null
+        ? await _prefs.remove(_kPlayPauseShortcut)
+        : await _prefs.setString(
+            _kPlayPauseShortcut,
+            jsonEncode(shortcut.toJson()),
+          );
+    if (!saved) throw StateError('Could not save the player shortcut');
+    _playPauseShortcut = shortcut;
+  }
 
   double get musicVolume {
     final value = _prefs.getDouble(_kMusicVolume) ?? 1;
@@ -38,6 +54,9 @@ class Settings {
 
   Future<void> init() async {
     final prefs = _prefs = await _loadPreferences();
+    _playPauseShortcut = PlayerShortcut.fromPreference(
+      prefs.get(_kPlayPauseShortcut),
+    );
 
     _initTwitchCreds(prefs);
     _initObsPrefs(prefs);

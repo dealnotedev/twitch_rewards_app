@@ -139,9 +139,7 @@ class _MusicPlayerPanelState extends State<MusicPlayerPanel> {
             color: color,
             icon: active?.paused == true ? Assets.assetsIcPlayWhite16dp : null,
             iconWidget: Icon(Icons.pause, size: 16, color: color),
-            onTap: enabled
-                ? () => _command(() => requests.setPaused(!active.paused))
-                : null,
+            onTap: enabled ? () => _command(requests.togglePaused) : null,
           ),
         ),
       ),

@@ -11,6 +11,7 @@ import 'package:twitch_listener/points/viewer_balances_store.dart';
 import 'package:twitch_listener/music/media_kit_music_track_player.dart';
 import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
+import 'package:twitch_listener/music/music_hotkey_controller.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/music_tool_paths.dart';
@@ -50,6 +51,7 @@ class AppServiceLocator extends ServiceLocator {
       _redemptionsClosing ??= provide<RedemptionQueueController>().close();
 
   Future<void> closeMusic() => _musicClosing ??= () async {
+    await provide<MusicHotkeyController>().close();
     await musicServer.close();
     await provide<MusicRequestManager>().close();
     await provide<YoutubeConnectionController>().close();
@@ -157,6 +159,7 @@ class AppServiceLocator extends ServiceLocator {
       onPreparationHeld: youtubeConnection.requireCheck,
     );
     musicServer = MusicServerController(musicRequests);
+    map[MusicHotkeyController] = MusicHotkeyController(settings, musicRequests);
     unawaited(musicServer.start());
     map[MusicServerController] = musicServer;
 

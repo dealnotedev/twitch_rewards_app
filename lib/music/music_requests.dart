@@ -269,6 +269,16 @@ class MusicRequestManager implements MusicRequests {
     }
   }
 
+  Future<bool>? _togglingPause;
+
+  Future<bool> togglePaused() {
+    final request = _active;
+    if (request == null) return Future.value(false);
+    return _togglingPause ??= setPaused(!request.paused).whenComplete(() {
+      _togglingPause = null;
+    });
+  }
+
   @override
   Future<bool> setPaused(bool paused) async {
     final request = _active;

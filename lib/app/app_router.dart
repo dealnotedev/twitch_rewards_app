@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:twitch_listener/app/home_screen.dart';
+import 'package:twitch_listener/app/settings_screen.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/points/viewer_balances_screen.dart';
 import 'package:twitch_listener/rewards/reward.dart';
@@ -22,11 +23,16 @@ class ApplicationRouter extends NavigatorObserver {
   static const _routeTwitchRewards = '/reward/twitch';
   static const _routeTwitchRewardEditor = '/reward/twitch/edit';
   static const _routeViewerBalances = '/viewers/balances';
+  static const _routeAppSettings = '/settings';
 
   static final _changes = StreamController<_RouteChange>.broadcast();
   static Route? _current;
 
   static String? get current => _current?.settings.name;
+
+  void openSettings() {
+    if (current != _routeAppSettings) navigator?.pushNamed(_routeAppSettings);
+  }
 
   @override
   void didPop(Route route, Route? previousRoute) {
@@ -100,6 +106,14 @@ class ApplicationRouter extends NavigatorObserver {
   RouteFactory get routerFactory {
     return (settings) {
       switch (settings.name) {
+        case _routeAppSettings:
+          return MaterialPageRoute<void>(
+            settings: settings,
+            builder: (_) => SettingsScreen(
+              settings: locator.provide(),
+              hotkey: locator.provide(),
+            ),
+          );
         case _routeViewerBalances:
           return MaterialPageRoute<void>(
             settings: settings,
