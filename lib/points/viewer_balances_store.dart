@@ -29,8 +29,9 @@ class ViewerBalancesStore {
   void dispose() => _changes.close();
 
   static Future<void> createTable(DatabaseExecutor database) async {
+    // Some v1 databases already contain the balances table and indexes.
     await database.execute('''
-        CREATE TABLE viewer_balances (
+        CREATE TABLE IF NOT EXISTS viewer_balances (
           viewer_id TEXT NOT NULL PRIMARY KEY CHECK(length(trim(viewer_id)) > 0),
           username TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
           display_name TEXT NOT NULL DEFAULT '' COLLATE NOCASE,
@@ -39,10 +40,12 @@ class ViewerBalancesStore {
         )
       ''');
     await database.execute(
-      'CREATE INDEX viewer_balances_username ON viewer_balances (username)',
+      'CREATE INDEX IF NOT EXISTS viewer_balances_username '
+      'ON viewer_balances (username)',
     );
     await database.execute(
-      'CREATE INDEX viewer_balances_display_name ON viewer_balances (display_name)',
+      'CREATE INDEX IF NOT EXISTS viewer_balances_display_name '
+      'ON viewer_balances (display_name)',
     );
   }
 

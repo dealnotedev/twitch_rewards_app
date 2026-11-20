@@ -1,5 +1,11 @@
 # Changelog
 
+## 2.8.1
+
+- Fix Windows startup when the rewards database already contains the viewer
+  balances table but still reports schema version 1. The migration preserves
+  rewards and viewer balances.
+
 ## 2.8.0
 
 Changes since [2.7.3](https://github.com/dealnotedev/twitch_rewards_app/releases/tag/2.7.3).

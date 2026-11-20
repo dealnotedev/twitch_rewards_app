@@ -263,6 +263,47 @@ void main() {
   });
 
   test(
+    'upgrades a v1 database that already contains viewer balances',
+    () async {
+      final directory = await Directory.systemTemp.createTemp(
+        'listener-existing-balances-',
+      );
+      final databasePath =
+          '${directory.path}${Platform.pathSeparator}rewards.db';
+      addTearDown(() async {
+        await databaseFactoryFfi.deleteDatabase(databasePath);
+        await directory.delete();
+      });
+      final original = await RewardsStore.open(
+        factory: databaseFactoryFfi,
+        databasePath: databasePath,
+      );
+      await original.loadAndMigrate(null);
+      await original.save(
+        Rewards(rewards: [Reward(name: 'Existing reward', handlers: [])]),
+      );
+      await original.viewerBalances.credit('existing-viewer', 125);
+      final connection = await databaseFactoryFfi.openDatabase(databasePath);
+      await connection.setVersion(1);
+      await original.close();
+
+      final upgraded = await RewardsStore.open(
+        factory: databaseFactoryFfi,
+        databasePath: databasePath,
+      );
+      addTearDown(upgraded.close);
+      expect(
+        (await upgraded.loadAndMigrate(null)).rewards.single.name,
+        'Existing reward',
+      );
+      expect(await upgraded.viewerBalances.balanceOf('existing-viewer'), 125);
+      final upgradedConnection =
+          await databaseFactoryFfi.openDatabase(databasePath);
+      expect(await upgradedConnection.getVersion(), 2);
+    },
+  );
+
+  test(
     'creates schema v2 once and preserves its data when reopening',
     () async {
       final directory = await Directory.systemTemp.createTemp(
