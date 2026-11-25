@@ -82,10 +82,9 @@ session-only. Downloaded audio is cached under
 used during the current session are protected from cleanup.
 
 The app does not automatically fulfill, cancel, refund, or otherwise settle
-music redemptions on Twitch. Playback uses the existing `media_kit` backend and
-does not require OBS. Downloaded tracks are normalized to -16 LUFS with FFmpeg
-and cached with their source audio codec, container, sample rate and channel
-count. See [YouTube tool setup](tools/README.md) for
+music redemptions on Twitch. Music and reward sounds use `flutter_soloud` for
+playback and can play independently of OBS. FFmpeg normalizes downloaded tracks
+to -16 LUFS and caches them as 48 kHz stereo MP3. See [YouTube tool setup](tools/README.md) for
 yt-dlp, Deno and the minimal FFmpeg audio build.
 
 Open a reward's **Play YouTube Track** card and use **Connect YouTube** when
@@ -223,7 +222,6 @@ flutter test
 ### Build a release
 
 ```powershell
-$env:NO_OPUS_OGG_LIBS = "1"
 flutter build windows --release
 ```
 
@@ -251,7 +249,7 @@ application language and light/dark theme.
 ```text
 lib/
 ├── app/              # Application shell, navigation, and HomeScreen
-├── audio/            # Sound-effect playback and ringtones
+├── audio/            # SoLoud engine and reward sound playback
 ├── core/             # Settings, autosaving, and shared utilities
 ├── di/               # Dependency registration
 ├── generated/        # Generated asset references

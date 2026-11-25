@@ -17,7 +17,7 @@ void main() {
     'vorbis.ogg',
     'video-with-aac.mp4'
   ]) {
-    test('normalizes the downloaded audio format $name', () async {
+    test('normalizes the downloaded audio format $name to stereo MP3', () async {
       final root = await Directory.systemTemp.createTemp('music_codec_');
       addTearDown(() => root.delete(recursive: true));
       final input = File('test/music/fixtures/$name').absolute;
@@ -40,13 +40,9 @@ void main() {
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
       final outputLog = measured.stderr as String;
-      expect(_audioFormat(outputLog), await _probe(ffmpeg, input));
-      expect(output.path, endsWith(name.substring(name.lastIndexOf('.'))));
+      expect(_audioFormat(outputLog), _mp3Format);
+      expect(output.path, endsWith('normalized.mp3'));
       expect(outputLog.split('\nStream mapping:').first, isNot(contains('Video:')));
-      if (name.endsWith('.webm')) {
-        expect(latin1.decode((await output.readAsBytes()).take(64).toList()),
-            contains('webm'));
-      }
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
@@ -94,12 +90,7 @@ void main() {
         '-',
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
-      expect(_audioFormat(measured.stderr as String), (
-        container: 'wav',
-        codec: 'pcm_f32le',
-        sampleRate: '${sample.rate}',
-        layout: sample.channels == 1 ? 'mono' : 'stereo',
-      ));
+      expect(_audioFormat(measured.stderr as String), _mp3Format);
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
@@ -130,28 +121,16 @@ void main() {
             duration: const Duration(seconds: 2),
             onProgress: (_) {}),
         throwsA(isA<AudioProcessingException>()));
-    expect(await File('${root.path}/normalized.wav').exists(), isFalse);
+    expect(await File('${root.path}/normalized.mp3').exists(), isFalse);
   }, skip: available ? false : 'Install tools/ffmpeg.exe or set MUSIC_FFMPEG');
 }
 
-Future<({String container, String codec, String sampleRate, String layout})>
-    _probe(File ffmpeg, File input) async {
-  final result = await Process.run(ffmpeg.path, [
-    '-hide_banner',
-    '-nostdin',
-    '-i',
-    input.path,
-    '-map',
-    '0:a:0',
-    '-t',
-    '0.1',
-    '-f',
-    'null',
-    '-',
-  ]);
-  expect(result.exitCode, 0, reason: '${result.stderr}');
-  return _audioFormat(result.stderr as String);
-}
+const _mp3Format = (
+  container: 'mp3',
+  codec: 'mp3',
+  sampleRate: '48000',
+  layout: 'stereo',
+);
 
 ({String container, String codec, String sampleRate, String layout})
     _audioFormat(String log) {

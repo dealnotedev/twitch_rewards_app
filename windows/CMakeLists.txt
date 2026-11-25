@@ -41,7 +41,6 @@ function(APPLY_STANDARD_SETTINGS TARGET)
   target_compile_features(${TARGET} PUBLIC cxx_std_17)
   target_compile_options(${TARGET} PRIVATE /W4 /WX /wd"4100")
   target_compile_options(${TARGET} PRIVATE /EHsc)
-  target_compile_options(${TARGET} PRIVATE /W3 /wd4005 /WX-) # added by dealnotedev, fix for media_kit build
   target_compile_definitions(${TARGET} PRIVATE "_HAS_EXCEPTIONS=0")
   target_compile_definitions(${TARGET} PRIVATE "$<$<CONFIG:Debug>:_DEBUG>")
 endfunction()
@@ -57,6 +56,9 @@ add_subdirectory("runner")
 # Generated plugin build rules, which manage building the plugins and adding
 # them to the application.
 include(flutter/generated_plugins.cmake)
+
+# Only path_provider_android uses JNI in this project.
+list(REMOVE_ITEM PLUGIN_BUNDLED_LIBRARIES "$<TARGET_FILE:jni>")
 
 # === Installation ===
 # Support files are copied into place next to the executable, so that it can
@@ -75,8 +77,12 @@ set(INSTALL_BUNDLE_LIB_DIR "${CMAKE_INSTALL_PREFIX}")
 install(TARGETS ${BINARY_NAME} RUNTIME DESTINATION "${CMAKE_INSTALL_PREFIX}"
   COMPONENT Runtime)
 
-# Clean up the keyboard hook library left by older incremental builds.
-install(CODE "file(REMOVE \"${CMAKE_INSTALL_PREFIX}/hid_listener.dll\")" COMPONENT Runtime)
+# Clean up native libraries left by older incremental builds.
+install(CODE "file(REMOVE
+  \"${CMAKE_INSTALL_PREFIX}/dartjni.dll\"
+  \"${CMAKE_INSTALL_PREFIX}/hid_listener.dll\"
+  \"${CMAKE_INSTALL_PREFIX}/libmpv-2.dll\"
+  \"${CMAKE_INSTALL_PREFIX}/media_kit_libs_windows_audio_plugin.dll\")" COMPONENT Runtime)
 
 # Every Windows build verifies the downloader against its committed release pin.
 set(MUSIC_TOOLS_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../tools")
@@ -100,8 +106,12 @@ foreach(MUSIC_TOOL deno.exe ffmpeg.exe)
   endif()
 endforeach()
 
-# Incremental installs must not retain the previously bundled, unused FFprobe.
-install(CODE "file(REMOVE \"${CMAKE_INSTALL_PREFIX}/tools/ffprobe.exe\")" COMPONENT Runtime)
+# Remove tools and notices left by older incremental installs.
+install(CODE "file(REMOVE
+  \"${CMAKE_INSTALL_PREFIX}/tools/ffprobe.exe\"
+  \"${CMAKE_INSTALL_PREFIX}/tools/ffmpeg-notices/Opus-BSD.txt\"
+  \"${CMAKE_INSTALL_PREFIX}/tools/ffmpeg-notices/libogg-BSD.txt\"
+  \"${CMAKE_INSTALL_PREFIX}/tools/ffmpeg-notices/libvorbis-BSD.txt\")" COMPONENT Runtime)
 if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-build.json")
   install(FILES "${CMAKE_CURRENT_SOURCE_DIR}/../tools/ffmpeg-build.json"
     DESTINATION "${CMAKE_INSTALL_PREFIX}/tools" COMPONENT Runtime)

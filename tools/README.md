@@ -37,13 +37,12 @@ powershell -ExecutionPolicy Bypass -File tools/build_ffmpeg.ps1
 ```
 
 The recipe in `ffmpeg/Dockerfile` cross-compiles FFmpeg **9.0.2** with LAME
-**3.100**, Opus **1.6.1**, libogg **1.3.6** and libvorbis **1.3.7** to a
-standalone Windows x64 executable (about 5.2 MB). It imports only Windows
+**3.100** to a standalone Windows x64 executable (about 3.8 MB). It imports only Windows
 system DLLs. Docker and the compiler are build-time dependencies.
 
 Enabled audio decoders: AAC, Opus, Vorbis, MP3, float32 PCM and int16 PCM.
-The build reads and writes MP4/M4A, MOV, Matroska/WebM, Ogg, MP3, WAV and
-raw AAC. Its encoders are native AAC, libopus, libvorbis, libmp3lame and PCM.
+The build reads MP4/M4A, MOV, Matroska/WebM, Ogg, MP3, WAV and raw AAC. It
+writes MP3 with `libmp3lame`.
 Processing: `loudnorm`, channel/sample-format conversion and resampling, plus
 the FFmpeg command-line frontend's required helper filters. Only the `file`
 and `pipe` protocols are enabled. Video decoding/encoding, GPU support, devices,
@@ -51,8 +50,7 @@ networking, FFplay and FFprobe are excluded. yt-dlp handles all network access.
 
 The source versions, SHA-256 hashes and container base digest are pinned. The
 FFmpeg archive hash was verified against its official release signature; LAME's
-upstream archive is downloaded from Debian's mirror. The Opus, libogg and
-libvorbis archives come from Xiph.Org. All archives are checked against their
+upstream archive is downloaded from Debian's mirror. Both archives are checked against their
 published source checksums. `build/ffmpeg-minimal/` retains the compiler package
 list, configuration log and DLL import list. `tools/ffmpeg-build.json` records
 the output hash and recipe hash; updating the downloader cannot silently replace
@@ -60,18 +58,15 @@ this binary with a full build. This is a repeatable build recipe, not a guarante
 of bit-for-bit identical output across different compiler package updates.
 
 Source archives remain under `build/ffmpeg-sources/`; generated license notices
-are included with the Windows bundle. The app's general audio player continues
-to use media_kit; this reduced FFmpeg is specifically for preparing YouTube music.
+are included with the Windows bundle. FFmpeg prepares YouTube tracks for
+playback in SoLoud.
 
 ## Audio preparation
 
 yt-dlp downloads one original stream (`bestaudio/best`, `--fixup never`).
 FFmpeg then measures the complete track with `loudnorm`, and performs a second
 pass using those measurements to normalize and encode the first audio stream
-with its source codec, container, sample rate and channel count. FFmpeg
-selects the input track's layout in both passes. The final encode uses
-AAC quality 2, Opus with the encoder's default VBR bitrate, Vorbis quality 4,
-or LAME quality 2. PCM keeps its source sample format.
+as 48 kHz stereo MP3 using LAME quality 2. Both passes use the same stereo mix.
 
 The profile targets **-16 LUFS integrated** and **-2 dBTP true peak**. The allowed
 loudness range is the larger of 20 LU and the measured source range, capped at
@@ -83,8 +78,8 @@ decoded peaks. These values normalize individual tracks; the player's volume
 slider and any downstream mixer still determine the final broadcast level.
 
 Only completed output is moved into the cache. Cache profiles include the
-normalization settings and encoding recipe. The source-format profile has its
-own cache directory. Old profiles are retained on disk; the 2 GiB limit applies to the
+normalization settings and encoding recipe. The app reuses the original MP3
+cache profile. Other profiles remain on disk. The 2 GiB limit applies to the
 active profile. Settings are currently constructor defaults in
 `FfmpegAudioProcessor`, rather than user-facing controls.
 
@@ -103,8 +98,9 @@ with a 0.5 dB encoding tolerance. No YouTube connection is needed for these
 tests. Small synthetic fixtures also exercise AAC/M4A, Opus/WebM, Vorbis/Ogg and
 an MP4 with video and audio. They require no full FFmpeg build to run; fixture
 regeneration commands are in `test/music/fixtures/README.md`.
-Native playback can be checked separately using `MUSIC_SMOKE_FILE` and
-`MUSIC_MPV_LIBRARY` as described in `test/music/native_music_smoke_test.dart`.
+On Windows with an audio output device, run the native playback check with
+`$env:LISTENER_TEST_NATIVE_AUDIO = '1'` and
+`flutter test test/audio/native_audio_completion_test.dart`.
 
 If YouTube extraction stops working, update the yt-dlp pin with the command
 above, refresh Deno with the download script, then rebuild the app. To update FFmpeg, update the pinned source version

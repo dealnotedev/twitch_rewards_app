@@ -23,7 +23,6 @@ void main() {
         if (++pass % 2 == 1) {
           return TestAudioProcess.completed(
             stderr:
-                '$fakeOpusInputHeader'
                 '{"input_i":"-25","input_tp":"-8","input_lra":"4",'
                 '"input_thresh":"-35","target_offset":"0"}',
           );

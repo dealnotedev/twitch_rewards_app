@@ -9,6 +9,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:listener_updater/core/app_version.dart';
 import 'package:listener_updater/core/installation.dart';
 import 'package:listener_updater/core/release_client.dart';
+import 'package:listener_updater/core/update_failure.dart';
 import 'package:listener_updater/core/update_package.dart';
 import 'package:path/path.dart' as p;
 
@@ -137,6 +138,35 @@ void main() {
         const AppVersion(1, 1, 0),
       ).version,
       version,
+    );
+  });
+
+  test('accepts SoLoud packages and requires their codec libraries', () {
+    final files = payload()..remove('libmpv-2.dll');
+    for (final dll in [
+      'flutter_soloud_plugin.dll',
+      'FLAC.dll',
+      'opus.dll',
+      'vorbisfile.dll',
+      'vorbisenc.dll',
+      'vorbis.dll',
+      'ogg.dll',
+    ]) {
+      files[dll] = 'audio runtime';
+    }
+    final package = extractPackage(zip(files), folder(), version);
+    expect(package.roots, contains('flutter_soloud_plugin.dll'));
+    expect(package.roots, isNot(contains('libmpv-2.dll')));
+    files.remove('opus.dll');
+    expect(
+      () => extractPackage(zip(files), folder(), version),
+      throwsA(
+        isA<UpdateFailure>().having(
+          (error) => error.issue,
+          'issue',
+          UpdateIssue.missingRuntime,
+        ),
+      ),
     );
   });
 

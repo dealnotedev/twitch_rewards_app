@@ -52,8 +52,11 @@ From the repository root:
 The script checks both applications, builds them, validates bundled music tools,
 and creates `build/releases/<version>-<timestamp>/Release.zip`, `update.zip` and
 `SHA256SUMS.txt`. Keep version tags in `major.minor.patch` format. The manifest
-and EXE additionally retain the Flutter `+build` suffix. The script retains the
-main application's `NO_OPUS_OGG_LIBS=1` build setting and existing AppData identity.
+and EXE additionally retain the Flutter `+build` suffix. The bundled updater
+supports packages containing either audio runtime. To build an update package
+that the 2.8.1 updater can install, pass `-LegacyMpvLibrary` with the path to
+`libmpv-2.dll` from the official 2.8.1 `Release.zip`. Packaging verifies its
+SHA-256 and includes it in `update.zip` for the old updater's file check.
 
 For updater-only development:
 

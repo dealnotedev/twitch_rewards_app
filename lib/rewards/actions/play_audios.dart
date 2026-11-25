@@ -246,6 +246,7 @@ class _State extends State<PlayAudiosWidget> {
   }
 
   PlayToken? _playToken;
+  int _previewGeneration = 0;
 
   void _onVolumeEnd(AudioEntry entry, double value) {
     _stopVolumePlaying();
@@ -257,6 +258,7 @@ class _State extends State<PlayAudiosWidget> {
   }
 
   void _stopVolumePlaying() {
+    _previewGeneration++;
     final playToken = _playToken;
     _playToken = null;
 
@@ -267,12 +269,18 @@ class _State extends State<PlayAudiosWidget> {
 
   void _onVolumeStart(AudioEntry entry, double value) async {
     _stopVolumePlaying();
+    final generation = _previewGeneration;
 
     final file = File(entry.path);
 
     if (file.existsSync()) {
-      _playToken = await _audioplayer.playFileInfinitely(file.path,
+      final token = await _audioplayer.playFileInfinitely(file.path,
           volume: entry.volume);
+      if (generation == _previewGeneration) {
+        _playToken = token;
+      } else {
+        await _audioplayer.cancelByToken(token);
+      }
     }
   }
 

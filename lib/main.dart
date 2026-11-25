@@ -2,7 +2,6 @@ import 'dart:ui';
 
 import 'package:bitsdojo_window/bitsdojo_window.dart';
 import 'package:flutter/material.dart';
-import 'package:media_kit/media_kit.dart';
 import 'package:twitch_listener/app/app.dart';
 import 'package:twitch_listener/app/app_router.dart';
 import 'package:twitch_listener/audio/audioplayer.dart';
@@ -11,8 +10,6 @@ import 'package:twitch_listener/di/app_service_locator.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
-  MediaKit.ensureInitialized();
 
   final settings = Settings();
   await settings.init();

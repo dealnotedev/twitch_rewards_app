@@ -8,13 +8,13 @@ import 'package:twitch_listener/core/autosaver.dart';
 import 'package:twitch_listener/di/service_locator.dart';
 import 'package:twitch_listener/obs/obs_connect.dart';
 import 'package:twitch_listener/points/viewer_balances_store.dart';
-import 'package:twitch_listener/music/media_kit_music_track_player.dart';
 import 'package:twitch_listener/music/ffmpeg_audio_processor.dart';
 import 'package:twitch_listener/music/music_file_cache.dart';
 import 'package:twitch_listener/music/music_hotkey_controller.dart';
 import 'package:twitch_listener/music/music_requests.dart';
 import 'package:twitch_listener/music/music_server_controller.dart';
 import 'package:twitch_listener/music/music_tool_paths.dart';
+import 'package:twitch_listener/music/soloud_music_track_player.dart';
 import 'package:twitch_listener/music/yt_dlp_music_track_fetcher.dart';
 import 'package:twitch_listener/music/youtube_browser_session.dart';
 import 'package:twitch_listener/music/youtube_connection_controller.dart';
@@ -153,7 +153,7 @@ class AppServiceLocator extends ServiceLocator {
     );
     musicRequests = MusicRequestManager(
       fetcher: trackFetcher,
-      player: MediaKitMusicTrackPlayer(),
+      player: SoloudMusicTrackPlayer(),
       volume: settings.musicVolume,
       saveVolume: settings.saveMusicVolume,
       onPreparationHeld: youtubeConnection.requireCheck,

@@ -32,15 +32,6 @@ Get-VerifiedSource -Name 'ffmpeg-9.0.2.tar.xz' `
 Get-VerifiedSource -Name 'lame-3.100.tar.gz' `
   -Uri 'https://deb.debian.org/debian/pool/main/l/lame/lame_3.100.orig.tar.gz' `
   -Sha256 'ddfe36cab873794038ae2c1210557ad34857a4b6bdc515785d1da9e175b1da1e'
-Get-VerifiedSource -Name 'opus-1.6.1.tar.gz' `
-  -Uri 'https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz' `
-  -Sha256 '6ffcb593207be92584df15b32466ed64bbec99109f007c82205f0194572411a1'
-Get-VerifiedSource -Name 'libogg-1.3.6.tar.xz' `
-  -Uri 'https://downloads.xiph.org/releases/ogg/libogg-1.3.6.tar.xz' `
-  -Sha256 '5c8253428e181840cd20d41f3ca16557a9cc04bad4a3d04cce84808677fa1061'
-Get-VerifiedSource -Name 'libvorbis-1.3.7.tar.xz' `
-  -Uri 'https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz' `
-  -Sha256 'b33cc4934322bcbf6efcbacf49e3ca01aadbea4114ec9589d1b1e9d20f72954b'
 
 & docker build --progress=plain --build-arg "JOBS=$Jobs" `
   --file (Join-Path $PSScriptRoot 'ffmpeg/Dockerfile') `
@@ -52,22 +43,16 @@ $builtExecutable = Join-Path $outputDirectory 'ffmpeg.exe'
 if ($LASTEXITCODE -ne 0) { throw 'Built FFmpeg failed to start on Windows.' }
 $sha256 = (Get-FileHash -LiteralPath $builtExecutable -Algorithm SHA256).Hash.ToLowerInvariant()
 $manifest = [ordered]@{
-  profile = 'twitch-listener-audio-v2'
+  profile = 'twitch-listener-audio-v1'
   ffmpeg = '9.0.2'
   lame = '3.100'
-  opus = '1.6.1'
-  libogg = '1.3.6'
-  libvorbis = '1.3.7'
   sha256 = $sha256
   bytes = (Get-Item -LiteralPath $builtExecutable).Length
   recipe = 'tools/ffmpeg/Dockerfile'
   recipeSha256 = (Get-FileHash -LiteralPath (Join-Path $PSScriptRoot 'ffmpeg/Dockerfile') -Algorithm SHA256).Hash.ToLowerInvariant()
   sources = @(
     'https://ffmpeg.org/releases/ffmpeg-9.0.2.tar.xz',
-    'https://deb.debian.org/debian/pool/main/l/lame/lame_3.100.orig.tar.gz',
-    'https://downloads.xiph.org/releases/opus/opus-1.6.1.tar.gz',
-    'https://downloads.xiph.org/releases/ogg/libogg-1.3.6.tar.xz',
-    'https://downloads.xiph.org/releases/vorbis/libvorbis-1.3.7.tar.xz'
+    'https://deb.debian.org/debian/pool/main/l/lame/lame_3.100.orig.tar.gz'
   )
 }
 $manifest | ConvertTo-Json -Depth 3 | Set-Content `

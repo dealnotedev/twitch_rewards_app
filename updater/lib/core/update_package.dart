@@ -146,10 +146,27 @@ PackageManifest extractPackage(
     if (!manifest.version.matchesRelease(expected)) {
       throw const UpdateFailure(UpdateIssue.versionMismatch);
     }
+    bool hasRuntime(String relative) {
+      final file = File(safePath(stage, relative));
+      return file.existsSync() && file.lengthSync() > 0;
+    }
+
+    final audioRuntime =
+        File(safePath(stage, 'flutter_soloud_plugin.dll')).existsSync()
+        ? const [
+            'flutter_soloud_plugin.dll',
+            'FLAC.dll',
+            'opus.dll',
+            'vorbisfile.dll',
+            'vorbisenc.dll',
+            'vorbis.dll',
+            'ogg.dll',
+          ]
+        : const ['libmpv-2.dll'];
     for (final required in [
       listenerExecutable,
       'flutter_windows.dll',
-      'libmpv-2.dll',
+      ...audioRuntime,
       'sqlite3.dll',
       'tools/yt-dlp.exe',
       'tools/deno.exe',
@@ -158,8 +175,7 @@ PackageManifest extractPackage(
       'data/icudtl.dat',
       'data/flutter_assets/AssetManifest.bin',
     ]) {
-      final file = File(safePath(stage, required));
-      if (!file.existsSync() || file.lengthSync() == 0) {
+      if (!hasRuntime(required)) {
         throw const UpdateFailure(UpdateIssue.missingRuntime);
       }
     }

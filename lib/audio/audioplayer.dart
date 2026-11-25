@@ -1,53 +1,24 @@
 import 'dart:async';
 
-import 'package:media_kit/media_kit.dart';
 import 'package:twitch_listener/core/observable_value.dart';
 
-import 'playback_completion.dart';
+import 'soloud_audio.dart';
 
 class Audioplayer {
-  final Player Function(PlayerConfiguration configuration) _createPlayer;
+  Audioplayer({SoloudAudio? audio}) : _audio = audio ?? SoloudAudio.shared;
 
-  Audioplayer({
-    Player Function(PlayerConfiguration configuration)? createPlayer,
-  }) : _createPlayer =
-           createPlayer ??
-           ((configuration) => Player(configuration: configuration));
+  final SoloudAudio _audio;
 
   Future<void> playFileWaitCompletion(
     String filePath, {
     required ObservableValue<double> volume,
     String title = 'Twitch Listener',
   }) async {
-    final player = _createPlayer(PlayerConfiguration(title: title));
-    final media = Media(filePath);
-    final done = Completer<void>();
-    final finished = done.future;
-    unawaited(finished.catchError((Object _) {}));
-    final completeSub = player.stream.completed.listen((completed) {
-      if (completed && !done.isCompleted) done.complete();
-    });
-    final errorSub = player.stream.error.listen((error) {
-      if (error.isNotEmpty && !done.isCompleted) {
-        done.completeError(StateError(error));
-      }
-    });
-    final volumeSub = volume.changes.listen((v) {
-      player.setVolume(v * 100.0).catchError((Object error, StackTrace stack) {
-        if (!done.isCompleted) done.completeError(error, stack);
-      });
-    });
+    final token = await _play(filePath, volume);
     try {
-      await player.setPlaylistMode(PlaylistMode.none);
-      await configureAudioCompletion(player);
-      await player.setVolume(volume.current * 100.0);
-      await player.open(media);
-      await finished;
+      await token._playback.completed;
     } finally {
-      await completeSub.cancel();
-      await errorSub.cancel();
-      await volumeSub.cancel();
-      await player.dispose();
+      await cancelByToken(token);
     }
   }
 
@@ -55,31 +26,39 @@ class Audioplayer {
     String filePath, {
     required ObservableValue<double> volume,
     String title = 'Twitch Listener',
+  }) => _play(filePath, volume, looping: true);
+
+  Future<PlayToken> _play(
+    String filePath,
+    ObservableValue<double> volume, {
+    bool looping = false,
   }) async {
-    final player = _createPlayer(PlayerConfiguration(title: title));
-    final media = Media(filePath);
-
-    await player.setPlaylistMode(PlaylistMode.single);
-    await player.setVolume(volume.current * 100.0);
-    await player.open(media);
-
-    final volumeSub = volume.changes.listen((v) {
-      player.setVolume(volume.current * 100.0);
-    });
-
-    return PlayToken(handle: player, volumeSub: volumeSub);
+    final playback = await _audio.playFile(
+      filePath,
+      volume: volume.current,
+      looping: looping,
+    );
+    final subscription = volume.changes.listen(playback.setVolume);
+    final token = PlayToken._(playback, subscription);
+    try {
+      playback.setVolume(volume.current);
+      playback.setPaused(false);
+      return token;
+    } catch (_) {
+      await cancelByToken(token);
+      rethrow;
+    }
   }
 
   Future<void> cancelByToken(PlayToken token) async {
-    token.volumeSub.cancel();
-    token.handle.stop();
-    token.handle.dispose();
+    await token._volumeSubscription.cancel();
+    await token._playback.close();
   }
 }
 
 class PlayToken {
-  final Player handle;
-  final StreamSubscription<double> volumeSub;
+  final SoloudPlayback _playback;
+  final StreamSubscription<double> _volumeSubscription;
 
-  PlayToken({required this.handle, required this.volumeSub});
+  PlayToken._(this._playback, this._volumeSubscription);
 }
