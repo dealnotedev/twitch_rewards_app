@@ -15,7 +15,7 @@ FFprobe is not needed; incremental Windows builds remove its former bundled copy
 
 ## Pinned yt-dlp
 
-`yt-dlp.json` pins release **2026.08.19** and its Windows executable SHA-256.
+`yt-dlp.json` records the pinned release and its Windows executable SHA-256.
 Every Windows build runs `ensure_yt_dlp.ps1` before packaging: a matching binary
 is reused; a missing or different binary is downloaded from the pinned release
 and replaced only after verification. Download or checksum failures fail the
@@ -27,8 +27,8 @@ To update the pin and local executable to the latest stable release:
 powershell -ExecutionPolicy Bypass -File tools/ensure_yt_dlp.ps1 -Update
 ```
 
-To pin a specific stable release, add `-Version 2026.08.19`. Commit the updated
-`yt-dlp.json`; the executables remain ignored by Git.
+To pin a specific stable release, pass its version with `-Version`. Commit the
+updated `yt-dlp.json`; the executables remain ignored by Git.
 
 ## Minimal FFmpeg build
 
