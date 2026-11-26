@@ -1,5 +1,12 @@
 # Changelog
 
+## 2.8.3
+
+- Use SoLoud on Windows to play reward sounds and YouTube tracks.
+- Normalize and cache YouTube tracks as 48 kHz stereo MP3 using a minimal
+  bundled FFmpeg build.
+- Update the bundled yt-dlp to `2026.11.23` for YouTube compatibility.
+
 ## 2.8.1
 
 - Fix Windows startup when the rewards database already contains the viewer
