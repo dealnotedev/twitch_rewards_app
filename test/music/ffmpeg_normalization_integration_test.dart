@@ -17,7 +17,7 @@ void main() {
     'vorbis.ogg',
     'video-with-aac.mp4'
   ]) {
-    test('normalizes the downloaded audio format $name', () async {
+    test('normalizes and encodes $name as MP3', () async {
       final root = await Directory.systemTemp.createTemp('music_codec_');
       addTearDown(() => root.delete(recursive: true));
       final input = File('test/music/fixtures/$name').absolute;
@@ -39,14 +39,7 @@ void main() {
         '-',
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
-      final outputLog = measured.stderr as String;
-      expect(_audioFormat(outputLog), await _probe(ffmpeg, input));
-      expect(output.path, endsWith(name.substring(name.lastIndexOf('.'))));
-      expect(outputLog.split('\nStream mapping:').first, isNot(contains('Video:')));
-      if (name.endsWith('.webm')) {
-        expect(latin1.decode((await output.readAsBytes()).take(64).toList()),
-            contains('webm'));
-      }
+      _expectStereoMp3(output, measured.stderr as String);
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
@@ -81,7 +74,7 @@ void main() {
           stagingDirectory: directory,
           duration: const Duration(seconds: 12),
           onProgress: (_) {});
-      // Measure the decoded output.
+      // Measure the decoded MP3, including the effect of lossy encoding.
       final measured = await Process.run(ffmpeg.path, [
         '-hide_banner',
         '-nostdin',
@@ -94,12 +87,7 @@ void main() {
         '-',
       ]);
       expect(measured.exitCode, 0, reason: '${measured.stderr}');
-      expect(_audioFormat(measured.stderr as String), (
-        container: 'wav',
-        codec: 'pcm_f32le',
-        sampleRate: '${sample.rate}',
-        layout: sample.channels == 1 ? 'mono' : 'stereo',
-      ));
+      _expectStereoMp3(output, measured.stderr as String);
       final json = jsonDecode(RegExp(r'\{[^{}]*\}')
           .allMatches('${measured.stderr}')
           .last
@@ -130,40 +118,15 @@ void main() {
             duration: const Duration(seconds: 2),
             onProgress: (_) {}),
         throwsA(isA<AudioProcessingException>()));
-    expect(await File('${root.path}/normalized.wav').exists(), isFalse);
+    expect(await File('${root.path}/normalized.mp3').exists(), isFalse);
   }, skip: available ? false : 'Install tools/ffmpeg.exe or set MUSIC_FFMPEG');
 }
 
-Future<({String container, String codec, String sampleRate, String layout})>
-    _probe(File ffmpeg, File input) async {
-  final result = await Process.run(ffmpeg.path, [
-    '-hide_banner',
-    '-nostdin',
-    '-i',
-    input.path,
-    '-map',
-    '0:a:0',
-    '-t',
-    '0.1',
-    '-f',
-    'null',
-    '-',
-  ]);
-  expect(result.exitCode, 0, reason: '${result.stderr}');
-  return _audioFormat(result.stderr as String);
-}
-
-({String container, String codec, String sampleRate, String layout})
-    _audioFormat(String log) {
+void _expectStereoMp3(File output, String log) {
   final header = log.split('\nStream mapping:').first;
-  final container = RegExp(r'^Input #0, (.+?), from ', multiLine: true)
-      .firstMatch(header)!;
-  final audio = RegExp(r'Audio: (\w+).*?, (\d+) Hz, ([^,\r\n]+)')
-      .firstMatch(header)!;
-  return (
-    container: container[1]!,
-    codec: audio[1]!,
-    sampleRate: audio[2]!,
-    layout: audio[3]!,
-  );
+  expect(output.path, endsWith('.mp3'));
+  expect(header, contains('Input #0, mp3, from '));
+  expect(header,
+      matches(RegExp(r'Audio: mp3\b[^\r\n]*?, 48000 Hz, stereo\b')));
+  expect(header, isNot(contains('Video:')));
 }

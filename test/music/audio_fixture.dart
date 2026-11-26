@@ -3,7 +3,7 @@ import 'dart:math';
 import 'dart:typed_data';
 
 /// Generate PCM locally so the shipped FFmpeg needs no signal generators,
-/// device support or lavfi input for tests.
+/// WAV encoder, device support or lavfi input solely for tests.
 Future<File> writeAudioFixture(
   File file, {
   double amplitude = .2,

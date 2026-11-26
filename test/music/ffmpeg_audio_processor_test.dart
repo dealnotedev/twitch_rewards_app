@@ -41,11 +41,10 @@ void main() {
           calls.add(args);
           if (calls.length == 2) await File(args.last).writeAsBytes([7, 8]);
           return TestAudioProcess.completed(
-              stderr: '$fakeOpusInputHeader$measurements',
+              stderr: measurements,
               stdout: 'out_time_us=5000000\nprogress=continue\n');
         });
     final output = await normalize(processor, onProgress: progress.add);
-    expect(output.path, endsWith('normalized.webm'));
     expect(await output.readAsBytes(), [7, 8]);
     expect(calls, hasLength(2));
     expect(calls.first, containsAllInOrder(['-f', 'null', '-']));
@@ -56,16 +55,7 @@ void main() {
     expect(filter, contains('measured_thresh=-35.0'));
     expect(filter, contains('offset=0.15:linear=true'));
     expect(calls.last,
-        containsAllInOrder([
-          '-ar',
-          '48000',
-          '-ch_layout',
-          'mono',
-          '-c:a',
-          'libopus',
-          '-f',
-          'webm',
-        ]));
+        containsAllInOrder(['-ar', '48000', '-ac', '2', '-c:a', 'libmp3lame']));
     expect(
         progress.map((p) => p.phase),
         containsAllInOrder([
@@ -92,7 +82,7 @@ void main() {
       await expectLater(
           normalize(processor), throwsA(isA<AudioProcessingException>()));
       expect(starts, 1);
-      expect(await File('${root.path}/normalized.webm').exists(), isFalse);
+      expect(await File('${root.path}/normalized.mp3').exists(), isFalse);
     });
   }
 
@@ -104,7 +94,7 @@ void main() {
         executable: 'ffmpeg',
         processStarter: (_, _) async {
           starts++;
-          return TestAudioProcess.completed(stderr: '$fakeOpusInputHeader$measurements');
+          return TestAudioProcess.completed(stderr: measurements);
         });
     await expectLater(
         normalize(processor, onProgress: (p) {
@@ -150,7 +140,7 @@ void main() {
           starts++;
           if (starts == 1) return process;
           if (starts == 3) await File(args.last).writeAsBytes([1]);
-          return TestAudioProcess.completed(stderr: '$fakeOpusInputHeader$measurements');
+          return TestAudioProcess.completed(stderr: measurements);
         });
     await expectLater(
         normalize(processor),
@@ -166,7 +156,7 @@ void main() {
         executable: 'ffmpeg',
         processStarter: (_, args) async {
           if (++starts == 1) {
-            return TestAudioProcess.completed(stderr: '$fakeOpusInputHeader$measurements');
+            return TestAudioProcess.completed(stderr: measurements);
           }
           await File(args.last).writeAsBytes([1]);
           return TestAudioProcess.completed(
